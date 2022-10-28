@@ -1,7 +1,42 @@
 import * as generics from "./AllGenerics.js";
 import * as utils from "./utils.js";
 
+/**
+ * A DataFrame is a collection of equilength vector-like objects as "columns".
+ * The number of rows in the DataFrame is equal to the length of the columns, where the i-th row consists of the i-th element from each column.
+ *
+ * This class supports optional row names, which are either `null` or an array of strings of length equal to the number of rows.
+ *
+ * This class supports empty instances with a non-zero number of rows, which may be useful for piece-wise construction.
+ *
+ * The vector-like object for each column is expected to have methods for the following generics:
+ *
+ * - {@linkcode LENGTH}
+ * - {@linkcode SLICE}
+ * - {@linkcode COMBINE}
+ * - {@linkcode CLONE}
+ *
+ * The DataFrame itself defines methods for the following generics:
+ *
+ * - {@linkcode LENGTH}
+ * - {@linkcode SLICE}
+ * - {@linkcode COMBINE}
+ * - {@linkcode CLONE}
+ */
 export class DataFrame {
+    /**
+     * @param {Object} columns - Object where keys are the column names and the values are equilength vector-like objects.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {?number} [options.numberOfRows=null] - Non-negative value specifying the number of rows in the DataFrame.
+     * If `null`, this is automatically determined from the length of the vectors in `columns`, or from the length of `rowNames`.
+     * If non-`null`, this should not conflict with the inferred lengths from `columns` or `rowNames`.
+     * @param {?Array} [options.rowNames=null] - Array of strings containing the names for each row.
+     * If non-`null`, this should have the same length as the vectors inside `columns`, if any exist.
+     * If `null`, no row names are used.
+     * @param {?Array} [options.columnOrder=null] - Array of strings specifying the ordering of the columns.
+     * If non-`null`, this should have the same values as the keys of `columns`.
+     * If `null`, an arbitrary ordering is obtained from `columns`.
+     */
     constructor(columns, { numberOfRows = null, rowNames = null, columnOrder = null } = {}) {
         this._numberOfRows = numberOfRows;
         this._rowNames = rowNames;
@@ -40,6 +75,7 @@ export class DataFrame {
             } else if (this._numberOfRows != rowNames.length) {
                 throw new Error("length of 'rowNames' is inconsistent with the number of rows of 'x'");
             }
+            DataFrame._check_rowNames(rowNames);
         }
 
         if (this._numberOfRows == null) {
@@ -57,30 +93,58 @@ export class DataFrame {
         }
     }
 
+    static _check_rowNames(rn) {
+        for (const x of rn) {
+            if (typeof x !== "string") {
+                throw new Error("array of row names should only contain strings");
+            }
+        }
+    }
+
     /**************************************************************************
      **************************************************************************
      **************************************************************************/
 
+    /**
+     * @return {?Array} Array of strings containing row names, or `null` if no row names are available.
+     */
     rowNames() {
         return this._rowNames;
     }
 
+    /**
+     * @return {Array} Array of strings containing the column names in the specified order.
+     */
     columnNames() {
         return this._columnOrder;
     }
 
+    /**
+     * @param {string} name - Name of a column.
+     * @return {boolean} Whether the column exists in this DataFrame.
+     */
     hasColumn(name) {
         return name in this._columns;
     }
 
+    /**
+     * @return {number} Number of rows in this DataFrame.
+     */
     numberOfRows() {
         return this._numberOfRows;
     }
 
+    /**
+     * @return {number} Number of columns in this DataFrame.
+     */
     numberOfColumns() {
         return this._columnOrder.length;
     }
 
+    /**
+     * @param {string|number} i - Column to retrieve, either by name or index.
+     * @return {*} The contents of column `i` as a vector-like object.
+     */
     column(i) {
         if (typeof i == "string") {
             if (!(i in this._columns)) {
@@ -97,6 +161,10 @@ export class DataFrame {
      **************************************************************************
      **************************************************************************/
 
+    /**
+     * @param {string|number} i - Column to remove, either by name or index.
+     * @return {DataFrame} Reference to this DataFrame after the column is removed.
+     */
     $removeColumn(i) {
         if (typeof i == "string") {
             let ii = this._columnOrder.indexOf(i);
@@ -111,8 +179,17 @@ export class DataFrame {
             this._columnOrder.splice(i, 1);
             delete this._columns[n];
         }
+        return this;
     }
 
+    /**
+     * @param {string|number} i - Column to add, either by name or index.
+     * Numeric `i` should be non-negative and less than the number of columns.
+     * @return {DataFrame} Reference to this DataFrame with modified columns.
+     * - If `i` is a number, the column at the specified index is replaced.
+     * - If `i` is a string, any column with the same name is replaced.
+     *   If no such column exists, a new column is appended to the DataFrame.
+     */
     $setColumn(i, value) {
         if (generics.LENGTH(value) != this._numberOfRows) {
             throw new Error("expected 'value' to have the same length as the number of rows in 'x'");
@@ -123,14 +200,18 @@ export class DataFrame {
                 this._columnOrder.push(i);
             }
             this._columns[i] = value;
-            return;
+        } else {
+            this._check_index(i);
+            this._columns[this._columnOrder[i]] = value;
         }
-
-        this._check_index(i);
-        this._columns[this._columnOrder[i]] = value;
-        return;
+        return this;
     }
 
+    /**
+     * @param {Array} names - Array of unique strings containing the new name for each column.
+     * This should have the same length as {@linkcode DataFrame#columnNames DataFrame.columnNames}.
+     * @return {DataFrame} Reference to this DataFrame with modified column names.
+     */
     $setColumnNames(names) {
         if (names.length != this._columnOrder.length) {
             throw new Error("length of replacement 'names' must be equal to the number of columns");
@@ -146,14 +227,22 @@ export class DataFrame {
 
         this._columns = new_columns;
         this._columnOrder = names;
-        return;
+        return this;
     }
 
+    /**
+     * @param {?Array} names - Array of unique strings containing the new name for each row.
+     * This should have the same length as {@linkcode DataFrame#numberOfRows DataFrame.numberOfRows}.
+     *
+     * Alternatively, this may be `null` to remove any existing column names.
+     * @return {DataFrame} Reference to this DataFrame with modified row names.
+     */
     $setRowNames(names) {
         if (names != null) {
             if (names.length != this._numberOfRows) {
                 throw new Error("length of replacement 'names' must be equal to the number of rows");
             }
+            DataFrame._check_rowNames(names);
         }
         this._rowNames = names;
         return;
