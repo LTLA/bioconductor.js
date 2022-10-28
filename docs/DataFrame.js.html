@@ -29,7 +29,7 @@
     
     <input type="text" id="nav-search" placeholder="Search" />
     
-    <h2><a href="index.html">Home</a></h2><h2><a href="https://github.com/LTLA/bioconductor.js" target="_blank" class="menu-item" id="repository" >Code Repo</a></h2><h3>Classes</h3><ul><li><a href="DataFrame.html">DataFrame</a><ul class='methods'><li data-type='method' style='display: none;'><a href="DataFrame.html#$removeColumn">$removeColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setColumn">$setColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setColumnNames">$setColumnNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setRowNames">$setRowNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#column">column</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#columnNames">columnNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#hasColumn">hasColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#numberOfColumns">numberOfColumns</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#numberOfRows">numberOfRows</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#rowNames">rowNames</a></li></ul></li></ul><h3>Global</h3><ul><li><a href="global.html#CLONE">CLONE</a></li><li><a href="global.html#COMBINE">COMBINE</a></li><li><a href="global.html#LENGTH">LENGTH</a></li><li><a href="global.html#presplitFactor">presplitFactor</a></li><li><a href="global.html#SLICE">SLICE</a></li><li><a href="global.html#SPLIT">SPLIT</a></li><li><a href="global.html#which">which</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h2><a href="https://github.com/LTLA/bioconductor.js" target="_blank" class="menu-item" id="repository" >Code Repo</a></h2><h3>Classes</h3><ul><li><a href="DataFrame.html">DataFrame</a><ul class='methods'><li data-type='method' style='display: none;'><a href="DataFrame.html#$removeColumn">$removeColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setColumn">$setColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setColumnNames">$setColumnNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setRowNames">$setRowNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#column">column</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#columnNames">columnNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#hasColumn">hasColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#numberOfColumns">numberOfColumns</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#numberOfRows">numberOfRows</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#rowNames">rowNames</a></li></ul></li></ul><h3>Global</h3><ul><li><a href="global.html#CLONE">CLONE</a></li><li><a href="global.html#COMBINE">COMBINE</a></li><li><a href="global.html#flexibleCombineRows">flexibleCombineRows</a></li><li><a href="global.html#LENGTH">LENGTH</a></li><li><a href="global.html#presplitFactor">presplitFactor</a></li><li><a href="global.html#SLICE">SLICE</a></li><li><a href="global.html#SPLIT">SPLIT</a></li><li><a href="global.html#which">which</a></li></ul>
 </nav>
 
 <div id="main">
@@ -357,23 +357,23 @@ export class DataFrame {
         }
     }
 
-    _bioconductor_COMBINE(y, { allowAppend = false }) {
+    _bioconductor_COMBINE(objects, { allowAppend = false }) {
         let options = { allowAppend };
         let new_columns = {};
         for (const x of this._columnOrder) {
             let yarr = [];
-            for (const yi of y) {
+            for (const yi of objects) {
                 if (!(x in yi._columns)) {
                     throw new Error("missing column '" + x + "' across DataFrames to be combined");
                 }
                 yarr.push(yi._columns[x]);
             }
-            new_columns[x] = generics.COMBINE(this._columns[x], yarr, options);
+            new_columns[x] = generics.COMBINE(yarr, options);
         }
 
-        let new_numberOfRows = this._numberOfRows;
-        let has_rowNames = this._rowNames !== null;
-        for (const yi of y) {
+        let new_numberOfRows = 0;
+        let has_rowNames = false;
+        for (const yi of objects) {
             if (yi.numberOfColumns() != this.numberOfColumns()) {
                 throw new Error("mismatching number of columns across DataFrames to be combined");
             }
@@ -390,9 +390,9 @@ export class DataFrame {
             new_rowNames = new Array(new_numberOfRows);
 
             let counter = 0;
-            let set_rowNames = obj => {
+            for (const obj of objects) {
                 if (obj._rowNames == null) {
-                    new_rowNames.fill(null, counter, counter + obj._numberOfRows);
+                    new_rowNames.fill("", counter, counter + obj._numberOfRows);
                     counter += obj._numberOfRows;
                 } else {
                     obj._rowNames.forEach(x => {
@@ -400,11 +400,6 @@ export class DataFrame {
                         counter++;
                     });
                 }
-            }
-
-            set_rowNames(this);
-            for (const yi of y) {
-                set_rowNames(yi);
             }
         }
 
@@ -442,6 +437,46 @@ export class DataFrame {
         return output;
     }
 };
+
+/**
+ * Flexibly combine multiple DataFrames by row by filling in missing columns with an array of `null`s.
+ * This is equivalent to calling {@linkcode COMBINE} on an array of DataFrames that may have mismatching columns.
+ *
+ * @param {Array} objects - Array of {@linkplain DataFrame}s to be combined.
+ *
+ * @return {DataFrame} The combined DataFrame, where the number of rows is equal to sum of rows across `objects`,
+ * and the columns is equal to the union of columns across `objects`.
+ */
+export function flexibleCombineRows(objects) {
+    let ckeys = new Set();
+    let corder = [];
+    for (const current of objects) {
+        let cnames = current.columnNames();
+        for (const a of cnames) {
+            if (!ckeys.has(a)) {
+                ckeys.add(a);
+                corder.push(a);
+            }
+        }
+    }
+
+    let copies = [];
+    for (const current of objects) {
+        let dummy = new Array(current.numberOfRows());
+        dummy.fill(null);
+        let copy = generics.CLONE(current, { deepCopy: false });
+
+        for (const a of corder) {
+            if (!current.hasColumn(a)) {
+                copy.$setColumn(a, dummy);
+            }
+        }
+
+        copies.push(copy);
+    }
+
+    return generics.COMBINE(copies);
+}
 </code></pre>
         </article>
     </section>
@@ -456,7 +491,7 @@ export class DataFrame {
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Fri Oct 28 2022 22:09:44 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Fri Oct 28 2022 22:36:18 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
