@@ -29,7 +29,7 @@
     
     <input type="text" id="nav-search" placeholder="Search" />
     
-    <h2><a href="index.html">Home</a></h2><h2><a href="https://github.com/LTLA/bioconductor.js" target="_blank" class="menu-item" id="repository" >Code Repo</a></h2><h3>Classes</h3><ul><li><a href="DataFrame.html">DataFrame</a><ul class='methods'><li data-type='method' style='display: none;'><a href="DataFrame.html#$removeColumn">$removeColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setColumn">$setColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setColumnNames">$setColumnNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setRowNames">$setRowNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#column">column</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#columnNames">columnNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#hasColumn">hasColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#numberOfColumns">numberOfColumns</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#numberOfRows">numberOfRows</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#rowNames">rowNames</a></li></ul></li></ul><h3>Global</h3><ul><li><a href="global.html#CLONE">CLONE</a></li><li><a href="global.html#COMBINE">COMBINE</a></li><li><a href="global.html#LENGTH">LENGTH</a></li><li><a href="global.html#SLICE">SLICE</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h2><a href="https://github.com/LTLA/bioconductor.js" target="_blank" class="menu-item" id="repository" >Code Repo</a></h2><h3>Classes</h3><ul><li><a href="DataFrame.html">DataFrame</a><ul class='methods'><li data-type='method' style='display: none;'><a href="DataFrame.html#$removeColumn">$removeColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setColumn">$setColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setColumnNames">$setColumnNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setRowNames">$setRowNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#column">column</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#columnNames">columnNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#hasColumn">hasColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#numberOfColumns">numberOfColumns</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#numberOfRows">numberOfRows</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#rowNames">rowNames</a></li></ul></li></ul><h3>Global</h3><ul><li><a href="global.html#CLONE">CLONE</a></li><li><a href="global.html#COMBINE">COMBINE</a></li><li><a href="global.html#LENGTH">LENGTH</a></li><li><a href="global.html#presplitFactor">presplitFactor</a></li><li><a href="global.html#SLICE">SLICE</a></li><li><a href="global.html#SPLIT">SPLIT</a></li><li><a href="global.html#which">which</a></li></ul>
 </nav>
 
 <div id="main">
@@ -45,11 +45,15 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>import * as utils from "./utils.js";
+import * as misc from "./miscellaneous.js";
 
 /**
  * Compute the length of a vector-like object.
- * For built-in Array and TypedArrays, this just returns the `length` property directly.
+ *
+ * For Array and TypedArrays, this just returns the `length` property directly.
+ *
  * Custom classes should provide a `_bioconductor_LENGTH` method to describe their length.
+ * This method should accept no arguments. 
  *
  * @param {*} x - Some vector-like object.
  * @return {number} Length of the object.
@@ -68,8 +72,11 @@ export function LENGTH(x) {
 
 /**
  * Slice a vector-like object.
- * For built-in Array and TypedArrays, this just uses `slice()` or `subarray()`.
+ *
+ * For Array and TypedArrays, this just uses `slice()` or `subarray()`.
+ *
  * Custom classes should provide a `_bioconductor_SLICE` method to create a slice.
+ * This method should accept the same arguments as `SLICE` except for `x`.
  *
  * @param {*} x - Some vector-like object.
  * @param {Object|Array|TypedArray} i - An Array or TypedArray of integer indices specifying the slice of `x` to retain.
@@ -112,7 +119,11 @@ export function SLICE(x, i, { allowInPlace = false, allowView = false } = {}) {
 
 /**
  * Combine multiple vector-like objects.
+ *
+ * For Array and TypedArrays, the combined array is of a class that avoids information loss.
+ *
  * Custom classes should provide a `_bioconductor_COMBINE` method to define the combining operation.
+ * This method should accept the same arguments as `COMBINE` except for `x`.
  *
  * @param {*} x - Some vector-like object.
  * @param {Array} y - Array of vector-like objects that are compatible with `x`.
@@ -168,7 +179,12 @@ export function COMBINE(x, y, { allowAppend = false } = {}) {
 
 /**
  * Clone a vector-like object.
+ * 
+ * For TypedArrays, this just uses `slice()`.
+ * For Arrays, this creates a copy and runs `CLONE` on each element in the copy.
+ *
  * Custom classes should provide a `_bioconductor_CLONE` method to define the cloning operation.
+ * This method should accept the same arguments as `COMBINE` except for `x`.
  *
  * @param {*} x - Some vector-like object.
  * @param {Object} [options={}] - Optional parameters.
@@ -180,34 +196,68 @@ export function COMBINE(x, y, { allowAppend = false } = {}) {
  * If `deepCopy=true`, all internal components are also cloned.
  */
 export function CLONE(x, { deepCopy = true } = {}) {
-    if ("_bioconductor_CLONE" in x) {
-        return x._bioconductor_CLONE({ deepCopy });
-    }
-
-    if (utils.isArrayLike(x)) {
-        if (x.constructor == Array) {
-            return x.slice();
-        } else if (deepCopy) {
-            return x.slice();
-        } else {
-            return x.subarray();
+    if (x instanceof Object) {
+        let options = { deepCopy };
+        if ("_bioconductor_CLONE" in x) {
+            return x._bioconductor_CLONE(options);
         }
-    }
 
-    if (x.constructor == Object) {
-        if (deepCopy) {
-            let output = {};
-            for (const [k, v] of Object.entries(x)) {
-                output[k] = CLONE(v);
+        if (utils.isArrayLike(x)) {
+            if (x.constructor == Array) {
+                return x.map(y => CLONE(y, options));
+            } else if (deepCopy) {
+                return x.slice();
+            } else {
+                return x.subarray();
             }
-            return output;
-        } else {
-            return { ...x };
+        }
+
+        if (x.constructor == Object) {
+            if (deepCopy) {
+                let output = {};
+                for (const [k, v] of Object.entries(x)) {
+                    output[k] = CLONE(v);
+                }
+                return output;
+            } else {
+                return { ...x };
+            }
         }
     }
 
     // Immutable atomics should be all that's left.
     return x;
+}
+
+/**
+ * Split a vector-like object along its length according to the levels of a factor of the same length.
+ * This works automatically for all classes for which there is a {@linkcode LENGTH} and {@linkcode SLICE} method,
+ * but custom classes may choose to define their own `_bioconductor_SPLIT` method. 
+ *
+ * @param {*} x - Some vector-like object.
+ * @param {Array|TypedArray} factor - Array containing the factor to use for splitting.
+ * This should have the same length as `x`.
+ *
+ * Alternatively, the output of {@linkcode presplitFactor} can be supplied.
+ *
+ * @return {Object} An object containing one key per level of `factor`,
+ * where the value is the slice of `x` corresponding to the indices of that level in `factor`.
+ */
+export function SPLIT(x, factor) {
+    if (factor.constructor != Object) {
+        factor = misc.presplitFactor(factor);
+    }
+
+    if ("_bioconductor_SPLIT" in x) {
+        return x._bioconductor_SPLIT(factor);
+    }
+
+    let output = {};
+    for (const [k, v] of Object.entries(factor)) {
+        output[k] = SLICE(x, v);
+    }
+
+    return output;
 }
 </code></pre>
         </article>
@@ -223,7 +273,7 @@ export function CLONE(x, { deepCopy = true } = {}) {
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Fri Oct 28 2022 20:55:30 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Fri Oct 28 2022 22:09:44 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>

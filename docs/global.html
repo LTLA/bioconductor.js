@@ -29,7 +29,7 @@
     
     <input type="text" id="nav-search" placeholder="Search" />
     
-    <h2><a href="index.html">Home</a></h2><h2><a href="https://github.com/LTLA/bioconductor.js" target="_blank" class="menu-item" id="repository" >Code Repo</a></h2><h3>Classes</h3><ul><li><a href="DataFrame.html">DataFrame</a><ul class='methods'><li data-type='method' style='display: none;'><a href="DataFrame.html#$removeColumn">$removeColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setColumn">$setColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setColumnNames">$setColumnNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setRowNames">$setRowNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#column">column</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#columnNames">columnNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#hasColumn">hasColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#numberOfColumns">numberOfColumns</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#numberOfRows">numberOfRows</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#rowNames">rowNames</a></li></ul></li></ul><h3>Global</h3><ul><li><a href="global.html#CLONE">CLONE</a></li><li><a href="global.html#COMBINE">COMBINE</a></li><li><a href="global.html#LENGTH">LENGTH</a></li><li><a href="global.html#SLICE">SLICE</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h2><a href="https://github.com/LTLA/bioconductor.js" target="_blank" class="menu-item" id="repository" >Code Repo</a></h2><h3>Classes</h3><ul><li><a href="DataFrame.html">DataFrame</a><ul class='methods'><li data-type='method' style='display: none;'><a href="DataFrame.html#$removeColumn">$removeColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setColumn">$setColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setColumnNames">$setColumnNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setRowNames">$setRowNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#column">column</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#columnNames">columnNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#hasColumn">hasColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#numberOfColumns">numberOfColumns</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#numberOfRows">numberOfRows</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#rowNames">rowNames</a></li></ul></li></ul><h3>Global</h3><ul><li><a href="global.html#CLONE">CLONE</a></li><li><a href="global.html#COMBINE">COMBINE</a></li><li><a href="global.html#LENGTH">LENGTH</a></li><li><a href="global.html#presplitFactor">presplitFactor</a></li><li><a href="global.html#SLICE">SLICE</a></li><li><a href="global.html#SPLIT">SPLIT</a></li><li><a href="global.html#which">which</a></li></ul>
 </nav>
 
 <div id="main">
@@ -138,7 +138,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="AllGenerics.js.html">AllGenerics.js</a>, <a href="AllGenerics.js.html#line136">line 136</a>
+        <a href="AllGenerics.js.html">AllGenerics.js</a>, <a href="AllGenerics.js.html#line152">line 152</a>
     </li></ul></dd>
     
 
@@ -178,8 +178,11 @@
 
 
 <div class="description usertext">
-    <p>Clone a vector-like object.
-Custom classes should provide a <code>_bioconductor_CLONE</code> method to define the cloning operation.</p>
+    <p>Clone a vector-like object.</p>
+<p>For TypedArrays, this just uses <code>slice()</code>.
+For Arrays, this creates a copy and runs <code>CLONE</code> on each element in the copy.</p>
+<p>Custom classes should provide a <code>_bioconductor_CLONE</code> method to define the cloning operation.
+This method should accept the same arguments as <code>COMBINE</code> except for <code>x</code>.</p>
 </div>
 
 
@@ -424,7 +427,7 @@ If <code>deepCopy=true</code>, all internal components are also cloned.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="AllGenerics.js.html">AllGenerics.js</a>, <a href="AllGenerics.js.html#line87">line 87</a>
+        <a href="AllGenerics.js.html">AllGenerics.js</a>, <a href="AllGenerics.js.html#line98">line 98</a>
     </li></ul></dd>
     
 
@@ -464,8 +467,10 @@ If <code>deepCopy=true</code>, all internal components are also cloned.</p>
 
 
 <div class="description usertext">
-    <p>Combine multiple vector-like objects.
-Custom classes should provide a <code>_bioconductor_COMBINE</code> method to define the combining operation.</p>
+    <p>Combine multiple vector-like objects.</p>
+<p>For Array and TypedArrays, the combined array is of a class that avoids information loss.</p>
+<p>Custom classes should provide a <code>_bioconductor_COMBINE</code> method to define the combining operation.
+This method should accept the same arguments as <code>COMBINE</code> except for <code>x</code>.</p>
 </div>
 
 
@@ -752,7 +757,7 @@ Setting <code>allowAppend=true</code> should only be used if the input <code>x</
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="AllGenerics.js.html">AllGenerics.js</a>, <a href="AllGenerics.js.html#line11">line 11</a>
+        <a href="AllGenerics.js.html">AllGenerics.js</a>, <a href="AllGenerics.js.html#line15">line 15</a>
     </li></ul></dd>
     
 
@@ -792,9 +797,10 @@ Setting <code>allowAppend=true</code> should only be used if the input <code>x</
 
 
 <div class="description usertext">
-    <p>Compute the length of a vector-like object.
-For built-in Array and TypedArrays, this just returns the <code>length</code> property directly.
-Custom classes should provide a <code>_bioconductor_LENGTH</code> method to describe their length.</p>
+    <p>Compute the length of a vector-like object.</p>
+<p>For Array and TypedArrays, this just returns the <code>length</code> property directly.</p>
+<p>Custom classes should provide a <code>_bioconductor_LENGTH</code> method to describe their length.
+This method should accept no arguments.</p>
 </div>
 
 
@@ -900,7 +906,7 @@ Custom classes should provide a <code>_bioconductor_LENGTH</code> method to desc
 
     
 
-    <h4 class="name" id="SLICE"><span class="type-signature"></span>SLICE<span class="signature">(x, i, options<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {*}</span></h4>
+    <h4 class="name" id="presplitFactor"><span class="type-signature"></span>presplitFactor<span class="signature">(factor)</span><span class="type-signature"> &rarr; {Object}</span></h4>
 
     
 
@@ -912,7 +918,7 @@ Custom classes should provide a <code>_bioconductor_LENGTH</code> method to desc
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="AllGenerics.js.html">AllGenerics.js</a>, <a href="AllGenerics.js.html#line43">line 43</a>
+        <a href="miscellaneous.js.html">miscellaneous.js</a>, <a href="miscellaneous.js.html#line27">line 27</a>
     </li></ul></dd>
     
 
@@ -952,9 +958,172 @@ Custom classes should provide a <code>_bioconductor_LENGTH</code> method to desc
 
 
 <div class="description usertext">
-    <p>Slice a vector-like object.
-For built-in Array and TypedArrays, this just uses <code>slice()</code> or <code>subarray()</code>.
-Custom classes should provide a <code>_bioconductor_SLICE</code> method to create a slice.</p>
+    <p>Given a factor, return the indices corresponding to each level.
+This can be used in subsequent <code>splitRows</code> calls.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>factor</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+|
+
+<span class="param-type">TypedArray</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Array containing the factor of interest.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Object where each key is a factor level and each value is an array containing the indices corresponding to that level in <code>factor</code>.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Object</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="SLICE"><span class="type-signature"></span>SLICE<span class="signature">(x, i, options<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {*}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="AllGenerics.js.html">AllGenerics.js</a>, <a href="AllGenerics.js.html#line50">line 50</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>Slice a vector-like object.</p>
+<p>For Array and TypedArrays, this just uses <code>slice()</code> or <code>subarray()</code>.</p>
+<p>Custom classes should provide a <code>_bioconductor_SLICE</code> method to create a slice.
+This method should accept the same arguments as <code>SLICE</code> except for <code>x</code>.</p>
 </div>
 
 
@@ -1265,6 +1434,477 @@ Whether this is actually done depends on the method, but may improve efficiency 
 
 
         
+            
+
+    
+
+    <h4 class="name" id="SPLIT"><span class="type-signature"></span>SPLIT<span class="signature">(x, factor)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="AllGenerics.js.html">AllGenerics.js</a>, <a href="AllGenerics.js.html#line200">line 200</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>Split a vector-like object along its length according to the levels of a factor of the same length.
+This works automatically for all classes for which there is a <a href="global.html#LENGTH"><code>LENGTH</code></a> and <a href="global.html#SLICE"><code>SLICE</code></a> method,
+but custom classes may choose to define their own <code>_bioconductor_SPLIT</code> method.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>x</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">*</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Some vector-like object.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>factor</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+|
+
+<span class="param-type">TypedArray</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Array containing the factor to use for splitting.
+This should have the same length as <code>x</code>.</p>
+<p>Alternatively, the output of <a href="global.html#presplitFactor"><code>presplitFactor</code></a> can be supplied.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>An object containing one key per level of <code>factor</code>,
+where the value is the slice of <code>x</code> corresponding to the indices of that level in <code>factor</code>.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Object</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="which"><span class="type-signature"></span>which<span class="signature">(x, options<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Array}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="miscellaneous.js.html">miscellaneous.js</a>, <a href="miscellaneous.js.html#line9">line 9</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>x</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+|
+
+<span class="param-type">TypedArray</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>Array of values to be interpreted as truthy or falsey.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>options</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>{}</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>Optional parameters.</p>
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>not</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>false</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>Whether to select the entries of <code>x</code> that are falsey.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Array of indices of the entries of <code>x</code> that are truthy (if <code>not=false</code>) or falsey (if <code>not=true</code>).
+This array is guaranteed to be sorted in ascending order.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Array</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
     
 
     
@@ -1284,7 +1924,7 @@ Whether this is actually done depends on the method, but may improve efficiency 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Fri Oct 28 2022 20:55:30 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Fri Oct 28 2022 22:09:44 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
