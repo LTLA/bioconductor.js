@@ -311,23 +311,23 @@ export class DataFrame {
         }
     }
 
-    _bioconductor_COMBINE(y, { allowAppend = false }) {
+    _bioconductor_COMBINE(objects, { allowAppend = false }) {
         let options = { allowAppend };
         let new_columns = {};
         for (const x of this._columnOrder) {
             let yarr = [];
-            for (const yi of y) {
+            for (const yi of objects) {
                 if (!(x in yi._columns)) {
                     throw new Error("missing column '" + x + "' across DataFrames to be combined");
                 }
                 yarr.push(yi._columns[x]);
             }
-            new_columns[x] = generics.COMBINE(this._columns[x], yarr, options);
+            new_columns[x] = generics.COMBINE(yarr, options);
         }
 
-        let new_numberOfRows = this._numberOfRows;
-        let has_rowNames = this._rowNames !== null;
-        for (const yi of y) {
+        let new_numberOfRows = 0;
+        let has_rowNames = false;
+        for (const yi of objects) {
             if (yi.numberOfColumns() != this.numberOfColumns()) {
                 throw new Error("mismatching number of columns across DataFrames to be combined");
             }
@@ -344,9 +344,9 @@ export class DataFrame {
             new_rowNames = new Array(new_numberOfRows);
 
             let counter = 0;
-            let set_rowNames = obj => {
+            for (const obj of objects) {
                 if (obj._rowNames == null) {
-                    new_rowNames.fill(null, counter, counter + obj._numberOfRows);
+                    new_rowNames.fill("", counter, counter + obj._numberOfRows);
                     counter += obj._numberOfRows;
                 } else {
                     obj._rowNames.forEach(x => {
@@ -354,11 +354,6 @@ export class DataFrame {
                         counter++;
                     });
                 }
-            }
-
-            set_rowNames(this);
-            for (const yi of y) {
-                set_rowNames(yi);
             }
         }
 
@@ -396,3 +391,43 @@ export class DataFrame {
         return output;
     }
 };
+
+/**
+ * Flexibly combine multiple DataFrames by row by filling in missing columns with an array of `null`s.
+ * This is equivalent to calling {@linkcode COMBINE} on an array of DataFrames that may have mismatching columns.
+ *
+ * @param {Array} objects - Array of {@linkplain DataFrame}s to be combined.
+ *
+ * @return {DataFrame} The combined DataFrame, where the number of rows is equal to sum of rows across `objects`,
+ * and the columns is equal to the union of columns across `objects`.
+ */
+export function flexibleCombineRows(objects) {
+    let ckeys = new Set();
+    let corder = [];
+    for (const current of objects) {
+        let cnames = current.columnNames();
+        for (const a of cnames) {
+            if (!ckeys.has(a)) {
+                ckeys.add(a);
+                corder.push(a);
+            }
+        }
+    }
+
+    let copies = [];
+    for (const current of objects) {
+        let dummy = new Array(current.numberOfRows());
+        dummy.fill(null);
+        let copy = generics.CLONE(current, { deepCopy: false });
+
+        for (const a of corder) {
+            if (!current.hasColumn(a)) {
+                copy.$setColumn(a, dummy);
+            }
+        }
+
+        copies.push(copy);
+    }
+
+    return generics.COMBINE(copies);
+}

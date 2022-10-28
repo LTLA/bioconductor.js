@@ -77,27 +77,29 @@ export function SLICE(x, i, { allowInPlace = false, allowView = false } = {}) {
  * For Array and TypedArrays, the combined array is of a class that avoids information loss.
  *
  * Custom classes should provide a `_bioconductor_COMBINE` method to define the combining operation.
- * This method should accept the same arguments as `COMBINE` except for `x`.
+ * This method should accept the same arguments as `COMBINE`.
  *
- * @param {*} x - Some vector-like object.
- * @param {Array} y - Array of vector-like objects that are compatible with `x`.
+ * @param {Array} objects - Array of vector-like objects to be combined.
+ * It is assumed that the objects are compatible with each other -
+ * for custom classes, the definition of "compatibility" depends on the `_bioconductor_COMBINE` method of the first element of `objects`.
  * @param {Object} [options={}] - Optional parameters.
  * @param {boolean} [options.allowAppend=false] - Whether the method can append elements of `y` onto `x`, thus modifying `x` in place.
  * Whether this is actually done depends on the method, but may improve efficiency by avoiding unnecessary copies.
  * Setting `allowAppend=true` should only be used if the input `x` is no longer needed.
  *
  * @return {*} A vector-like object containing the concatenated data from the input objects.
- * - If `x` is an instance of a custom class, the return value should be of the same class.
- * - If `x` and all elements of `y` are TypedArrays of the same class, the return value will be a TypedArray of that class.
- * - If any of `x` or the elements of `y` are Arrays, the return value will be an Array.
- * - If any of `x` or `y` are 64-bit TypedArrays of different classes, the return value will be an Array.
- * - Otherwise, for any other classes of TypedArrays in `x` or `y`, the return value will be a Float64Array.
+ * - If the first entry of `objects` is an instance of a custom class, the return value should be of the same class.
+ * - If all `objects` are TypedArrays of the same class, the return value will be a TypedArray of that class.
+ * - If any of the `objects` are Arrays, the return value will be an Array.
+ * - If any of the `objects` are 64-bit TypedArrays of different classes, the return value will be an Array.
+ * - Otherwise, for any other classes of TypedArrays in `objects`, the return value will be a Float64Array.
  *
- * If `allowAppend=true`, the return value _may_ be a reference to `x` that is modified in-place.
+ * If `allowAppend=true`, the return value _may_ be a reference to the first element of `objects` that is modified in-place.
  */
-export function COMBINE(x, y, { allowAppend = false } = {}) {
+export function COMBINE(objects, { allowAppend = false } = {}) {
+    let x = objects[0];
     if ("_bioconductor_COMBINE" in x) {
-        return x._bioconductor_COMBINE(y, { allowAppend });
+        return x._bioconductor_COMBINE(objects, { allowAppend });
     }
 
     if (!utils.isArrayLike(x)) {
@@ -105,18 +107,17 @@ export function COMBINE(x, y, { allowAppend = false } = {}) {
     }
 
     // It is assumed that every 'y' is of some compatible Array-like type as well.
-    let everything = [x, ...y];
     let total_LENGTH = 0;
     let constructor = x.constructor;
 
-    for (const obj of everything) {
+    for (const obj of objects) {
         total_LENGTH += obj.length;
         constructor = utils.chooseArrayConstructors(constructor, obj.constructor);
     }
 
     let output = new constructor(total_LENGTH);
     let position = 0;
-    for (const obj of everything) {
+    for (const obj of objects) {
         if ("set" in output) {
             output.set(obj, position);
             position += obj.length;
@@ -185,8 +186,8 @@ export function CLONE(x, { deepCopy = true } = {}) {
 
 /**
  * Split a vector-like object along its length according to the levels of a factor of the same length.
- * This works automatically for all classes for which there is a {@linkcode LENGTH} and {@linkcode SLICE} method,
- * but custom classes may choose to define their own `_bioconductor_SPLIT` method. 
+ * This works automatically for all classes for which there is a {@linkcode SLICE} method,
+ * but custom classes may also choose to define their own `_bioconductor_SPLIT` method. 
  *
  * @param {*} x - Some vector-like object.
  * @param {Array|TypedArray} factor - Array containing the factor to use for splitting.

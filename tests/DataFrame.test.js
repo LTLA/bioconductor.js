@@ -220,7 +220,7 @@ test("combining multiple array collections works", () => {
     {
         let x = new bioc.DataFrame(obj);
         let y = new bioc.DataFrame(stub);
-        let out = bioc.COMBINE(x, [y]);
+        let out = bioc.COMBINE([x, y]);
 
         expect(out.numberOfRows()).toBe(6);
         expect(x.column("A").constructor.name).toEqual("Int32Array");
@@ -232,19 +232,19 @@ test("combining multiple array collections works", () => {
     {
         let x = new bioc.DataFrame(obj);
         let y = new bioc.DataFrame(stub);
-        let out = bioc.COMBINE(x, [y, y]);
+        let out = bioc.COMBINE([y, x, y]);
 
         expect(out.numberOfRows()).toBe(8);
         expect(x.column("A").constructor.name).toEqual("Int32Array");
-        expect(Array.from(out.column("A"))).toEqual([1,2,3,4,5,6,5,6]);
-        expect(out.column("B")).toEqual(["x", "y", "z", "aa", "bb", "cc", "bb", "cc"]);
+        expect(Array.from(out.column("A"))).toEqual([5,6,1,2,3,4,5,6]);
+        expect(out.column("B")).toEqual(["bb", "cc", "x", "y", "z", "aa", "bb", "cc"]);
     }
 
     // Works for empty objects.
     {
         let x = new bioc.DataFrame({}, { numberOfRows: 5 });
         let y = new bioc.DataFrame({}, { numberOfRows: 4 });
-        let out = bioc.COMBINE(x, [y]);
+        let out = bioc.COMBINE([x, y]);
         expect(out.numberOfRows()).toBe(9);
         expect(out.numberOfColumns()).toBe(0);
     }
@@ -253,12 +253,12 @@ test("combining multiple array collections works", () => {
     {
         let x = new bioc.DataFrame(obj, { rowNames: [ "a", "b", "c", "d" ]});
         let y = new bioc.DataFrame(stub, { rowNames: [ "AA", "BB" ] });
-        let out = bioc.COMBINE(x, [y]);
+        let out = bioc.COMBINE([x, y]);
         expect(out.rowNames()).toEqual(["a", "b", "c", "d", "AA", "BB"]);
 
         y.$setRowNames(null);
-        out = bioc.COMBINE(x, [y]);
-        expect(out.rowNames()).toEqual(["a", "b", "c", "d", null, null]);
+        out = bioc.COMBINE([x, y]);
+        expect(out.rowNames()).toEqual(["a", "b", "c", "d", "", ""]);
     }
 })
 
@@ -268,7 +268,7 @@ test("combining multiple array collections works (append)", () => {
 
     let x = new bioc.DataFrame(obj);
     let y = new bioc.DataFrame(stub);
-    bioc.COMBINE(x, [y], { allowAppend: true });
+    bioc.COMBINE([x, y], { allowAppend: true });
 
     expect(x.numberOfRows()).toBe(6);
     expect(Array.from(x.column("A"))).toEqual([1,2,3,4,5,6]);
@@ -282,24 +282,39 @@ test("combining multiple array collections preserves TypedArray types", () => {
     let stub = { "A": new Float32Array([ 5, 6 ]), "B":[ 'bb', 'cc' ]};
     let y = new bioc.DataFrame(stub);
 
-    let out = bioc.COMBINE(x, [y]);
+    let out = bioc.COMBINE([x, y]);
     expect(out.column("A").constructor.name).toBe("Float64Array"); // promoted.
     expect(Array.from(out.column("A"))).toEqual([1,2,3,4,5,6]);
 
     stub.A = [null, null];
-    out = bioc.COMBINE(x, [y]);
+    out = bioc.COMBINE([x, y]);
     expect(out.column("A").constructor.name).toBe("Array"); // promoted.
     expect(Array.from(out.column("A"))).toEqual([1,2,3,4,null,null]);
 
     // Handles BigInts with some grace.
     stub.A = new BigInt64Array([5n, 6n]);
-    out = bioc.COMBINE(x, [y]);
+    out = bioc.COMBINE([x, y]);
     expect(out.column("A").constructor.name).toBe("Array"); // promoted.
     expect(Array.from(out.column("A"))).toEqual([1,2,3,4,5n,6n]);
 
     obj.A = new BigInt64Array([1n,2n,3n,4n]);
-    out = bioc.COMBINE(x, [y]);
+    out = bioc.COMBINE([x, y]);
     expect(out.column("A").constructor.name).toBe("BigInt64Array"); // promoted.
     expect(Array.from(out.column("A"))).toEqual([1n,2n,3n,4n,5n,6n]);
+})
+
+test("fliexbly combining DataFrames by row", () => {
+    let x = new bioc.DataFrame({ "A": [ 1, 2, 3, 4 ], "B":[ 'x', 'y', 'z', 'aa' ]});
+    let y = new bioc.DataFrame({ "A": [ 5, 6 ], "B":[ 'bb', 'cc' ]});
+    let z = new bioc.DataFrame({ "A": [5, 6] });
+
+    let out = bioc.flexibleCombineRows([x, z, y]);
+    expect(out.column("A")).toEqual([1,2,3,4,5,6,5,6]);
+    expect(out.column("B")).toEqual(["x", "y", "z", "aa", null, null, "bb", "cc"]);
+
+    z.$removeColumn("A");
+    out = bioc.flexibleCombineRows([x, z, y]);
+    expect(out.column("A")).toEqual([1,2,3,4,null,null,5,6]);
+    expect(out.column("B")).toEqual(["x", "y", "z", "aa", null, null, "bb", "cc"]);
 })
 
