@@ -18,7 +18,7 @@
         "name": "Aaron Lun",
         "email": "infinite.monkeys.with.keyboards@gmail.com",
         "url": "https://github.com/LTLA"
-    ],
+    },
     "bugs": "https://github.com/LTLA/bioconductor.js/issues",
     "keywords": [
         "bioinformatics"

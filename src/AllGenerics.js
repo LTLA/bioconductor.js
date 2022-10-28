@@ -1,37 +1,31 @@
-export function _length(x) {
-    if ("_bioconductor_length" in x) {
-        return x._bioconductor_length();
+import * as utils from "./utils.js";
+
+export function LENGTH(x) {
+    if ("_bioconductor_LENGTH" in x) {
+        return x._bioconductor_LENGTH();
     }
 
-    if ("length" in x) {
-        let out = x.length;
-        let type = typeof out;
-        if (type == "function") {
-            return out();
-        } else if (type == "number") {
-            return out;
-        }
+    if (!utils.isArrayLike(x)) {
+        throw new Error("no method for 'LENGTH' in '" + x.constructor.name + "' instance");
     }
-    
-    throw new Error("no method for 'length' in '" + x.constructor.name + "' instance");
+
+    return x.length;
 }
 
-export function _slice(x, i, { allowInPlace = false, allowView = false } = {}) {
-    if ("_bioconductor_slice" in x) {
-        return x._bioconductor_slice(i, { allowInPlace, allowView });
+export function SLICE(x, i, { allowInPlace = false, allowView = false } = {}) {
+    if ("_bioconductor_SLICE" in x) {
+        return x._bioconductor_SLICE(i, { allowInPlace, allowView });
     }
 
-    // Otherwise, 'x' is probably some TypedArray or Array.
+    if (!utils.isArrayLike(x)) {
+        throw new Error("no method for 'SLICE' in '" + x.constructor.name + "' instance");
+    }
+
     if (i.constructor == Object) {
-        if (i.end >= i.start) {
-            if (allowView) {
-                return x.subarray(i.start, i.end);
-            } else {
-                return x.slice(i.start, i.end);
-            }
+        if (allowView && ArrayBuffer.isView(x)) {
+            return x.subarray(i.start, i.end);
         } else {
-            let output = x.slice(i.end, i.start);
-            return output.reverse();
+            return x.slice(i.start, i.end);
         }
     } else {
         let output = new x.constructor(i.length);
@@ -42,25 +36,69 @@ export function _slice(x, i, { allowInPlace = false, allowView = false } = {}) {
     }
 }
 
-export function _combine(x, y, { allowAppend = false } = {}) {
-    if ("_bioconductor_combine" in x) {
-        return x._biocondutor_combine(y, { allowAppend });
+export function COMBINE(x, y, { allowAppend = false } = {}) {
+    if ("_bioconductor_COMBINE" in x) {
+        return x._bioconductor_COMBINE(y, { allowAppend });
     }
 
-    // Otherwise, 'x' is probably some TypedArray or Array. It is assumed that
-    // every 'y' is of some compatible Array-like type as well.
+    if (!utils.isArrayLike(x)) {
+        throw new Error("no method for 'COMBINE' in '" + x.constructor.name + "' instance");
+    }
+
+    // It is assumed that every 'y' is of some compatible Array-like type as well.
     let everything = [x, ...y];
-    let total_length = 0;
+    let total_LENGTH = 0;
+    let constructor = x.constructor;
+
     for (const obj of everything) {
-        total_length += obj.length;
+        total_LENGTH += obj.length;
+        constructor = utils.chooseArrayConstructors(constructor, obj.constructor);
     }
 
-    let output = new x.constructor(total_length);
+    let output = new constructor(total_LENGTH);
     let position = 0;
     for (const obj of everything) {
-        output.set(obj, position);
-        position += obj.length;
+        if ("set" in output) {
+            output.set(obj, position);
+            position += obj.length;
+        } else {
+            obj.forEach(x => {
+                output[position] = x;
+                position++;
+            });
+        }
     }
 
     return output;
+}
+
+export function CLONE(x, { deepCopy = true } = {}) {
+    if ("_bioconductor_CLONE" in x) {
+        return x._bioconductor_CLONE({ deepCopy });
+    }
+
+    if (utils.isArrayLike(x)) {
+        if (x.constructor == Array) {
+            return x.slice();
+        } else if (deepCopy) {
+            return x.slice();
+        } else {
+            return x.subarray();
+        }
+    }
+
+    if (x.constructor == Object) {
+        if (deepCopy) {
+            let output = {};
+            for (const [k, v] of Object.entries(x)) {
+                output[k] = CLONE(v);
+            }
+            return output;
+        } else {
+            return { ...x };
+        }
+    }
+
+    // Immutable atomics should be all that's left.
+    return x;
 }
