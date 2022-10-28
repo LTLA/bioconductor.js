@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>Home - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    <input type="text" id="nav-search" placeholder="Search" />
+    
+    <h2><a href="index.html">Home</a></h2><h2><a href="https://github.com/LTLA/bioconductor.js" target="_blank" class="menu-item" id="repository" >Code Repo</a></h2><h3>Classes</h3><ul><li><a href="DataFrame.html">DataFrame</a><ul class='methods'><li data-type='method' style='display: none;'><a href="DataFrame.html#$removeColumn">$removeColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setColumn">$setColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setColumnNames">$setColumnNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setRowNames">$setRowNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#column">column</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#columnNames">columnNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#hasColumn">hasColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#numberOfColumns">numberOfColumns</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#numberOfRows">numberOfRows</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#rowNames">rowNames</a></li></ul></li></ul><h3>Global</h3><ul><li><a href="global.html#CLONE">CLONE</a></li><li><a href="global.html#COMBINE">COMBINE</a></li><li><a href="global.html#LENGTH">LENGTH</a></li><li><a href="global.html#SLICE">SLICE</a></li></ul>
+</nav>
+
+<div id="main">
+    
+
+    
+
+
+
+    
+
+
+    <section class="package">
+        <h3> </h3>		
+    </section>
+
+
+
+
+
+
+
+
+
+    
+
+
+
+    <section class="readme usertext">
+        <article><h1>Bioconductor objects in Javascript</h1>
+<p>🚧🚧🚧🚧 <strong>Under construction!</strong> 🚧🚧🚧🚧</p>
+<p>This package aims to provide Javascript implementations of <a href="https://github.com/Bioconductor">Bioconductor</a> data structures for use in web applications.
+Much like the original R code, we focus on the use of common generics to provide composability, allowing users to construct complex objects that &quot;just work&quot;.</p>
+<h2>Quick start</h2>
+<p>Here, we perform some generic operations on a <code>DataFrame</code> object, equivalent to Bioconductor's <code>S4Vectors::DFrame</code> class.</p>
+<pre class="prettyprint source lang-js"><code>// Import using ES6 notation
+import * as bioc from &quot;bioconductor&quot;;
+
+// Construct a DataFrame
+let results = new bioc.DataFrame(
+    { 
+        logFC: new Float64Array([-1, -2, 1.3, 2.1]),
+        pvalue: new Float64Array([0.01, 0.02, 0.001, 1e-8])
+    },
+    {
+        rowNames: [ &quot;p53&quot;, &quot;SNAP25&quot;, &quot;MALAT1&quot;, &quot;INS&quot; ]
+    }
+);
+
+// Run generics
+bioc.LENGTH(results);
+bioc.SLICE(results, [ 2, 3, 1 ]); 
+bioc.CLONE(results);
+
+let more_results = new bioc.DataFrame(
+    { 
+        logFC: new Float64Array([0, 0.1, -0.1]),
+        pvalue: new Float64Array([1e-5, 1e-4, 0.5])
+    },
+    {
+        rowNames: [ &quot;GFP&quot;, &quot;mCherry&quot;, &quot;tdTomato&quot; ]
+    }
+);
+
+bioc.COMBINE(results, [more_results]);
+</code></pre>
+<p>The generics allow us to manipulate complex objects like a nested <code>DataFrame</code>:</p>
+<pre class="prettyprint source lang-js"><code>let results = new bioc.DataFrame(
+    { 
+        logFC: new Float64Array([-1, -2, 1.3, 2.1]),
+        pvalue: new Float64Array([0.01, 0.02, 0.001, 1e-8]),
+        location: new bioc.DataFrame(
+            &quot;chromosome&quot;: [ &quot;chrA&quot;, &quot;chrB&quot;, &quot;chrC&quot;, &quot;chrD&quot; ],
+            &quot;start&quot;: [ 1, 2, 3, 4 ],
+            &quot;end&quot;: [ 10, 20, 30, 40 ],
+            &quot;strand&quot;: new Uint8Array([-1, 1, 1, -1 ])
+        )
+    },
+    {
+        rowNames: [ &quot;p53&quot;, &quot;SNAP25&quot;, &quot;MALAT1&quot;, &quot;INS&quot; ]
+    }
+);
+
+let subset = bioc.SLICE(results, { start: 2, end: 4 });
+bioc.LENGTH(subset); 
+subset.column(&quot;location&quot;);
+</code></pre>
+<p>See the <a href="https://ltla.github.io/bioconductor.js">reference documentation</a> for more details.</p>
+<h2>Supported classes and generics</h2>
+<p>For classes:</p>
+<table>
+<thead>
+<tr>
+<th><strong>Javascript</strong></th>
+<th><strong>R/Bioconductor equivalent</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DataFrame</code></td>
+<td><code>S4Vectors::DFrame</code></td>
+</tr>
+</tbody>
+</table>
+<p>For generics:</p>
+<table>
+<thead>
+<tr>
+<th><strong>Javascript</strong></th>
+<th><strong>R/Bioconductor equivalent</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LENGTH</code></td>
+<td><code>base::NROW</code></td>
+</tr>
+<tr>
+<td><code>SLICE</code></td>
+<td><code>S4Vectors::extractROWS</code></td>
+</tr>
+<tr>
+<td><code>COMBINE</code></td>
+<td><code>S4Vectors::bindROWS</code></td>
+</tr>
+<tr>
+<td><code>CLONE</code></td>
+<td>-</td>
+</tr>
+</tbody>
+</table></article>
+    </section>
+
+
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Fri Oct 28 2022 20:19:24 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+<script src="scripts/search.js" defer></script>
+
+
+<script src="scripts/collapse.js" defer></script>
+
+
+</body>
+</html>
