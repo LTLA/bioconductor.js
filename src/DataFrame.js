@@ -60,6 +60,7 @@ export class DataFrame {
         } else if (columnOrder.length != vals.length) {
             throw new Error("'columnOrder' should have the same length as 'x'");
         } else {
+            DataFrame._check_names(columnOrder, "column names");
             let uniq = Array.from(new Set(columnOrder));
             uniq.sort();
             let expected = Object.keys(columns);
@@ -75,7 +76,7 @@ export class DataFrame {
             } else if (this._numberOfRows != rowNames.length) {
                 throw new Error("length of 'rowNames' is inconsistent with the number of rows of 'x'");
             }
-            DataFrame._check_rowNames(rowNames);
+            DataFrame._check_names(rowNames, "row names");
         }
 
         if (this._numberOfRows == null) {
@@ -93,10 +94,10 @@ export class DataFrame {
         }
     }
 
-    static _check_rowNames(rn) {
-        for (const x of rn) {
+    static _check_names(names, msg) {
+        for (const x of names) {
             if (typeof x !== "string") {
-                throw new Error("array of row names should only contain strings");
+                throw new Error("array of " + msg + " should only contain strings");
             }
         }
     }
@@ -213,6 +214,7 @@ export class DataFrame {
      * @return {DataFrame} Reference to this DataFrame with modified column names.
      */
     $setColumnNames(names) {
+        DataFrame._check_names(names, "column names");
         if (names.length != this._columnOrder.length) {
             throw new Error("length of replacement 'names' must be equal to the number of columns");
         }
@@ -242,7 +244,7 @@ export class DataFrame {
             if (names.length != this._numberOfRows) {
                 throw new Error("length of replacement 'names' must be equal to the number of rows");
             }
-            DataFrame._check_rowNames(names);
+            DataFrame._check_names(names, "row names");
         }
         this._rowNames = names;
         return;
