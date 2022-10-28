@@ -1,0 +1,16 @@
+docs/html/
+docs/latex/
+*.swp
+testing
+*-test-files
+node_modules/
+main/
+browser/
+js/wasm/
+.parcel-cache
+dist/
+_testing/
+js/blacklists/
+docs/built/
+package-lock.json
+jsdoc.config.json

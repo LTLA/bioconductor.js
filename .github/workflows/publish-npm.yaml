@@ -1,0 +1,45 @@
+on:
+  workflow_run:
+    workflows: [Run unit tests]
+    types: [completed]
+    branches: [master]
+
+name: Build and publish to NPM 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+    - name: Extract package versions
+      shell: bash
+      run: |
+        current_version=$(cat package.json | grep "version" | sed -e 's/.*"\([0-9\.]*\)".*/\1/')
+        echo "NEW_VERSION=${current_version}" >> $GITHUB_ENV
+        old_version=$(npm view bioconductor version)
+        update=0 && [[ $old_version != $current_version ]] && update=1
+        echo "UPDATE=${update}" >> $GITHUB_ENV
+        echo "Current version is ${current_version} (published ${old_version})"
+
+    - uses: actions/setup-node@v2
+      if: env.UPDATE == 1
+      with:
+        registry-url: 'https://registry.npmjs.org'
+
+    - name: Publish to NPM
+      if: env.UPDATE == 1
+      run: npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    - name: Tagging the release
+      if: env.UPDATE == 1
+      uses: actions/github-script@v5
+      with:
+        script: |
+          github.rest.git.createRef({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            ref: 'refs/tags/' + process.env.NEW_VERSION,
+            sha: context.sha
+          })
