@@ -1,9 +1,13 @@
 import * as utils from "./utils.js";
+import * as misc from "./miscellaneous.js";
 
 /**
  * Compute the length of a vector-like object.
- * For built-in Array and TypedArrays, this just returns the `length` property directly.
+ *
+ * For Array and TypedArrays, this just returns the `length` property directly.
+ *
  * Custom classes should provide a `_bioconductor_LENGTH` method to describe their length.
+ * This method should accept no arguments. 
  *
  * @param {*} x - Some vector-like object.
  * @return {number} Length of the object.
@@ -22,8 +26,11 @@ export function LENGTH(x) {
 
 /**
  * Slice a vector-like object.
- * For built-in Array and TypedArrays, this just uses `slice()` or `subarray()`.
+ *
+ * For Array and TypedArrays, this just uses `slice()` or `subarray()`.
+ *
  * Custom classes should provide a `_bioconductor_SLICE` method to create a slice.
+ * This method should accept the same arguments as `SLICE` except for `x`.
  *
  * @param {*} x - Some vector-like object.
  * @param {Object|Array|TypedArray} i - An Array or TypedArray of integer indices specifying the slice of `x` to retain.
@@ -66,7 +73,11 @@ export function SLICE(x, i, { allowInPlace = false, allowView = false } = {}) {
 
 /**
  * Combine multiple vector-like objects.
+ *
+ * For Array and TypedArrays, the combined array is of a class that avoids information loss.
+ *
  * Custom classes should provide a `_bioconductor_COMBINE` method to define the combining operation.
+ * This method should accept the same arguments as `COMBINE` except for `x`.
  *
  * @param {*} x - Some vector-like object.
  * @param {Array} y - Array of vector-like objects that are compatible with `x`.
@@ -122,7 +133,12 @@ export function COMBINE(x, y, { allowAppend = false } = {}) {
 
 /**
  * Clone a vector-like object.
+ * 
+ * For TypedArrays, this just uses `slice()`.
+ * For Arrays, this creates a copy and runs `CLONE` on each element in the copy.
+ *
  * Custom classes should provide a `_bioconductor_CLONE` method to define the cloning operation.
+ * This method should accept the same arguments as `COMBINE` except for `x`.
  *
  * @param {*} x - Some vector-like object.
  * @param {Object} [options={}] - Optional parameters.
@@ -134,32 +150,66 @@ export function COMBINE(x, y, { allowAppend = false } = {}) {
  * If `deepCopy=true`, all internal components are also cloned.
  */
 export function CLONE(x, { deepCopy = true } = {}) {
-    if ("_bioconductor_CLONE" in x) {
-        return x._bioconductor_CLONE({ deepCopy });
-    }
-
-    if (utils.isArrayLike(x)) {
-        if (x.constructor == Array) {
-            return x.slice();
-        } else if (deepCopy) {
-            return x.slice();
-        } else {
-            return x.subarray();
+    if (x instanceof Object) {
+        let options = { deepCopy };
+        if ("_bioconductor_CLONE" in x) {
+            return x._bioconductor_CLONE(options);
         }
-    }
 
-    if (x.constructor == Object) {
-        if (deepCopy) {
-            let output = {};
-            for (const [k, v] of Object.entries(x)) {
-                output[k] = CLONE(v);
+        if (utils.isArrayLike(x)) {
+            if (x.constructor == Array) {
+                return x.map(y => CLONE(y, options));
+            } else if (deepCopy) {
+                return x.slice();
+            } else {
+                return x.subarray();
             }
-            return output;
-        } else {
-            return { ...x };
+        }
+
+        if (x.constructor == Object) {
+            if (deepCopy) {
+                let output = {};
+                for (const [k, v] of Object.entries(x)) {
+                    output[k] = CLONE(v);
+                }
+                return output;
+            } else {
+                return { ...x };
+            }
         }
     }
 
     // Immutable atomics should be all that's left.
     return x;
+}
+
+/**
+ * Split a vector-like object along its length according to the levels of a factor of the same length.
+ * This works automatically for all classes for which there is a {@linkcode LENGTH} and {@linkcode SLICE} method,
+ * but custom classes may choose to define their own `_bioconductor_SPLIT` method. 
+ *
+ * @param {*} x - Some vector-like object.
+ * @param {Array|TypedArray} factor - Array containing the factor to use for splitting.
+ * This should have the same length as `x`.
+ *
+ * Alternatively, the output of {@linkcode presplitFactor} can be supplied.
+ *
+ * @return {Object} An object containing one key per level of `factor`,
+ * where the value is the slice of `x` corresponding to the indices of that level in `factor`.
+ */
+export function SPLIT(x, factor) {
+    if (factor.constructor != Object) {
+        factor = misc.presplitFactor(factor);
+    }
+
+    if ("_bioconductor_SPLIT" in x) {
+        return x._bioconductor_SPLIT(factor);
+    }
+
+    let output = {};
+    for (const [k, v] of Object.entries(factor)) {
+        output[k] = SLICE(x, v);
+    }
+
+    return output;
 }
