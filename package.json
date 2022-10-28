@@ -1,0 +1,28 @@
+{
+    "name": "bioconductor",
+    "version": "0.1.0",
+    "description": "Bioconductor classes, generics and methods, implemented in Javascript.",
+    "license": "MIT",
+    "main": "src/index.js",
+    "type": "module",
+    "scripts": {
+        "test": "NODE_OPTIONS='--experimental-vm-modules' npx jest",
+        "jsdoc": "npx jsdoc js README.md -d docs/built -c docs/jsdoc.config.json"
+    },
+    "devDependencies": {
+        "docdash": "^1.2.0",
+        "jest": "^27.4.7",
+        "jsdoc": "^3.6.10"
+    },
+    "author": {
+        "name": "Aaron Lun",
+        "email": "infinite.monkeys.with.keyboards@gmail.com",
+        "url": "https://github.com/LTLA"
+    ],
+    "bugs": "https://github.com/LTLA/bioconductor.js/issues",
+    "keywords": [
+        "bioinformatics"
+    ],
+    "repository": "github:LTLA/bioconductor.js",
+    "homepage": "https://github.com/LTLA/bioconductor.js#readme"
+}
