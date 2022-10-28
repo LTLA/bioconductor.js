@@ -74,13 +74,32 @@ For classes:
 
 |**Javascript**|**R/Bioconductor equivalent**|
 |---|---|
-| `DataFrame` | `S4Vectors::DFrame` |
+| [`DataFrame`](https://ltla.github.io/bioconductor.js/DataFrame.html) | `S4Vectors::DFrame` |
 
 For generics:
 
 |**Javascript**|**R/Bioconductor equivalent**|
 |---|---|
-| `LENGTH` | `base::NROW` |
-| `SLICE` | `S4Vectors::extractROWS` |
-| `COMBINE` | `S4Vectors::bindROWS` |
-| `CLONE` | - |
+| [`LENGTH`](https://ltla.github.io/bioconductor.js/LENGTH.html) | `base::NROW` |
+| [`SLICE`](https://ltla.github.io/bioconductor.js/SLICE.html) | `S4Vectors::extractROWS` |
+| [`COMBINE`](https://ltla.github.io/bioconductor.js/COMBINE.html) | `S4Vectors::bindROWS` |
+| [`CLONE`](https://ltla.github.io/bioconductor.js/CLONE.html) | - |
+
+## Design considerations
+
+We mimic R's S4 generics using methods in Javascript classes.
+For example, each supported class defines a `_bioconductor_LENGTH` method to quantify its concept of "length".
+The `LENGTH` function will then call this method to obtain a length value for any instance of any supported class.
+We prefix this method with `_bioconductor_` to avoid collisions with other properties;
+this allows safe monkey patching of third-party classes if they are sufficiently vector-like.
+
+Admittedly, the `LENGTH` function is not really necessary, as users could just call `_bioconductor_LENGTH` directly.
+However, the latter is long and unpleasant to type, so we might as well wrap it in something that's easier to remember.
+It would also require monkey patching of built-in classes like Arrays and TypedArrays, which is somewhat concerning as it risks interfering with the behavior of other packages.
+By defining our own `LENGTH` function, we can safely handle the built-in classes as special cases without modifying their prototypes.
+
+Another difference from R is that Javascript functions can modify objects in place. 
+To avoid confusion, all class methods that modify their instances are prefixed with the `$` symbol.
+The same applies to all functions that modify their input arguments.
+Functions or methods without `$` should not modify their inputs when used with default parameters,
+though modifications are allowed if the user provides explicit settings to do so.
