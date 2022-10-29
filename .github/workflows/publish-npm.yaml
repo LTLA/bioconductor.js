@@ -11,6 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    
     - name: Extract package versions
       shell: bash
       run: |
