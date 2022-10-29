@@ -318,3 +318,21 @@ test("fliexbly combining DataFrames by row", () => {
     expect(out.column("B")).toEqual(["x", "y", "z", "aa", null, null, "bb", "cc"]);
 })
 
+test("metadata operations are respected for DataFrames", () => {
+    let obj = spawnObject();
+    let x = new bioc.DataFrame(obj, { metadata: { "foo": 2, "bar": 3 } });
+    expect(x.metadata().foo).toBe(2);
+    expect(x.$setMetadata({ whee: 1 }).metadata().whee).toBe(1);
+
+    // Picked up by the clone.
+    let y = bioc.CLONE(x);
+    y.metadata().ark = 2;
+    expect(y.metadata().ark).toBe(2);
+    expect(x.metadata().ark).toBeUndefined();
+
+    // Preserved in the COMBINE operation.
+    let z = bioc.COMBINE([x, y]);
+    expect(z.numberOfRows()).toBe(x.numberOfRows() + y.numberOfRows());
+    expect(z.metadata().whee).toBe(1);
+})
+

@@ -36,12 +36,14 @@ export class DataFrame {
      * @param {?Array} [options.columnOrder=null] - Array of strings specifying the ordering of the columns.
      * If non-`null`, this should have the same values as the keys of `columns`.
      * If `null`, an arbitrary ordering is obtained from `columns`.
+     * @param {Object} [options.metadata={}] - Object containing arbitrary metadata as key-value pairs.
      */
-    constructor(columns, { numberOfRows = null, rowNames = null, columnOrder = null } = {}) {
+    constructor(columns, { numberOfRows = null, rowNames = null, columnOrder = null, metadata = {} } = {}) {
         this._numberOfRows = numberOfRows;
         this._rowNames = rowNames;
         this._columns = columns;
         this._columnOrder = columnOrder;
+        this._metadata = metadata;
 
         let vals = Object.values(columns);
         if (vals.length) {
@@ -158,6 +160,13 @@ export class DataFrame {
         return this._columns[this._columnOrder[i]];
     }
 
+    /**
+     * @return {Object} Object containing arbitrary metadata.
+     */
+    metadata() {
+        return this._metadata;
+    }
+
     /**************************************************************************
      **************************************************************************
      **************************************************************************/
@@ -247,9 +256,15 @@ export class DataFrame {
             DataFrame._check_names(names, "row names");
         }
         this._rowNames = names;
-        return;
+        return this;
     }
 
+    /**
+     * @param {Array} i - Array of strings or indices specifying the columns to retain in the slice.
+     * This should refer to unique column names.
+     *
+     * @return {DataFrame} Reference to this DataFrame after slicing to the specified columns.
+     */
     $sliceColumns(i) {
         let new_columns = {};
         let new_columnOrder = [];
@@ -269,7 +284,17 @@ export class DataFrame {
 
         this._columns = new_columns;
         this._columnOrder = new_columnOrder;
-        return;
+        return this;
+    }
+
+    /**
+     * @param {Object} meta - Object containing the metadata.
+     *
+     * @return {DataFrame} Reference to this DataFrame after replacing the metadata.
+     */
+    $setMetadata(meta) {
+        this._metadata = meta;
+        return this;
     }
 
     /**************************************************************************
@@ -307,6 +332,7 @@ export class DataFrame {
             output._rowNames = new_rowNames;
             output._columnOrder = this._columnOrder;
             output._numberOfRows = new_numberOfRows;
+            output._metadata = this._metadata;
             return output;
         }
     }
@@ -368,6 +394,7 @@ export class DataFrame {
             output._rowNames = new_rowNames;
             output._columnOrder = this._columnOrder;
             output._numberOfRows = new_numberOfRows;
+            output._metadata = this._metadata;
             return output;
         }
     }
@@ -375,19 +402,15 @@ export class DataFrame {
     _bioconductor_CLONE({ deepCopy = true }) {
         let new_columnOrder = this._columnOrder.slice();
         let new_rowNames = (this._rowNames == null ? null : this._rowNames.slice());
-
-        let new_columns = { ...(this._columns) };
-        if (deepCopy) {
-            for (const [k, v] of Object.entries(new_columns)) {
-                new_columns[k] = generics.CLONE(v, { deepCopy });
-            }
-        }
+        let new_columns = generics.CLONE(this._columns, { deepCopy });
+        let new_meta = generics.CLONE(this._metadata, { deepCopy });
 
         let output = Object.create(this.constructor.prototype); // avoid validity checks.
         output._columns = new_columns;
         output._rowNames = new_rowNames;
         output._columnOrder = new_columnOrder;
         output._numberOfRows = this._numberOfRows;
+        output._metadata = new_meta; 
         return output;
     }
 };
