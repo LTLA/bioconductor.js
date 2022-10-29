@@ -336,3 +336,18 @@ test("metadata operations are respected for DataFrames", () => {
     expect(z.metadata().whee).toBe(1);
 })
 
+test("splitting works correctly for DataFrames", () => {
+    let df = new bioc.DataFrame({ 
+        foo: [ 9, 8, 7, 6, 5, 4 ], 
+        bar: [ "chino", "cocoa", "rize", "syaro", "chiya", "tippy" ]
+    });
+
+    let school = [ "middle", "public", "private", "private", "public", "none" ]; 
+    let fragmented = bioc.SPLIT(df, school);
+
+    expect(fragmented.middle.column("bar")).toEqual([ "chino" ]);
+    expect(fragmented.public.column("bar")).toEqual([ "cocoa", "chiya" ]);
+    expect(fragmented.private.column("bar")).toEqual([ "rize", "syaro" ]);
+    expect(fragmented.none.column("bar")).toEqual([ "tippy" ]);
+})
+

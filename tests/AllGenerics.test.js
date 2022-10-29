@@ -31,26 +31,24 @@ test("cloning works on the built-in types", () => {
     }
 })
 
-test("splitting works correctly", () => {
-    let df = new bioc.DataFrame({ 
-        foo: [ 9, 8, 7, 6, 5, 4 ], 
-        bar: [ "chino", "cocoa", "rize", "syaro", "chiya", "tippy" ]
-    });
-
+test("splitting works correctly for regular vectors", () => {
+    let bar = [ "chino", "cocoa", "rize", "syaro", "chiya", "tippy" ]
     let school = [ "middle", "public", "private", "private", "public", "none" ]; 
-    let fragmented = bioc.SPLIT(df, school);
 
-    expect(fragmented.middle.column("bar")).toEqual([ "chino" ]);
-    expect(fragmented.public.column("bar")).toEqual([ "cocoa", "chiya" ]);
-    expect(fragmented.private.column("bar")).toEqual([ "rize", "syaro" ]);
-    expect(fragmented.none.column("bar")).toEqual([ "tippy" ]);
+    let fragmented = bioc.SPLIT(bar, school);
+    expect(fragmented.middle).toEqual([ "chino" ]);
+    expect(fragmented.public).toEqual([ "cocoa", "chiya" ]);
+    expect(fragmented.private).toEqual([ "rize", "syaro" ]);
+    expect(fragmented.none).toEqual([ "tippy" ]);
 
+    // Respects type and presplits.
+    let foo = new Int32Array([ 9, 8, 7, 6, 5, 4 ]);
     let presplit = bioc.presplitFactor(school);
-    let fragmented2 = bioc.SPLIT(df, presplit);
+    let fragmented2 = bioc.SPLIT(foo, presplit);
 
-    expect(fragmented2.middle.column("foo")).toEqual([ 9 ]);
-    expect(fragmented2.public.column("foo")).toEqual([ 8, 5 ]);
-    expect(fragmented2.private.column("foo")).toEqual([ 7, 6 ]);
-    expect(fragmented2.none.column("foo")).toEqual([ 4 ]);
+    expect(fragmented2.middle).toEqual(new Int32Array([ 9 ]));
+    expect(fragmented2.public).toEqual(new Int32Array([ 8, 5 ]));
+    expect(fragmented2.private).toEqual(new Int32Array([ 7, 6 ]));
+    expect(fragmented2.none).toEqual(new Int32Array([ 4 ]));
 })
 
