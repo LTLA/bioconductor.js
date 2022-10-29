@@ -29,7 +29,7 @@
     
     <input type="text" id="nav-search" placeholder="Search" />
     
-    <h2><a href="index.html">Home</a></h2><h2><a href="https://github.com/LTLA/bioconductor.js" target="_blank" class="menu-item" id="repository" >Code Repo</a></h2><h3>Classes</h3><ul><li><a href="DataFrame.html">DataFrame</a><ul class='methods'><li data-type='method' style='display: none;'><a href="DataFrame.html#$removeColumn">$removeColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setColumn">$setColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setColumnNames">$setColumnNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setRowNames">$setRowNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#column">column</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#columnNames">columnNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#hasColumn">hasColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#numberOfColumns">numberOfColumns</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#numberOfRows">numberOfRows</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#rowNames">rowNames</a></li></ul></li></ul><h3>Global</h3><ul><li><a href="global.html#CLONE">CLONE</a></li><li><a href="global.html#COMBINE">COMBINE</a></li><li><a href="global.html#flexibleCombineRows">flexibleCombineRows</a></li><li><a href="global.html#LENGTH">LENGTH</a></li><li><a href="global.html#presplitFactor">presplitFactor</a></li><li><a href="global.html#SLICE">SLICE</a></li><li><a href="global.html#SPLIT">SPLIT</a></li><li><a href="global.html#which">which</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h2><a href="https://github.com/LTLA/bioconductor.js" target="_blank" class="menu-item" id="repository" >Code Repo</a></h2><h3>Classes</h3><ul><li><a href="DataFrame.html">DataFrame</a><ul class='methods'><li data-type='method' style='display: none;'><a href="DataFrame.html#$removeColumn">$removeColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setColumn">$setColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setColumnNames">$setColumnNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setMetadata">$setMetadata</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setRowNames">$setRowNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$sliceColumns">$sliceColumns</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#column">column</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#columnNames">columnNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#hasColumn">hasColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#metadata">metadata</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#numberOfColumns">numberOfColumns</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#numberOfRows">numberOfRows</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#rowNames">rowNames</a></li></ul></li></ul><h3>Global</h3><ul><li><a href="global.html#CLONE">CLONE</a></li><li><a href="global.html#COMBINE">COMBINE</a></li><li><a href="global.html#flexibleCombineRows">flexibleCombineRows</a></li><li><a href="global.html#LENGTH">LENGTH</a></li><li><a href="global.html#presplitFactor">presplitFactor</a></li><li><a href="global.html#SLICE">SLICE</a></li><li><a href="global.html#SPLIT">SPLIT</a></li><li><a href="global.html#which">which</a></li></ul>
 </nav>
 
 <div id="main">
@@ -395,6 +395,45 @@ If <code>null</code>, an arbitrary ordering is obtained from <code>columns</code
         </tr>
 
     
+
+        <tr>
+            
+                <td class="name"><code>metadata</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>{}</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>Object containing arbitrary metadata as key-value pairs.</p></td>
+        </tr>
+
+    
     </tbody>
 </table>
 
@@ -468,7 +507,7 @@ If <code>null</code>, an arbitrary ordering is obtained from <code>columns</code
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line169">line 169</a>
+        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line178">line 178</a>
     </li></ul></dd>
     
 
@@ -625,7 +664,7 @@ If <code>null</code>, an arbitrary ordering is obtained from <code>columns</code
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line194">line 194</a>
+        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line203">line 203</a>
     </li></ul></dd>
     
 
@@ -788,7 +827,7 @@ If no such column exists, a new column is appended to the DataFrame.</li>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line216">line 216</a>
+        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line225">line 225</a>
     </li></ul></dd>
     
 
@@ -931,6 +970,160 @@ This should have the same length as <a href="DataFrame.html#columnNames"><code>D
 
     
 
+    <h4 class="name" id="$setMetadata"><span class="type-signature"></span>$setMetadata<span class="signature">(meta)</span><span class="type-signature"> &rarr; {<a href="DataFrame.html">DataFrame</a>}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line295">line 295</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>meta</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Object containing the metadata.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Reference to this DataFrame after replacing the metadata.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="DataFrame.html">DataFrame</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
     <h4 class="name" id="$setRowNames"><span class="type-signature"></span>$setRowNames<span class="signature">(names<span class="signature-attributes">nullable</span>)</span><span class="type-signature"> &rarr; {<a href="DataFrame.html">DataFrame</a>}</span></h4>
 
     
@@ -943,7 +1136,7 @@ This should have the same length as <a href="DataFrame.html#columnNames"><code>D
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line242">line 242</a>
+        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line251">line 251</a>
     </li></ul></dd>
     
 
@@ -1099,6 +1292,161 @@ This should have the same length as <a href="DataFrame.html#numberOfRows"><code>
 
     
 
+    <h4 class="name" id="$sliceColumns"><span class="type-signature"></span>$sliceColumns<span class="signature">(i)</span><span class="type-signature"> &rarr; {<a href="DataFrame.html">DataFrame</a>}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line268">line 268</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>i</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Array of strings or indices specifying the columns to retain in the slice.
+This should refer to unique column names.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Reference to this DataFrame after slicing to the specified columns.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="DataFrame.html">DataFrame</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
     <h4 class="name" id="column"><span class="type-signature"></span>column<span class="signature">(i)</span><span class="type-signature"> &rarr; {*}</span></h4>
 
     
@@ -1111,7 +1459,7 @@ This should have the same length as <a href="DataFrame.html#numberOfRows"><code>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line149">line 149</a>
+        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line151">line 151</a>
     </li></ul></dd>
     
 
@@ -1268,7 +1616,7 @@ This should have the same length as <a href="DataFrame.html#numberOfRows"><code>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line119">line 119</a>
+        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line121">line 121</a>
     </li></ul></dd>
     
 
@@ -1373,7 +1721,7 @@ This should have the same length as <a href="DataFrame.html#numberOfRows"><code>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line127">line 127</a>
+        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line129">line 129</a>
     </li></ul></dd>
     
 
@@ -1515,6 +1863,111 @@ This should have the same length as <a href="DataFrame.html#numberOfRows"><code>
 
     
 
+    <h4 class="name" id="metadata"><span class="type-signature"></span>metadata<span class="signature">()</span><span class="type-signature"> &rarr; {Object}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line166">line 166</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Object containing arbitrary metadata.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Object</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
     <h4 class="name" id="numberOfColumns"><span class="type-signature"></span>numberOfColumns<span class="signature">()</span><span class="type-signature"> &rarr; {number}</span></h4>
 
     
@@ -1527,7 +1980,7 @@ This should have the same length as <a href="DataFrame.html#numberOfRows"><code>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line141">line 141</a>
+        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line143">line 143</a>
     </li></ul></dd>
     
 
@@ -1632,7 +2085,7 @@ This should have the same length as <a href="DataFrame.html#numberOfRows"><code>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line134">line 134</a>
+        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line136">line 136</a>
     </li></ul></dd>
     
 
@@ -1737,7 +2190,7 @@ This should have the same length as <a href="DataFrame.html#numberOfRows"><code>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line112">line 112</a>
+        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line114">line 114</a>
     </li></ul></dd>
     
 
@@ -1845,7 +2298,7 @@ This should have the same length as <a href="DataFrame.html#numberOfRows"><code>
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Fri Oct 28 2022 22:36:18 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Sat Oct 29 2022 19:49:00 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
