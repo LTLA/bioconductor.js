@@ -137,7 +137,7 @@ export class IRanges {
     }
 
     $setMetadata(value) {
-        this._metadata = metadata;
+        this._metadata = value;
         return;
     }
 
@@ -161,7 +161,12 @@ export class IRanges {
             this._rangeMetadata = r;
             return this;
         } else {
-            return new IRanges(s, w, { names: n, rangeMetadata: r, metadata: this._metadata });
+            let output = Object.create(this.constructor.prototype); // avoid validity checks.
+            output._start = s;
+            output._width = w;
+            output._rangeMetadata = r;
+            output._metadata = this._metadata;
+            return output;
         }
     }
 
@@ -186,17 +191,23 @@ export class IRanges {
             this._rangeMetadata = combined_r;
             return this;
         } else {
-            return new IRanges(combined_s, combined_w, { names: combined_n, rangeMetadata: combined_r, metadata: this._metadata });
+            let output = Object.create(this.constructor.prototype); // avoid validity checks.
+            output._start = combined_s;
+            output._width = combined_w;
+            output._rangeMetadata = combined_r;
+            output._metadata = this._metadata;
+            return output;
         }
     }
 
     _bioconductor_CLONE({ deepcopy = true }) {
         let options = { deepcopy };
-        let s = generics.CLONE(this._start, options);
-        let w = generics.CLONE(this._width, options);
-        let r = generics.CLONE(this._rangeMetadata, options);
-        let m = generics.CLONE(this._metadata, options);
-        return new IRanges(s, w, { names: n, rangeMetadata: r, metadata: m });
+        let output = Object.create(this.constructor.prototype); // avoid validity checks.
+        output._start = generics.CLONE(this._start, options);
+        output._width = generics.CLONE(this._width, options);
+        output._rangeMetadata = generics.CLONE(this._rangeMetadata, options);
+        output._metadata = generics.CLONE(this._metadata, options);
+        return output;
     }
 }
 
