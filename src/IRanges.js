@@ -3,21 +3,9 @@ import * as utils from "./utils.js";
 import * as df from "./DataFrame.js";
 
 /**
- * A DataFrame is a collection of equilength vector-like objects as "columns".
- * The number of rows in the DataFrame is equal to the length of the columns, where the i-th row consists of the i-th element from each column.
- *
- * This class supports optional row names, which are either `null` or an array of strings of length equal to the number of rows.
- *
- * This class supports empty instances with a non-zero number of rows, which may be useful for piece-wise construction.
- *
- * The vector-like object for each column is expected to have methods for the following generics:
- *
- * - {@linkcode LENGTH}
- * - {@linkcode SLICE}
- * - {@linkcode COMBINE}
- * - {@linkcode CLONE}
- *
- * The DataFrame itself defines methods for the following generics:
+ * An IRanges object is a collection of integer ranges.
+ * Each range consists of a start position and a width, and may be associated with arbitrary range-level metadata in a {@linkplain DataFrame}.
+ * The IRanges defines methods for the following generics:
  *
  * - {@linkcode LENGTH}
  * - {@linkcode SLICE}
@@ -25,7 +13,7 @@ import * as df from "./DataFrame.js";
  * - {@linkcode CLONE}
  */
 export class IRanges {
-    static function #convertToInt32Array(x) {
+    static #convertToInt32Array(x) {
         if (x instanceof Int32Array) {
             return x;
         } else {
@@ -33,10 +21,10 @@ export class IRanges {
         }
     }
 
-    static function #checkNonNegative(x, msg) {
+    static #checkNonNegative(x, msg) {
         for (const y of x) {
             if (y < 0) {
-                throw new Error("detected a non-negative entry in '" + msg + "'");
+                throw new Error("detected a negative entry in '" + msg + "'");
             }
         }
     }
@@ -57,18 +45,20 @@ export class IRanges {
             throw new Error("'start' and 'width' should have the same length");
         }
 
-        if (names === null) {
-            this._names = names;
-        } else {
+        if (names !== null) {
             utils.checkNamesArray(names);
-            if (this._names.length != n) {
+            if (names.length != n) {
                 throw new Error("'start' and 'names' should have the same length");
             }
         }
+        this._names = names;
 
         if (rangeMetadata !== null) {
-            if (!(rangeMetadata instanceof df.DataFrame) || generics.LENGTH(rangeMetadata) === n) {
-                throw new Error("'start' and 'rangeMetadata' should have the same length");
+            if (!(rangeMetadata instanceof df.DataFrame)) {
+                throw new Error("'rangeMetadata' should be a DataFrame");
+            }
+            if (generics.LENGTH(rangeMetadata) !== n) {
+                throw new Error("'rangeMetadata' should have the same number of rows as 'start.length'");
             }
         } else {
             rangeMetadata = new df.DataFrame({}, { numberOfRows: n });
@@ -118,7 +108,7 @@ export class IRanges {
      **************************************************************************/
 
     $setStart(value) {
-        let candidate = IRanges.#convertToInt32Array(start);
+        let candidate = IRanges.#convertToInt32Array(value);
         if (candidate.length !== generics.LENGTH(this)) {
             throw new Error("'start' should be replaced by array of the same length");
         }
@@ -128,7 +118,7 @@ export class IRanges {
     }
 
     $setWidth(value) {
-        let candidate = IRanges.#convertToInt32Array(width);
+        let candidate = IRanges.#convertToInt32Array(value);
         if (candidate.length !== generics.LENGTH(this)) {
             throw new Error("'width' should be replaced by array of the same length");
         }
@@ -211,7 +201,7 @@ export class IRanges {
             let offset = 0;
             for (var i = 0; i < objects.length; i++) {
                 if (objects[i].hasNames()) {
-                    combined_n.set(offset, all_n[i];
+                    combined_n.set(offset, all_n[i]);
                 } else {
                     combined_n.fill("", offset, generics.LENGTH(objects[i]));
                 }
@@ -234,7 +224,7 @@ export class IRanges {
         let s = generics.CLONE(this._start, options);
         let w = generics.CLONE(this._width, options);
         let r = generics.CLONE(this._rangeMetadata, options);
-        let n = (this._names == null ? null : generics.CLONE(this._names, options);
+        let n = (this._names == null ? null : generics.CLONE(this._names, options));
         let m = generics.CLONE(this._metadata, options);
         return new IRanges(s, w, { names: n, rangeMetadata: r, metadata: m });
     }
