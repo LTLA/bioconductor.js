@@ -15,7 +15,7 @@ test("constructing a IRanges works (simple)", () => {
     expect(x.width()).toEqual(new Int32Array(obj.width));
     expect(x.end()).toEqual(new Int32Array([ 11, 15, 10, 13 ]));
 
-    expect(x.hasNames()).toBe(false);
+    expect(x.names()).toBeNull();
     expect(x.rangeMetadata().numberOfRows()).toBe(obj.start.length);
     expect(x.rangeMetadata().numberOfColumns()).toBe(0);
 
@@ -34,8 +34,8 @@ test("constructing a IRanges works with names", () => {
     let names = ["A", "B", "C", "D"];
     let x = new bioc.IRanges(obj.start, obj.width, { names: names });
 
-    expect(x.hasNames()).toBe(true);
     expect(x.names()).toEqual(names);
+    expect(x.rangeMetadata().rowNames()).toEqual(names);
 
     // Fails if the names are of different length.
     expect(() => new bioc.IRanges(obj.start, obj.width, { names: ["A"] })).toThrow("same length");
