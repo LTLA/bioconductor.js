@@ -32,3 +32,11 @@ export function chooseArrayConstructors(con1, con2) {
     return Float64Array;
 }
 
+export function checkNamesArray(names, msg) {
+    for (const x of names) {
+        if (typeof x !== "string") {
+            throw new Error("array of " + msg + " should only contain strings");
+        }
+    }
+}
+
