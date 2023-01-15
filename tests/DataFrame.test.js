@@ -177,16 +177,6 @@ test("slicing a DataFrame works (indices)", () => {
     expect(out.rowNames()).toEqual(["d", "b", "c"]);
 })
 
-test("slicing a DataFrame works (in place)", () => {
-    let obj = spawnObject();
-    let x = new bioc.DataFrame(obj, { rowNames: [ "a", "b", "c", "d" ] });
-    bioc.SLICE(x, [3,2,1], { allowInPlace: true });
-
-    expect(x.numberOfRows()).toBe(3);
-    expect(Array.from(x.column("A"))).toEqual([4,3,2]);
-    expect(x.rowNames()).toEqual(["d", "c", "b"]);
-})
-
 test("slicing a DataFrame works (range)", () => {
     let obj = spawnObject();
     let x = new bioc.DataFrame(obj);
@@ -204,13 +194,6 @@ test("slicing a DataFrame works (view)", () => {
     out.column("A")[0] = 100;
     expect(x.column("A")[1]).toBe(100);
 })
-
-//test("splitting an array collection works", () => {
-//    let x = { "A": [ 1, 2, 3, 4 ], "B": [ 'x', 'y', 'z', 'aa' ] };
-//    let out = scran.splitArrayCollection(x, scran.splitByFactor([ "foo", "bar", "bar", "foo" ]));
-//    expect(out.foo).toEqual({ "A": [ 1, 4 ], "B": [ "x", "aa" ] });
-//    expect(out.bar).toEqual({ "A": [ 2, 3 ], "B": [ "y", "z" ] });
-//})
 
 test("combining multiple array collections works", () => {
     let obj = spawnObject();
@@ -261,20 +244,6 @@ test("combining multiple array collections works", () => {
         expect(out.rowNames()).toEqual(["a", "b", "c", "d", "", ""]);
     }
 })
-
-test("combining multiple array collections works (append)", () => {
-    let obj = spawnObject();
-    let stub = { "A": [ 5, 6 ], "B":[ 'bb', 'cc' ]};
-
-    let x = new bioc.DataFrame(obj);
-    let y = new bioc.DataFrame(stub);
-    bioc.COMBINE([x, y], { allowAppend: true });
-
-    expect(x.numberOfRows()).toBe(6);
-    expect(Array.from(x.column("A"))).toEqual([1,2,3,4,5,6]);
-    expect(x.column("B")).toEqual(["x", "y", "z", "aa", "bb", "cc"]);
-})
-
 
 test("combining multiple array collections preserves TypedArray types", () => {
     let obj = spawnObject();

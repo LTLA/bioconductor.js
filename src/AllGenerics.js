@@ -37,9 +37,6 @@ export function LENGTH(x) {
  *
  * Alternatively, an object containing `start` and `end`, where the slice is defined as the sequence of consecutive integers in `[start, end)`.
  * @param {Object} [options={}] - Optional parameters.
- * @param {boolean} [options.allowInPlace=false] - Whether the slice is allowed to be performed in-place, thus modifying `x` by reference.
- * Whether this is actually done depends on the method, but may improve efficiency by avoiding unnecessary copies.
- * Setting `allowInPlace=true` should only be used if the input `x` is no longer needed.
  * @param {boolean} [options.allowView=false] - Whether a view can be created to mimic the slice operation.
  * Whether this is actually done depends on the method, but may improve efficiency by avoiding unnecessary copies.
  *
@@ -47,9 +44,11 @@ export function LENGTH(x) {
  *
  * If `allowInPlace = true`, `x` _may_ be modified in place, and the return value _may_ be a reference to `x`. 
  */
-export function SLICE(x, i, { allowInPlace = false, allowView = false } = {}) {
+export function SLICE(x, i, { allowView = false } = {}) {
     if ("_bioconductor_SLICE" in x) {
-        return x._bioconductor_SLICE(i, { allowInPlace, allowView });
+        let output = Object.create(x.constructor.prototype);
+        x._bioconductor_SLICE(output, i, { allowView });
+        return output;
     }
 
     if (!utils.isArrayLike(x)) {
@@ -80,12 +79,8 @@ export function SLICE(x, i, { allowInPlace = false, allowView = false } = {}) {
  * This method should accept the same arguments as `COMBINE`.
  *
  * @param {Array} objects - Array of vector-like objects to be combined.
- * It is assumed that the objects are compatible with each other -
+ * It is assumed that the objects are of the same class, or at least compatible with each other -
  * for custom classes, the definition of "compatibility" depends on the `_bioconductor_COMBINE` method of the first element of `objects`.
- * @param {Object} [options={}] - Optional parameters.
- * @param {boolean} [options.allowAppend=false] - Whether the method can append elements of `y` onto `x`, thus modifying `x` in place.
- * Whether this is actually done depends on the method, but may improve efficiency by avoiding unnecessary copies.
- * Setting `allowAppend=true` should only be used if the input `x` is no longer needed.
  *
  * @return {*} A vector-like object containing the concatenated data from the input objects.
  * - If the first entry of `objects` is an instance of a custom class, the return value should be of the same class.
@@ -93,13 +88,13 @@ export function SLICE(x, i, { allowInPlace = false, allowView = false } = {}) {
  * - If any of the `objects` are Arrays, the return value will be an Array.
  * - If any of the `objects` are 64-bit TypedArrays of different classes, the return value will be an Array.
  * - Otherwise, for any other classes of TypedArrays in `objects`, the return value will be a Float64Array.
- *
- * If `allowAppend=true`, the return value _may_ be a reference to the first element of `objects` that is modified in-place.
  */
-export function COMBINE(objects, { allowAppend = false } = {}) {
+export function COMBINE(objects) {
     let x = objects[0];
     if ("_bioconductor_COMBINE" in x) {
-        return x._bioconductor_COMBINE(objects, { allowAppend });
+        let output = Object.create(x.constructor.prototype);
+        x._bioconductor_COMBINE(output, objects);
+        return output;
     }
 
     if (!utils.isArrayLike(x)) {
@@ -154,7 +149,9 @@ export function CLONE(x, { deepCopy = true } = {}) {
     if (x instanceof Object) {
         let options = { deepCopy };
         if ("_bioconductor_CLONE" in x) {
-            return x._bioconductor_CLONE(options);
+            let output = Object.create(x.constructor.prototype); // avoid validity checks.
+            x._bioconductor_CLONE(output, options);
+            return output;
         }
 
         if (utils.isArrayLike(x)) {

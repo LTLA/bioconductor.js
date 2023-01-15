@@ -1,7 +1,7 @@
 import * as generics from "./AllGenerics.js";
 import * as utils from "./utils.js";
-import * as df from "./DataFrame.js";
 import * as ir from "./IRanges.js";
+import * as vec from "./Vector.js";
 
 /**
  * A GRanges object is a collection of genomic ranges, inspired by the class of the same name from the Bioconductor ecosystem.
@@ -13,8 +13,10 @@ import * as ir from "./IRanges.js";
  * - {@linkcode SLICE}
  * - {@linkcode COMBINE}
  * - {@linkcode CLONE}
+ *
+ * @extends Vector
  */
-export class GRanges {
+export class GRanges extends vec.Vector {
     /**
      * @param {Array} seqnames - Array of strings containing the sequence names for each genomic range.
      * @param {IRanges} ranges - Position and width of the range on its specified sequence.
@@ -22,11 +24,13 @@ export class GRanges {
      * @param {Object} [options={}] - Optional parameters.
      * @param {?Array} [options.names=null] - Array of strings of length equal to `start`, containing names for each genomic range.
      * Alternatively `null`, in which case the ranges are assumed to be unnamed.
-     * @param {?DataFrame} [options.rangeMetadata=null] - A {@linkplain DataFrame} with number of rows equal to the length of `start`, containing arbitrary per-range annotations.
+     * @param {?DataFrame} [options.elementMetadata=null] - A {@linkplain DataFrame} with number of rows equal to the length of `start`, containing arbitrary per-range annotations.
      * Alternatively `null`, in which case a zero-column DataFrame is automatically constructed.
      * @param {Object} [options.metadata={}] - Object containing arbitrary metadata as key-value pairs.
      */
-    constructor(seqnames, ranges, { names = null, rangeMetadata = null, metadata = {} } = {}) {
+    constructor(seqnames, ranges, { names = null, elementMetadata = null, metadata = {} } = {}) {
+        super(seqnames.length, { names, elementMetadata, metadata });
+
         utils.checkStringArray(seqnames, "seqnames");
         this._seqnames = seqnames;
 
@@ -35,16 +39,6 @@ export class GRanges {
             throw utils.formatLengthError("'ranges'", "'seqnames'");
         }
         this._ranges = ranges;
-
-        this._rangeMetadata = ir.verifyRangeMetadata(rangeMetadata, n, "seqnames.length");
-
-        if (names !== null) {
-            utils.checkNamesArray(names, "'names'", n, "'seqnames.length'");
-        }
-        this._names = names;
-
-        // Storing this separately.
-        this._metadata = metadata;
     }
 
     /**************************************************************************
@@ -84,27 +78,6 @@ export class GRanges {
      */
     ranges() {
         return this._ranges;
-    }
-
-    /**
-     * @return {?Array} Array of strings containing the name of each genomic range, or `null` if no names are available.
-     */
-    names() {
-        return this._names;
-    }
-
-    /**
-     * @return {DataFrame} A {@linkplain DataFrame} with one row corresponding to each genomic range, containing arbitrary per-range metadata.
-     */
-    rangeMetadata() {
-        return this._rangeMetadata;
-    }
-
-    /**
-     * @return {Object} Object containing arbitrary metadata.
-     */
-    metadata() {
-        return this._metadata;
     }
 
     /**************************************************************************
@@ -157,41 +130,6 @@ export class GRanges {
         return this;
     }
 
-    /**
-     * @param {?Array} names - Array of strings containing a name for each genomic range.
-     * This should have length equal to the number of ranges.
-     * Alternatively `null`, if no names are present.
-     * @return {GRanges} A reference to this GRanges object, after setting the names to `names`.
-     */
-    $setNames(names) {
-        if (names !== null) {
-            utils.checkNamesArray(names, "replacement 'names'", generics.LENGTH(this), "'LENGTH(<GRanges>)'");
-        }
-        this._names = names;
-        return this;
-    }
-
-    /**
-     * @param {?DataFrame} rangeMetadata - Arbitrary metadata for each genomic range.
-     * This should have number of rows equal to the number of ranges.
-     * Alternatively `null`, in which case all existing per-range metadata is removed.
-     * @return {GRanges} A reference to this GRanges object, after setting the widths to `value`.
-     */
-    $setRangeMetadata(rangeMetadata) {
-        this._rangeMetadata = ir.verifyRangeMetadata(rangeMetadata, generics.LENGTH(this), "seqnames.length");
-        return this;
-    }
-
-    /**
-     * @param {Object} value - Object containing the metadata.
-     *
-     * @return {IRanges} Reference to this DataFrame after replacing the metadata.
-     */
-    $setMetadata(value) {
-        this._metadata = value;
-        return this;
-    }
-
     /**************************************************************************
      **************************************************************************
      **************************************************************************/
@@ -200,76 +138,34 @@ export class GRanges {
         return this._seqnames.length;
     }
 
-    _bioconductor_SLICE(i, { allowInPlace = false, allowView = false }) {
-        let options = { allowInPlace, allowView };
-        let s = generics.SLICE(this._seqnames, i, options);
-        let rr = generics.SLICE(this._ranges, i, options);
-        let rm = generics.SLICE(this._rangeMetadata, i, options);
-        let n = (this._names == null ? null : generics.SLICE(this._names, i, options));
-
-        if (allowInPlace) {
-            this._seqnames = s;
-            this._ranges = rr;
-            this._rangeMetadata = rm;
-            this._names = n;
-            return this;
-        } else {
-            let output = Object.create(this.constructor.prototype); // avoid validity checks.
-            output._seqnames = s;
-            output._ranges = rr;
-            output._rangeMetadata = rm;
-            output._names = n;
-            output._metadata = this._metadata;
-            return output;
-        }
+    _bioconductor_SLICE(output, i, { allowView = false }) {
+        super._bioconductor_SLICE(output, i, { allowView });
+        output._seqnames = generics.SLICE(this._seqnames, i, { allowView });
+        output._ranges = generics.SLICE(this._ranges, i, { allowView });
+        return;
     }
 
-    _bioconductor_COMBINE(objects, { allowAppend = false }) {
+    _bioconductor_COMBINE(output, objects) {
+        super._bioconductor_COMBINE(output, objects);
+
         let all_s = [];
         let all_rr = [];
-        let all_rm = [];
-        let all_n = [];
-        let all_l = [];
-
         for (const x of objects) {
             all_s.push(x._seqnames);
             all_rr.push(x._ranges);
-            all_rm.push(x._rangeMetadata);
-            all_n.push(x._names);
-            all_l.push(generics.LENGTH(x));
         }
 
-        let combined_s = generics.COMBINE(all_s);
-        let combined_rr = generics.COMBINE(all_rr);
-        let combined_rm = generics.COMBINE(all_rm);
-        let combined_n = utils.combineNames(all_n, all_l);
-
-        if (allowAppend) {
-            this._seqnames = combined_s;
-            this._ranges = combined_rr;
-            this._rangeMetadata = combined_rm;
-            this._names = combined_n;
-            return this;
-        } else {
-            let output = Object.create(this.constructor.prototype); // avoid validity checks.
-            output._seqnames = combined_s;
-            output._ranges = combined_rr;
-            output._rangeMetadata = combined_rm;
-            output._names = combined_n;
-            output._metadata = this._metadata;
-            return output;
-        }
+        output._seqnames = generics.COMBINE(all_s);
+        output._ranges = generics.COMBINE(all_rr);
+        return;
     }
 
-    _bioconductor_CLONE({ deepcopy = true }) {
+    _bioconductor_CLONE(output, { deepcopy = true }) {
         let options = { deepcopy };
-        let output = Object.create(this.constructor.prototype); // avoid validity checks.
+        super._bioconductor_CLONE(output, options);
         output._seqnames = generics.CLONE(this._seqnames, options);
         output._ranges = generics.CLONE(this._ranges, options);
-        output._rangeMetadata = generics.CLONE(this._rangeMetadata, options);
-        output._names = generics.CLONE(this._names, options);
-        output._metadata = generics.CLONE(this._metadata, options);
-        return output;
+        return;
     }
 }
 

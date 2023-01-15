@@ -1,5 +1,6 @@
 import * as generics from "./AllGenerics.js";
 import * as utils from "./utils.js";
+import * as ann from "./Annotated.js";
 
 /**
  * A DataFrame is a collection of equilength vector-like objects as "columns".
@@ -22,8 +23,10 @@ import * as utils from "./utils.js";
  * - {@linkcode SLICE}
  * - {@linkcode COMBINE}
  * - {@linkcode CLONE}
+ *
+ * @augments Annotated
  */
-export class DataFrame {
+export class DataFrame extends ann.Annotated {
     /**
      * @param {Object} columns - Object where keys are the column names and the values are equilength vector-like objects.
      * @param {Object} [options={}] - Optional parameters.
@@ -39,11 +42,11 @@ export class DataFrame {
      * @param {Object} [options.metadata={}] - Object containing arbitrary metadata as key-value pairs.
      */
     constructor(columns, { numberOfRows = null, rowNames = null, columnOrder = null, metadata = {} } = {}) {
+        super({ metadata });
         this._numberOfRows = numberOfRows;
         this._rowNames = rowNames;
         this._columns = columns;
         this._columnOrder = columnOrder;
-        this._metadata = metadata;
 
         let vals = Object.values(columns);
         if (vals.length) {
@@ -156,13 +159,6 @@ export class DataFrame {
 
         this._check_index(i);
         return this._columns[this._columnOrder[i]];
-    }
-
-    /**
-     * @return {Object} Object containing arbitrary metadata.
-     */
-    metadata() {
-        return this._metadata;
     }
 
     /**************************************************************************
@@ -279,16 +275,6 @@ export class DataFrame {
         return this;
     }
 
-    /**
-     * @param {Object} meta - Object containing the metadata.
-     *
-     * @return {DataFrame} Reference to this DataFrame after replacing the metadata.
-     */
-    $setMetadata(meta) {
-        this._metadata = meta;
-        return this;
-    }
-
     /**************************************************************************
      **************************************************************************
      **************************************************************************/
@@ -297,8 +283,8 @@ export class DataFrame {
         return this.numberOfRows();
     }
 
-    _bioconductor_SLICE(i, { allowInPlace = false, allowView = false }) {
-        let options = { allowInPlace, allowView };
+    _bioconductor_SLICE(output, i, { allowView = false }) {
+        let options = { allowView };
         let new_columns = {};
         for (const [k, v] of Object.entries(this._columns)) {
             new_columns[k] = generics.SLICE(v, i, options);
@@ -313,24 +299,15 @@ export class DataFrame {
             new_numberOfRows = i.length;
         }
 
-        if (allowInPlace) {
-            this._columns = new_columns;
-            this._rowNames = new_rowNames;
-            this._numberOfRows = new_numberOfRows;
-            return this;
-        } else {
-            let output = Object.create(this.constructor.prototype);
-            output._columns = new_columns;
-            output._rowNames = new_rowNames;
-            output._columnOrder = this._columnOrder;
-            output._numberOfRows = new_numberOfRows;
-            output._metadata = this._metadata;
-            return output;
-        }
+        output._columns = new_columns;
+        output._rowNames = new_rowNames;
+        output._columnOrder = this._columnOrder;
+        output._numberOfRows = new_numberOfRows;
+        output._metadata = this._metadata;
+        return; 
     }
 
-    _bioconductor_COMBINE(objects, { allowAppend = false }) {
-        let options = { allowAppend };
+    _bioconductor_COMBINE(output, objects) {
         let new_columns = {};
         for (const x of this._columnOrder) {
             let yarr = [];
@@ -340,7 +317,7 @@ export class DataFrame {
                 }
                 yarr.push(yi._columns[x]);
             }
-            new_columns[x] = generics.COMBINE(yarr, options);
+            new_columns[x] = generics.COMBINE(yarr);
         }
 
         let all_n = [];
@@ -356,35 +333,21 @@ export class DataFrame {
         let new_numberOfRows = utils.sum(all_l);
         let new_rowNames = utils.combineNames(all_n, all_l, new_numberOfRows);
 
-        if (allowAppend) {
-            this._columns = new_columns;
-            this._numberOfRows = new_numberOfRows;
-            this._rowNames = new_rowNames;
-            return this;
-        } else {
-            let output = Object.create(this.constructor.prototype); // avoid validity checks.
-            output._columns = new_columns;
-            output._rowNames = new_rowNames;
-            output._columnOrder = this._columnOrder;
-            output._numberOfRows = new_numberOfRows;
-            output._metadata = this._metadata;
-            return output;
-        }
-    }
-
-    _bioconductor_CLONE({ deepCopy = true }) {
-        let new_columnOrder = this._columnOrder.slice();
-        let new_rowNames = (this._rowNames == null ? null : this._rowNames.slice());
-        let new_columns = generics.CLONE(this._columns, { deepCopy });
-        let new_meta = generics.CLONE(this._metadata, { deepCopy });
-
-        let output = Object.create(this.constructor.prototype); // avoid validity checks.
         output._columns = new_columns;
         output._rowNames = new_rowNames;
-        output._columnOrder = new_columnOrder;
+        output._columnOrder = this._columnOrder;
+        output._numberOfRows = new_numberOfRows;
+        output._metadata = this._metadata;
+        return;
+    }
+
+    _bioconductor_CLONE(output, { deepCopy = true }) {
+        super._bioconductor_CLONE(output, { deepCopy });
+        output._columns = generics.CLONE(this._columns, { deepCopy });
+        output._rowNames = (this._rowNames == null ? null : this._rowNames.slice());
+        output._columnOrder = this._columnOrder.slice();
         output._numberOfRows = this._numberOfRows;
-        output._metadata = new_meta; 
-        return output;
+        return;
     }
 };
 
