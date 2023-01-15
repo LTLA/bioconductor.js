@@ -2,6 +2,30 @@ import * as generics from "./AllGenerics.js";
 import * as utils from "./utils.js";
 import * as df from "./DataFrame.js";
 
+export function verifyRangeMetadata(rangeMetadata, numExpected, failMessage) {
+    if (rangeMetadata !== null) {
+        if (!(rangeMetadata instanceof df.DataFrame)) {
+            throw new Error("'rangeMetadata' should be a DataFrame");
+        }
+        if (generics.LENGTH(rangeMetadata) !== numExpected) {
+            throw new Error("'rangeMetadata' should have the same number of rows as '" + failMessage + "'");
+        }
+    } else {
+        rangeMetadata = new df.DataFrame({}, { numberOfRows: numExpected });
+    }
+    return rangeMetadata;
+}
+
+export function verifyRangeNames(names, numExpected, failMessage) {
+    if (names !== null) {
+        utils.checkNamesArray(names);
+        if (names.length != numExpected) {
+            throw new Error(failMessage);
+        }
+    }
+    return names;
+}
+
 /**
  * An IRanges object is a collection of integer ranges, inspired by the class of the same name from the Bioconductor ecosystem.
  * Each range consists of a start position and a width, and may be associated with arbitrary range-level metadata in a {@linkplain DataFrame}.
@@ -57,26 +81,8 @@ export class IRanges {
             throw new Error("'start' and 'width' should have the same length");
         }
 
-        if (rangeMetadata !== null) {
-            if (!(rangeMetadata instanceof df.DataFrame)) {
-                throw new Error("'rangeMetadata' should be a DataFrame");
-            }
-            if (generics.LENGTH(rangeMetadata) !== n) {
-                throw new Error("'rangeMetadata' should have the same number of rows as 'start.length'");
-            }
-        } else {
-            rangeMetadata = new df.DataFrame({}, { numberOfRows: n });
-        }
-        this._rangeMetadata = rangeMetadata;
-
-        if (names !== null) {
-            utils.checkNamesArray(names);
-            if (names.length != n) {
-                throw new Error("'start' and 'names' should have the same length");
-            }
-        }
-        this._rangeMetadata.$setRowNames(names);
-
+        this._rangeMetadata = verifyRangeMetadata(rangeMetadata, n, "start.length");
+        this._names = verifyRangeNames(names, n, "'start' and 'names' should have the same length");
         this._metadata = metadata;
     }
 
@@ -109,7 +115,7 @@ export class IRanges {
      * @return {?Array} Array of strings containing the name of each range, or `null` if no names are available.
      */
     names() {
-        return this._rangeMetadata.rowNames();
+        return this._names;
     }
 
     /**
@@ -167,7 +173,7 @@ export class IRanges {
      * @return {IRanges} A reference to this IRanges object, after setting the names to `value`.
      */
     $setNames(value) {
-        this._rangeMetadata.$setRowNames(value);
+        this._names = verifyRangeNames(value, generics.LENGTH(this), "length of replacement names should be the same as 'LENGTH(<IRanges>)'");
         return this;
     }
 
@@ -178,15 +184,7 @@ export class IRanges {
      * @return {IRanges} A reference to this IRanges object, after setting the widths to `value`.
      */
     $setRangeMetadata(value) {
-        if (value !== null) {
-            if (!(value instanceof df.DataFrame) || generics.LENGTH(value) !== generics.LENGTH(this)) {
-                throw new Error("'rangeMetadata' should be replaced by a DataFrame with the same number of rows");
-            }
-        } else {
-            let existing = this._rangeMetadata;
-            value = new df.DataFrame({}, { rowNames: existing.rowNames(), numberOfRows: existing.numberOfRows() });
-        }
-        this._rangeMetadata = value;
+        this._rangeMetadata = verifyRangeMetadata(value, generics.LENGTH(this), "LENGTH(<IRanges>)");
         return this;
     }
 
@@ -213,17 +211,20 @@ export class IRanges {
         let s = generics.SLICE(this._start, i, options);
         let w = generics.SLICE(this._width, i, options);
         let r = generics.SLICE(this._rangeMetadata, i, options);
+        let n = (this._names == null ? null : generics.SLICE(this._names, i, options));
 
         if (allowInPlace) {
             this._start = s;
             this._width = w;
             this._rangeMetadata = r;
+            this._names = n;
             return this;
         } else {
             let output = Object.create(this.constructor.prototype); // avoid validity checks.
             output._start = s;
             output._width = w;
             output._rangeMetadata = r;
+            output._names = n;
             output._metadata = this._metadata;
             return output;
         }
@@ -233,27 +234,34 @@ export class IRanges {
         let all_s = [];
         let all_w = [];
         let all_r = [];
+        let all_n = [];
+        let all_l = [];
 
         for (const x of objects) {
-            all_s.push(x.start());
-            all_w.push(x.width());
-            all_r.push(x.rangeMetadata());
+            all_s.push(x._start);
+            all_w.push(x._width);
+            all_r.push(x._rangeMetadata);
+            all_n.push(x._names);
+            all_l.push(generics.LENGTH(x));
         }
 
         let combined_s = generics.COMBINE(all_s);
         let combined_w = generics.COMBINE(all_w);
         let combined_r = generics.COMBINE(all_r);
+        let combined_n = utils.combineNames(all_n, all_l);
 
         if (allowAppend) {
             this._start = combined_s;
             this._width = combined_w;
             this._rangeMetadata = combined_r;
+            this._names = combined_n;
             return this;
         } else {
             let output = Object.create(this.constructor.prototype); // avoid validity checks.
             output._start = combined_s;
             output._width = combined_w;
             output._rangeMetadata = combined_r;
+            output._names = combined_n;
             output._metadata = this._metadata;
             return output;
         }
@@ -265,6 +273,7 @@ export class IRanges {
         output._start = generics.CLONE(this._start, options);
         output._width = generics.CLONE(this._width, options);
         output._rangeMetadata = generics.CLONE(this._rangeMetadata, options);
+        output._names = (this._names == null ? null : generics.CLONE(this._names, options));
         output._metadata = generics.CLONE(this._metadata, options);
         return output;
     }

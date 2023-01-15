@@ -351,37 +351,18 @@ export class DataFrame {
             new_columns[x] = generics.COMBINE(yarr, options);
         }
 
-        let new_numberOfRows = 0;
-        let has_rowNames = false;
+        let all_n = [];
+        let all_l = [];
         for (const yi of objects) {
             if (yi.numberOfColumns() != this.numberOfColumns()) {
                 throw new Error("mismatching number of columns across DataFrames to be combined");
             }
-
-            if (!has_rowNames && yi._rowNames !== null) {
-                has_rowNames = true;
-            }
-
-            new_numberOfRows += yi._numberOfRows;
+            all_n.push(yi.rowNames());
+            all_l.push(yi.numberOfRows());
         }
 
-        let new_rowNames = null;
-        if (has_rowNames) {
-            new_rowNames = new Array(new_numberOfRows);
-
-            let counter = 0;
-            for (const obj of objects) {
-                if (obj._rowNames == null) {
-                    new_rowNames.fill("", counter, counter + obj._numberOfRows);
-                    counter += obj._numberOfRows;
-                } else {
-                    obj._rowNames.forEach(x => {
-                        new_rowNames[counter] = x;
-                        counter++;
-                    });
-                }
-            }
-        }
+        let new_numberOfRows = utils.sum(all_l);
+        let new_rowNames = utils.combineNames(all_n, all_l, new_numberOfRows);
 
         if (allowAppend) {
             this._columns = new_columns;

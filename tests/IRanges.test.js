@@ -35,7 +35,7 @@ test("constructing a IRanges works with names", () => {
     let x = new bioc.IRanges(obj.start, obj.width, { names: names });
 
     expect(x.names()).toEqual(names);
-    expect(x.rangeMetadata().rowNames()).toEqual(names);
+    expect(x.rangeMetadata().rowNames()).toBeNull();
 
     // Fails if the names are of different length.
     expect(() => new bioc.IRanges(obj.start, obj.width, { names: ["A"] })).toThrow("same length");
@@ -95,7 +95,7 @@ test("IRanges setters work for names", () => {
 
     x.$setNames(["A", "B", "C", "D"]);
     expect(x.names()).toEqual(["A", "B", "C", "D"]);
-    expect(x.rangeMetadata().rowNames()).toEqual(["A", "B", "C", "D"]);
+    expect(x.rangeMetadata().rowNames()).toBeNull();
 
     x.$setNames(null);
     expect(x.names()).toBeNull();

@@ -40,3 +40,42 @@ export function checkNamesArray(names, msg) {
     }
 }
 
+export function sum(y) {
+    let total = 0;
+    y.forEach(x => { total += x; });
+    return total;
+}
+
+export function combineNames(all_names, all_lengths, total_n = null) {
+    let all_null = true;
+    for (var i = 0; i < all_names.length; i++) {
+        if (all_names[i] !== null) {
+            all_null = false;
+        }
+    }
+
+    if (all_null) {
+        return null;
+    }
+
+    if (total_n === null) {
+        total_n = sum(all_lengths);
+    }
+
+    let output = new Array(total_n);
+    let counter = 0;
+    for (var i = 0; i < all_names.length; i++) {
+        let n = all_names[i];
+        if (n === null) {
+            output.fill("", counter, counter + all_lengths[i]);
+            counter += all_lengths[i];
+        } else {
+            n.forEach(x => {
+                output[counter] = x;
+                counter++;
+            });
+        }
+    }
+
+    return output;
+}
