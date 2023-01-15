@@ -32,11 +32,14 @@ export function chooseArrayConstructors(con1, con2) {
     return Float64Array;
 }
 
-export function checkNamesArray(names, msg) {
+export function checkNamesArray(names, typeMessage, numExpected, lengthMessage) {
     for (const x of names) {
         if (typeof x !== "string") {
-            throw new Error("array of " + msg + " should only contain strings");
+            throw new Error(typeMessage + " array should only contain strings");
         }
+    }
+    if (names.length != numExpected) {
+        throw new Error(typeMessage + " array should have length equal to " + lengthMessage);
     }
 }
 

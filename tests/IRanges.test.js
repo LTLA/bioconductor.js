@@ -38,7 +38,7 @@ test("constructing a IRanges works with names", () => {
     expect(x.rangeMetadata().rowNames()).toBeNull();
 
     // Fails if the names are of different length.
-    expect(() => new bioc.IRanges(obj.start, obj.width, { names: ["A"] })).toThrow("same length");
+    expect(() => new bioc.IRanges(obj.start, obj.width, { names: ["A"] })).toThrow("should have length equal to");
 
     // Fails if the names are not strings.
     expect(() => new bioc.IRanges(obj.start, obj.width, { names: [0] })).toThrow("strings");
@@ -101,7 +101,7 @@ test("IRanges setters work for names", () => {
     expect(x.names()).toBeNull();
 
     // Fails if not of the right length.
-    expect(() => x.$setNames(["A", "B"])).toThrow("length of replacement");
+    expect(() => x.$setNames(["A", "B"])).toThrow("replacement 'names'");
 
     // Fails if not strings.
     expect(() => x.$setNames([1,2,3,4])).toThrow("strings");

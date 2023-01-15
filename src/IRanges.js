@@ -16,16 +16,6 @@ export function verifyRangeMetadata(rangeMetadata, numExpected, failMessage) {
     return rangeMetadata;
 }
 
-export function verifyRangeNames(names, numExpected, failMessage) {
-    if (names !== null) {
-        utils.checkNamesArray(names);
-        if (names.length != numExpected) {
-            throw new Error(failMessage);
-        }
-    }
-    return names;
-}
-
 /**
  * An IRanges object is a collection of integer ranges, inspired by the class of the same name from the Bioconductor ecosystem.
  * Each range consists of a start position and a width, and may be associated with arbitrary range-level metadata in a {@linkplain DataFrame}.
@@ -82,7 +72,12 @@ export class IRanges {
         }
 
         this._rangeMetadata = verifyRangeMetadata(rangeMetadata, n, "start.length");
-        this._names = verifyRangeNames(names, n, "'start' and 'names' should have the same length");
+
+        if (names !== null) {
+            utils.checkNamesArray(names, "'names'", n, "'start.length'");
+        }
+        this._names = names;
+
         this._metadata = metadata;
     }
 
@@ -167,13 +162,16 @@ export class IRanges {
     }
 
     /**
-     * @param {?Array} value - Array of strings containing a name for each range.
+     * @param {?Array} names - Array of strings containing a name for each range.
      * This should have length equal to the number of ranges.
      * Alternatively `null`, if no names are present.
      * @return {IRanges} A reference to this IRanges object, after setting the names to `value`.
      */
-    $setNames(value) {
-        this._names = verifyRangeNames(value, generics.LENGTH(this), "length of replacement names should be the same as 'LENGTH(<IRanges>)'");
+    $setNames(names) {
+        if (names !== null) {
+            utils.checkNamesArray(names, "replacement 'names'", generics.LENGTH(this), "'LENGTH(<IRanges>)'");
+        } 
+        this._names = names;
         return this;
     }
 

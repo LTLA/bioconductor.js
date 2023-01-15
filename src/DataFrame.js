@@ -52,7 +52,7 @@ export class DataFrame {
                 if (this._numberOfRows == null) {
                     this._numberOfRows = n;
                 } else if (n != this._numberOfRows) {
-                    throw new Error("expected all arrays in 'x' to have equal length");
+                    throw new Error("expected all arrays in 'columns' to have equal length");
                 }
             }
         }
@@ -60,25 +60,23 @@ export class DataFrame {
         if (columnOrder == null) {
             this._columnOrder = Object.keys(columns);
         } else if (columnOrder.length != vals.length) {
-            throw new Error("'columnOrder' should have the same length as 'x'");
+            throw new Error("'columnOrder' should have the same length as the number of entries in 'columns'");
         } else {
-            utils.checkNamesArray(columnOrder, "column names");
+            utils.checkNamesArray(columnOrder, "'columnOrder'", vals.length, "the number of entries in 'columns'");
             let uniq = Array.from(new Set(columnOrder));
             uniq.sort();
             let expected = Object.keys(columns);
             expected.sort();
             if (!utils.areArraysEqual(uniq, expected)) {
-                throw new Error("values of 'columnOrder' should be the same as the keys of 'x'");
+                throw new Error("values of 'columnOrder' should be the same as the keys of 'columns'");
             }
         }
 
         if (rowNames != null) {
             if (this._numberOfRows == null) {
                 this._numberOfRows = rowNames.length;
-            } else if (this._numberOfRows != rowNames.length) {
-                throw new Error("length of 'rowNames' is inconsistent with the number of rows of 'x'");
             }
-            utils.checkNamesArray(rowNames, "row names");
+            utils.checkNamesArray(rowNames, "'rowNames'", this._numberOfRows, "'numberOfRows' or the length of arrays in 'columns'");
         }
 
         if (this._numberOfRows == null) {
@@ -223,10 +221,7 @@ export class DataFrame {
      * @return {DataFrame} Reference to this DataFrame with modified column names.
      */
     $setColumnNames(names) {
-        utils.checkNamesArray(names, "column names");
-        if (names.length != this._columnOrder.length) {
-            throw new Error("length of replacement 'names' must be equal to the number of columns");
-        }
+        utils.checkNamesArray(names, "replacement 'names'", this._columnOrder.length, "'numberOfColumns()'");
 
         let new_columns = {};
         for (var i = 0; i < names.length; i++) {
@@ -250,10 +245,7 @@ export class DataFrame {
      */
     $setRowNames(names) {
         if (names != null) {
-            if (names.length != this._numberOfRows) {
-                throw new Error("length of replacement 'names' must be equal to the number of rows");
-            }
-            utils.checkNamesArray(names, "row names");
+            utils.checkNamesArray(names, "replacement 'names'", this._numberOfRows, "'numberOfRows()'");
         }
         this._rowNames = names;
         return this;

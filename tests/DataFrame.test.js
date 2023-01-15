@@ -24,9 +24,9 @@ test("constructing a DataFrame works (simple)", () => {
     x = new bioc.DataFrame(obj, { numberOfRows: 4 });
     expect(x.numberOfRows()).toEqual(4);
 
-    expect(() => new bioc.DataFrame(obj, { numberOfRows: 5 })).toThrow("expected all arrays in 'x' to have equal length");
+    expect(() => new bioc.DataFrame(obj, { numberOfRows: 5 })).toThrow("expected all arrays in 'columns' to have equal length");
     obj.B.push(5);
-    expect(() => new bioc.DataFrame(obj)).toThrow("expected all arrays in 'x' to have equal length");
+    expect(() => new bioc.DataFrame(obj)).toThrow("expected all arrays in 'columns' to have equal length");
     obj.B.pop();
 })
 
@@ -46,7 +46,7 @@ test("constructing a DataFrame works (with rownames)", () => {
     expect(x.numberOfRows()).toEqual(4);
     expect(x.rowNames()).toEqual(["alpha", "bravo", "charlie", "delta"]);
 
-    expect(() => new bioc.DataFrame(obj, { rowNames: [ "B" ] })).toThrow("length of 'rowNames'");
+    expect(() => new bioc.DataFrame(obj, { rowNames: [ "B" ] })).toThrow("'rowNames' array");
 })
 
 test("constructing a DataFrame works (with empty objects)", () => {
