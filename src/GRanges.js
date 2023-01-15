@@ -116,7 +116,7 @@ export class GRanges {
      * @return {GRanges} A reference to this GRanges object, after setting the sequence names to `seqnames`.
      */
     $setSeqnames(seqnames) {
-        utils.checkNamesArray(value, "replacement 'seqnames'", generics.LENGTH(this), "'LENGTH(<GRanges>)'");
+        utils.checkNamesArray(seqnames, "replacement 'seqnames'", generics.LENGTH(this), "'LENGTH(<GRanges>)'");
         this._seqnames = seqnames;
         return this;
     }
@@ -147,6 +147,9 @@ export class GRanges {
      * @return {GRanges} A reference to this GRanges object, after setting the ranges to `ranges`.
      */
     $setRanges(ranges) {
+        if (!(ranges instanceof ir.IRanges)) {
+            throw new Error("'ranges' should be an IRanges object");
+        }
         if (generics.LENGTH(ranges) !== generics.LENGTH(this._ranges)) {
             throw utils.formatLengthError("replacement 'ranges'", "'LENGTH(<GRanges>)'");
         }
@@ -169,13 +172,13 @@ export class GRanges {
     }
 
     /**
-     * @param {?DataFrame} value - Arbitrary metadata for each genomic range.
+     * @param {?DataFrame} rangeMetadata - Arbitrary metadata for each genomic range.
      * This should have number of rows equal to the number of ranges.
      * Alternatively `null`, in which case all existing per-range metadata is removed.
      * @return {GRanges} A reference to this GRanges object, after setting the widths to `value`.
      */
-    $setRangeMetadata(value) {
-        this._rangeMetadata = ir.verifyRangeMetadata(rangeMetadata, n, "seqnames.length");
+    $setRangeMetadata(rangeMetadata) {
+        this._rangeMetadata = ir.verifyRangeMetadata(rangeMetadata, generics.LENGTH(this), "seqnames.length");
         return this;
     }
 
@@ -194,25 +197,28 @@ export class GRanges {
      **************************************************************************/
 
     _bioconductor_LENGTH() {
-        return this._start.length;
+        return this._seqnames.length;
     }
 
     _bioconductor_SLICE(i, { allowInPlace = false, allowView = false }) {
         let options = { allowInPlace, allowView };
-        let s = generics.SLICE(this._start, i, options);
-        let w = generics.SLICE(this._width, i, options);
-        let r = generics.SLICE(this._rangeMetadata, i, options);
+        let s = generics.SLICE(this._seqnames, i, options);
+        let rr = generics.SLICE(this._ranges, i, options);
+        let rm = generics.SLICE(this._rangeMetadata, i, options);
+        let n = (this._names == null ? null : generics.SLICE(this._names, i, options));
 
         if (allowInPlace) {
-            this._start = s;
-            this._width = w;
-            this._rangeMetadata = r;
+            this._seqnames = s;
+            this._ranges = rr;
+            this._rangeMetadata = rm;
+            this._names = n;
             return this;
         } else {
             let output = Object.create(this.constructor.prototype); // avoid validity checks.
-            output._start = s;
-            output._width = w;
-            output._rangeMetadata = r;
+            output._seqnames = s;
+            output._ranges = rr;
+            output._rangeMetadata = rm;
+            output._names = n;
             output._metadata = this._metadata;
             return output;
         }
@@ -220,29 +226,36 @@ export class GRanges {
 
     _bioconductor_COMBINE(objects, { allowAppend = false }) {
         let all_s = [];
-        let all_w = [];
-        let all_r = [];
+        let all_rr = [];
+        let all_rm = [];
+        let all_n = [];
+        let all_l = [];
 
         for (const x of objects) {
-            all_s.push(x.start());
-            all_w.push(x.width());
-            all_r.push(x.rangeMetadata());
+            all_s.push(x._seqnames);
+            all_rr.push(x._ranges);
+            all_rm.push(x._rangeMetadata);
+            all_n.push(x._names);
+            all_l.push(generics.LENGTH(x));
         }
 
         let combined_s = generics.COMBINE(all_s);
-        let combined_w = generics.COMBINE(all_w);
-        let combined_r = generics.COMBINE(all_r);
+        let combined_rr = generics.COMBINE(all_rr);
+        let combined_rm = generics.COMBINE(all_rm);
+        let combined_n = utils.combineNames(all_n, all_l);
 
         if (allowAppend) {
-            this._start = combined_s;
-            this._width = combined_w;
-            this._rangeMetadata = combined_r;
+            this._seqnames = combined_s;
+            this._ranges = combined_rr;
+            this._rangeMetadata = combined_rm;
+            this._names = combined_n;
             return this;
         } else {
             let output = Object.create(this.constructor.prototype); // avoid validity checks.
-            output._start = combined_s;
-            output._width = combined_w;
-            output._rangeMetadata = combined_r;
+            output._seqnames = combined_s;
+            output._ranges = combined_rr;
+            output._rangeMetadata = combined_rm;
+            output._names = combined_n;
             output._metadata = this._metadata;
             return output;
         }
@@ -251,9 +264,10 @@ export class GRanges {
     _bioconductor_CLONE({ deepcopy = true }) {
         let options = { deepcopy };
         let output = Object.create(this.constructor.prototype); // avoid validity checks.
-        output._start = generics.CLONE(this._start, options);
-        output._width = generics.CLONE(this._width, options);
+        output._seqnames = generics.CLONE(this._seqnames, options);
+        output._ranges = generics.CLONE(this._ranges, options);
         output._rangeMetadata = generics.CLONE(this._rangeMetadata, options);
+        output._names = generics.CLONE(this._names, options);
         output._metadata = generics.CLONE(this._metadata, options);
         return output;
     }

@@ -36,12 +36,16 @@ export function formatLengthError(left, right) {
     return new Error(left + " should have length equal to " + right);
 }
 
-export function checkNamesArray(names, typeMessage, numExpected, lengthMessage) {
+export function checkStringArray(names, typeMessage) {
     for (const x of names) {
         if (typeof x !== "string") {
             throw new Error(typeMessage + " array should only contain strings");
         }
     }
+}
+
+export function checkNamesArray(names, typeMessage, numExpected, lengthMessage) {
+    checkStringArray(names, typeMessage);
     if (names.length != numExpected) {
         throw formatLengthError(typeMessage + " array ", lengthMessage);
     }
