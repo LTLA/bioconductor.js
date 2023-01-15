@@ -32,6 +32,10 @@ export function chooseArrayConstructors(con1, con2) {
     return Float64Array;
 }
 
+export function formatLengthError(left, right) {
+    return new Error(left + " should have length equal to " + right);
+}
+
 export function checkNamesArray(names, typeMessage, numExpected, lengthMessage) {
     for (const x of names) {
         if (typeof x !== "string") {
@@ -39,7 +43,7 @@ export function checkNamesArray(names, typeMessage, numExpected, lengthMessage) 
         }
     }
     if (names.length != numExpected) {
-        throw new Error(typeMessage + " array should have length equal to " + lengthMessage);
+        throw formatLengthError(typeMessage + " array ", lengthMessage);
     }
 }
 
