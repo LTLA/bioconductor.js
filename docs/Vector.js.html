@@ -3,7 +3,7 @@
 <head>
     
     <meta charset="utf-8">
-    <title>Home - Documentation</title>
+    <title>Vector.js - Documentation</title>
     
     
     <script src="scripts/prettify/prettify.js"></script>
@@ -34,151 +34,146 @@
 
 <div id="main">
     
+    <h1 class="page-title">Vector.js</h1>
+    
 
     
 
 
 
     
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import * as generics from "./AllGenerics.js";
+import * as utils from "./utils.js";
+import * as df from "./DataFrame.js";
+import * as ann from "./Annotated.js";
 
-
-    <section class="package">
-        <h3> </h3>		
-    </section>
-
-
-
-
-
-
-
-
-
-    
-
-
-
-    <section class="readme usertext">
-        <article><h1>Bioconductor objects in Javascript</h1>
-<p>🚧🚧🚧🚧 <strong>Under construction!</strong> 🚧🚧🚧🚧</p>
-<p>This package aims to provide Javascript implementations of <a href="https://github.com/Bioconductor">Bioconductor</a> data structures for use in web applications.
-Much like the original R code, we focus on the use of common generics to provide composability, allowing users to construct complex objects that &quot;just work&quot;.</p>
-<h2>Quick start</h2>
-<p>Here, we perform some generic operations on a <code>DataFrame</code> object, equivalent to Bioconductor's <code>S4Vectors::DFrame</code> class.</p>
-<pre class="prettyprint source lang-js"><code>// Import using ES6 notation
-import * as bioc from &quot;bioconductor&quot;;
-
-// Construct a DataFrame
-let results = new bioc.DataFrame(
-    { 
-        logFC: new Float64Array([-1, -2, 1.3, 2.1]),
-        pvalue: new Float64Array([0.01, 0.02, 0.001, 1e-8])
-    },
-    {
-        rowNames: [ &quot;p53&quot;, &quot;SNAP25&quot;, &quot;MALAT1&quot;, &quot;INS&quot; ]
+function verifyElementMetadata(elementMetadata, numExpected, className) {
+    if (elementMetadata !== null) {
+        if (!(elementMetadata instanceof df.DataFrame)) {
+            throw new Error("'elementMetadata' should be a DataFrame");
+        }
+        if (generics.LENGTH(elementMetadata) !== numExpected) {
+            throw new Error("'elementMetadata' should have the same number of rows as 'LENGTH(&lt;" + className + ">)'");
+        }
+    } else {
+        elementMetadata = new df.DataFrame({}, { numberOfRows: numExpected });
     }
-);
+    return elementMetadata;
+}
 
-// Run generics
-bioc.LENGTH(results);
-bioc.SLICE(results, [ 2, 3, 1 ]); 
-bioc.CLONE(results);
+/**
+ * The Vector class implements a store for arbitrary per-element metadata and per-element names.
+ * It is intended as a base class for other structures that have a concept of "vector-ness".
+ * It should not be constructed directly.
+ *
+ * @augments Annotated
+ */
+export class Vector extends ann.Annotated {
+    /**
+     * @param {number} length - Number of elements in this vector-like object.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {?DataFrame} [options.elementMetadata=null] - A {@linkplain DataFrame} with number of rows equal to the length of `start`, containing arbitrary per-element annotations.
+     * Alternatively `null`, in which case a zero-column DataFrame is automatically constructed.
+     * @param {Object} [options.metadata={}] - Object containing arbitrary metadata as key-value pairs.
+     */
+    constructor(length, { names = null, elementMetadata = null, metadata = {} } = {}) {
+        super({ metadata });
 
-let more_results = new bioc.DataFrame(
-    { 
-        logFC: new Float64Array([0, 0.1, -0.1]),
-        pvalue: new Float64Array([1e-5, 1e-4, 0.5])
-    },
-    {
-        rowNames: [ &quot;GFP&quot;, &quot;mCherry&quot;, &quot;tdTomato&quot; ]
+        this._elementMetadata = verifyElementMetadata(elementMetadata, length, this.constructor.className);
+
+        if (names !== null) {
+            utils.checkNamesArray(names, "'names'", length, "'LENGTH(&lt;" + this.constructor.className + ">)'");
+        }
+        this._names = names;
     }
-);
 
-bioc.COMBINE(results, [more_results]);
+    /**************************************************************************
+     **************************************************************************
+     **************************************************************************/
+
+    /**
+     * @return {DataFrame} A {@linkplain DataFrame} with one row corresponding to each vector element, containing arbitrary per-element metadata.
+     */
+    elementMetadata() {
+        return this._elementMetadata;
+    }
+
+    /**
+     * @return {?Array} Array of strings containing the name of each range, or `null` if no names are available.
+     */
+    names() {
+        return this._names;
+    }
+
+    /**************************************************************************
+     **************************************************************************
+     **************************************************************************/
+
+    /**
+     * @param {?DataFrame} elementMetadata - Arbitrary metadata for each vector element.
+     * This should have number of rows equal to the vector length.
+     * Alternatively `null`, in which case all existing per-element metadata is removed.
+     * @return {Vector} A reference to this Vector object, after setting the element metadata to `value`.
+     */
+    $setElementMetadata(elementMetadata) {
+        this._elementMetadata = verifyElementMetadata(elementMetadata, generics.LENGTH(this), this.constructor.className);
+        return this;
+    }
+
+    /**
+     * @param {?Array} names - Array of strings containing a name for each range.
+     * This should have length equal to the number of ranges.
+     * Alternatively `null`, if no names are present.
+     * @return {Vector} A reference to this Vector object, after setting the names to `names`.
+     */
+    $setNames(names) {
+        if (names !== null) {
+            utils.checkNamesArray(names, "replacement 'names'", generics.LENGTH(this), "'LENGTH(&lt;" + this.constructor.className + ">)'");
+        } 
+        this._names = names;
+        return this;
+    }
+
+    /**************************************************************************
+     **************************************************************************
+     **************************************************************************/
+
+    _bioconductor_SLICE(output, i, { allowView = false }) {
+        output._elementMetadata = generics.SLICE(this._elementMetadata, i, { allowView });
+        output._names = (this._names === null ? null : generics.SLICE(this._names, i, { allowView }));
+        output._metadata = this._metadata;
+        return;
+    }
+
+    _bioconductor_COMBINE(output, objects) {
+        let all_em = [];
+        let all_n = [];
+        let all_l = [];
+
+        for (const x of objects) {
+            all_em.push(x._elementMetadata);
+            all_n.push(x._names);
+            all_l.push(generics.LENGTH(x));
+        }
+
+        output._elementMetadata = generics.COMBINE(all_em);
+        output._names = utils.combineNames(all_n, all_l);
+        return;
+    }
+
+    _bioconductor_CLONE(output, { deepcopy = true }) {
+        let options = { deepcopy };
+        super._bioconductor_CLONE(output, options);
+        output._elementMetadata = generics.CLONE(this._elementMetadata, options);
+        output._names = generics.CLONE(this._names, options);
+        return;
+    }
+}
 </code></pre>
-<p>The generics allow us to manipulate complex objects like a nested <code>DataFrame</code>:</p>
-<pre class="prettyprint source lang-js"><code>let results = new bioc.DataFrame(
-    { 
-        logFC: new Float64Array([-1, -2, 1.3, 2.1]),
-        pvalue: new Float64Array([0.01, 0.02, 0.001, 1e-8]),
-        location: new bioc.DataFrame(
-            &quot;chromosome&quot;: [ &quot;chrA&quot;, &quot;chrB&quot;, &quot;chrC&quot;, &quot;chrD&quot; ],
-            &quot;start&quot;: [ 1, 2, 3, 4 ],
-            &quot;end&quot;: [ 10, 20, 30, 40 ],
-            &quot;strand&quot;: new Uint8Array([-1, 1, 1, -1 ])
-        )
-    },
-    {
-        rowNames: [ &quot;p53&quot;, &quot;SNAP25&quot;, &quot;MALAT1&quot;, &quot;INS&quot; ]
-    }
-);
-
-let subset = bioc.SLICE(results, { start: 2, end: 4 });
-bioc.LENGTH(subset); 
-subset.column(&quot;location&quot;);
-</code></pre>
-<p>See the <a href="https://ltla.github.io/bioconductor.js">reference documentation</a> for more details.</p>
-<h2>Supported classes and generics</h2>
-<p>For classes:</p>
-<table>
-<thead>
-<tr>
-<th><strong>Javascript</strong></th>
-<th><strong>R/Bioconductor equivalent</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><a href="https://ltla.github.io/bioconductor.js/DataFrame.html"><code>DataFrame</code></a></td>
-<td><code>S4Vectors::DFrame</code></td>
-</tr>
-</tbody>
-</table>
-<p>For generics:</p>
-<table>
-<thead>
-<tr>
-<th><strong>Javascript</strong></th>
-<th><strong>R/Bioconductor equivalent</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><a href="https://ltla.github.io/bioconductor.js/LENGTH.html"><code>LENGTH</code></a></td>
-<td><code>base::NROW</code></td>
-</tr>
-<tr>
-<td><a href="https://ltla.github.io/bioconductor.js/SLICE.html"><code>SLICE</code></a></td>
-<td><code>S4Vectors::extractROWS</code></td>
-</tr>
-<tr>
-<td><a href="https://ltla.github.io/bioconductor.js/COMBINE.html"><code>COMBINE</code></a></td>
-<td><code>S4Vectors::bindROWS</code></td>
-</tr>
-<tr>
-<td><a href="https://ltla.github.io/bioconductor.js/CLONE.html"><code>CLONE</code></a></td>
-<td>-</td>
-</tr>
-</tbody>
-</table>
-<h2>Design considerations</h2>
-<p>We mimic R's S4 generics using methods in Javascript classes.
-For example, each supported class defines a <code>_bioconductor_LENGTH</code> method to quantify its concept of &quot;length&quot;.
-The <code>LENGTH</code> function will then call this method to obtain a length value for any instance of any supported class.
-We prefix this method with <code>_bioconductor_</code> to avoid collisions with other properties;
-this allows safe monkey patching of third-party classes if they are sufficiently vector-like.</p>
-<p>Admittedly, the <code>LENGTH</code> function is not really necessary, as users could just call <code>_bioconductor_LENGTH</code> directly.
-However, the latter is long and unpleasant to type, so we might as well wrap it in something that's easier to remember.
-It would also require monkey patching of built-in classes like Arrays and TypedArrays, which is somewhat concerning as it risks interfering with the behavior of other packages.
-By defining our own <code>LENGTH</code> function, we can safely handle the built-in classes as special cases without modifying their prototypes.</p>
-<p>Another difference from R is that Javascript functions can modify objects in place.
-To avoid confusion, all class methods that modify their instances are prefixed with the <code>$</code> symbol.
-The same applies to all functions that modify their input arguments.
-Functions or methods without <code>$</code> should not modify their inputs when used with default parameters,
-though modifications are allowed if the user provides explicit settings to do so.</p></article>
+        </article>
     </section>
-
-
 
 
 
