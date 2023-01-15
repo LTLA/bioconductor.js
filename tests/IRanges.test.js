@@ -116,6 +116,11 @@ test("IRanges setters work for the rangeMetadata", () => {
     expect(x.rangeMetadata().numberOfRows()).toEqual(4);
     expect(x.rangeMetadata().numberOfColumns()).toEqual(2);
 
+    // Setting to null wipes the information.
+    x.$setRangeMetadata(null);
+    expect(x.rangeMetadata().numberOfRows()).toEqual(4);
+    expect(x.rangeMetadata().numberOfColumns()).toEqual(0);
+
     // Fails if it's not a DataFrame.
     expect(() => x.$setRangeMetadata(1)).toThrow("DataFrame")
 
