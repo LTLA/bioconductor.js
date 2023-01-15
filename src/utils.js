@@ -32,14 +32,22 @@ export function chooseArrayConstructors(con1, con2) {
     return Float64Array;
 }
 
-export function checkNamesArray(names, typeMessage, numExpected, lengthMessage) {
+export function formatLengthError(left, right) {
+    return new Error(left + " should have length equal to " + right);
+}
+
+export function checkStringArray(names, typeMessage) {
     for (const x of names) {
         if (typeof x !== "string") {
             throw new Error(typeMessage + " array should only contain strings");
         }
     }
+}
+
+export function checkNamesArray(names, typeMessage, numExpected, lengthMessage) {
+    checkStringArray(names, typeMessage);
     if (names.length != numExpected) {
-        throw new Error(typeMessage + " array should have length equal to " + lengthMessage);
+        throw formatLengthError(typeMessage + " array ", lengthMessage);
     }
 }
 
