@@ -67,12 +67,13 @@ export function buildIntervalTree(start, end, { slice = null } = {}) {
         x.right_bound = ranks2position[x.right_bound];
         x.center = ranks2position[x.center];
 
-        // Also sorting ranges by start and end positions.
-        let overlaps = {
-            start: x.overlaps.slice().sort((a, b) => start[a] - start[b]),
-            end: x.overlaps.slice().sort((a, b) => end[a] - end[b])
+        // Also sorting ranges by increasing start and DECREASING end positions.
+        let start_overlaps_sorted = x.overlaps.slice().sort((a, b) => start[a] - start[b]);
+        let end_overlaps_sorted = x.overlaps.sort((a, b) => end[b] - end[a]) // reversed order - deliberate!
+        x.overlaps = {
+            start: start_overlaps_sorted.map(i => [start[i], i]),
+            end: end_overlaps_sorted.map(i => [end[i], i])
         };
-        x.overlaps = overlaps;
     }
 
     return tree;
@@ -99,7 +100,7 @@ function recursive_build_tree(start, end, index, tree, node) {
         }
         recursive_build_tree(start, end, index, tree, current.right_node);
 
-    } else if (end < current.center || (end == current.center && end > start)) { // Let 0-length ranges fall through if they lie exactly on the center.
+    } else if (end < current.center || (end == current.center && end > start)) { // Let 0-length ranges fall through to the next clause if they lie exactly on the center.
         if (current.left_node === null) {
             current.left_node = tree.length;
             tree.push(create_node(current.left_bound, center));
@@ -111,5 +112,56 @@ function recursive_build_tree(start, end, index, tree, node) {
         // such that left_bound == center upon successive halving; so every range
         // will end up overlapping a center defined at its start position.
         current.overlaps.push(index);
+    }
+}
+
+export function queryIntervalTree(start, end, tree) {
+    let results = [];
+    recursive_query_tree(start, end, tree, 0, results):    
+    return results;
+}
+
+function recursive_query_tree(start, end, tree, node, results) {
+    let current = tree[node];
+
+    if (start > current.center) {
+        for (const overlap of current.overlaps.end) {
+            if (overlap[0] > start) {
+                results.push(overlap[1]);
+            } else {
+                break;
+            }
+        }
+        if (current.right_node !== null) {
+            recursive_query_tree(start, end, tree, current.right_node, results);
+        }
+
+    } else if (end < current.center || (end == current.center && end > start)) { // Again, let zero-length ranges fall through if they lie directly on the center.
+        for (const overlap of current.overlaps.start) {
+            if (overlap[0] < end) {
+                results.push(overlap[1]);
+            } else {
+                break;
+            }
+        }
+        if (current.left_node !== null) {
+            recursive_query_tree(start, end, tree, current.left_node, results);
+        }
+
+    } else {
+        for (const overlap of current.overlaps.start) {
+            results.push(overlap[1]);
+        }
+
+        if (end > current.center) {
+            if (current.right_node !== null) {
+                recursive_query_tree(start, end, tree, current.right_node, results);
+            }
+        }
+        if (start < current.center) {
+            if (current.left_node !== null) {
+                recursive_query_tree(start, end, tree, current.left_node, results);
+            }
+        }
     }
 }
