@@ -128,6 +128,55 @@ export class IRanges extends vec.Vector {
      **************************************************************************
      **************************************************************************/
 
+    buildOverlapIndex({ slice = null } = {}) {
+        let n = (slice == null ? this._start.length : slice.length);
+        let positions = new Int32Array(n * 2);
+        let add = new Uint8Array(n * 2);
+        let indices = new Int32Array(n * 2);
+
+        let counter = 0;
+        let fillIndex = i => {
+            let at = counter * 2;
+            let next = at + 1;
+            positions[at] = this._start[i];
+            positions[next] = this._start[i] + this._width[i];
+            add[at] = 1;
+            add[next] = 0;
+            indices[at] = i;
+            indices[next] = 0;
+            counter++;
+        };
+
+        if (slice === null) {
+            for (var i = 0; i < n; i++) {
+                fillIndex(i);                                
+            }
+        } else {
+            for (const i of slice) {
+                fillIndex(i);
+            }
+        }
+
+        // Sort by position, then by add-action. The latter is necessary to
+        // ensure that add actions get processed before the corresponding
+        // deletion action, otherwise there'd be nothing to delete!
+        let order = utils.createSequence(positions.length);
+        order.sort((i, j) => {
+            let p = positions[i] - positions[j];
+            return (p == 0 ? add[i] - add[j] : p); 
+        });
+
+        return new iro.IRangesOverlapIndex(
+            generics.SLICE(positions, order), 
+            generics.SLICE(add, order), 
+            generics.SLICE(indices, order)
+        );
+    }
+
+    /**************************************************************************
+     **************************************************************************
+     **************************************************************************/
+
     _bioconductor_LENGTH() {
         return this._start.length;
     }
@@ -162,3 +211,104 @@ export class IRanges extends vec.Vector {
     }
 }
 
+export class IRangesOverlapIndex {
+    constructor(position, add, index) {
+        this._position = position;
+        this._add = add;
+        this._index = index;
+    }
+
+    overlap(queryIndex) {
+        let self_position = this._position;
+        let self_add = this._add;
+        let self_index = this._index;
+        let query_position = queryIndex._position;
+        let query_add = queryIndex._add;
+        let query_index = queryIndex._index;
+
+        // Iterating through both indices and collecting overlaps.
+        let overlaps = [];
+        let self_active = new Set;
+        let query_active = new Set;
+        let i = 0;
+        let j = 0;
+
+        while (i < self_position.length && j < query_position.length) {
+            if (self_position[i] < query_position[j]) {
+                let sx = self_index[i];
+                if (self_add[i]) {
+                    self_active.add(sx);
+                    query_active.forEach(q => {
+                        overlaps.push([sx, q]);
+                    });
+                } else {
+                    self_active.delete(sx);
+                }
+                i++;
+
+            } else if (self_position[i] > query_position[j]) {
+                let qx = query_index[j];
+                if (query_add[j]) {
+                    query_active.add(qx);
+                    self_active.forEach(s => {
+                        overlaps.push([s, qx]);
+                    });
+                } else {
+                    query_active.delete(qx);
+                }
+                j++;
+
+            } else {
+                let current = self_position[i];
+                let self_just_added = new Set;
+                let query_just_added = new Set;
+
+                // First, we fully process all additions/deletions on this
+                // position.  Specifically, we need to process the ends of
+                // ranges so that they don't get overlapped with new ranges
+                // that are starting at this position.
+                while (i < self_position.length && self_position[i] == current) {
+                    let sx = self_index[i];
+                    if (self_add[i]) {
+                        self_just_added.add(sx);
+                        self_active.add(sx);
+                    } else {
+                        self_active.delete(sx);
+                    }
+                    i++;
+                }
+
+                while (j < query_position.length && query_position[j] == current) {
+                    let qx = query_index[j];
+                    if (query_add[j]) {
+                        query_just_added.add(qx);
+                        query_active.add(qx);
+                    } else {
+                        query_active.delete(qx);
+                    }
+                    j++;
+                }
+
+                // Then we add the overlaps for all the newly added ranges on
+                // this position. Note that this includes zero-length ranges
+                // that would have already been removed from self/query_active.
+                self_just_added.forEach(s => {
+                    query_just_added.forEach(q => {
+                        overlaps.push([s, q]);
+                    });
+                    query_active.forEach(q => {
+                        overlaps.push([s, q]);
+                    });
+                });
+
+                query_just_added.forEach(q => {
+                    self_active.forEach(s => {
+                        overlaps.push([s, q]);
+                    });
+                });
+            }
+        }
+
+        return overlaps;
+    }
+}
