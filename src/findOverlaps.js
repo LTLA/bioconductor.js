@@ -41,7 +41,7 @@ export function buildIntervalTree(start, end, { slice = null } = {}) {
     }
     
     // Now, building an nicely balanced interval tree based on the ranks.
-    let tree = [ create_node(0, ranks2position.length - 1) ];
+    let tree = [ create_node(0, ranks2position.length) ];
 
     {
         let build_tree = i => {
@@ -62,6 +62,9 @@ export function buildIntervalTree(start, end, { slice = null } = {}) {
     }
 
     // Running a clean-up operation to convert ranks back to positions.
+    let one_past_the_end = (ranks2position.length > 0 ? ranks2position[ranks2position.length - 1] + 1 : 1);
+    ranks2position.push(one_past_the_end);
+
     for (const x of tree) {
         x.left_bound = ranks2position[x.left_bound];
         x.right_bound = ranks2position[x.right_bound];
@@ -108,9 +111,9 @@ function recursive_build_tree(start, end, index, tree, node) {
         recursive_build_tree(start, end, index, tree, current.left_node);
 
     } else {
-        // At some point, everyone ends up here, because the new nodes are created
-        // such that left_bound == center upon successive halving; so every range
-        // will end up overlapping a center defined at its start position.
+        // At some point, every range ends up here. This is because left_bound
+        // == center upon successive halving to create new nodes, so every
+        // range will eventually overlap a center at its own start position.
         current.overlaps.push(index);
     }
 }
