@@ -14,6 +14,10 @@ test("constructing a GRanges works (simple)", () => {
     expect(x.start()).toEqual(obj.ranges.start());
     expect(x.width()).toEqual(obj.ranges.width());
 
+    let str = x.strand();
+    expect(str instanceof Int8Array).toBe(true);
+    expect(str.every(x => x == 0)).toBe(true);
+
     expect(x.names()).toBeNull();
     expect(x.elementMetadata().numberOfRows()).toBe(obj.seqnames.length);
     expect(x.elementMetadata().numberOfColumns()).toBe(0);
@@ -50,6 +54,20 @@ test("constructing a GRanges works with extra elementMetadata", () => {
 
     // Fails if the elementMetadata is not of the right length.
     expect(() => new bioc.GRanges(obj.seqnames, obj.ranges, { elementMetadata: new bioc.DataFrame({ thing: [ "A" ] }) })).toThrow("number of rows");
+})
+
+test("constructing a GRanges works with non-default strands", () => {
+    let obj = spawnObject();
+    let x = new bioc.GRanges(obj.seqnames, obj.ranges, { strand: [ 1, 0, 1, -1 ] });
+
+    let str = x.strand();
+    expect(str).toEqual(new Int8Array([1, 0, 1, -1]));
+
+    // Fails if not of the right length.
+    expect(() => new bioc.GRanges(obj.seqnames, obj.ranges, { strand: [ 1 ] })).toThrow("should have length");
+
+    // Fails for non-allowed values.
+    expect(() => new bioc.GRanges(obj.seqnames, obj.ranges, { strand: [ 2, 3, 4, 5 ] })).toThrow("'strand' must be");
 })
 
 test("GRanges setters work for start positions", () => {
@@ -115,6 +133,20 @@ test("GRanges setters work for the ranges", () => {
 
     // Fails if not the right length.
     expect(() => x.$setRanges(bioc.SLICE(replacement, [0, 1]))).toThrow("should have length");
+})
+
+test("GRanges setters work for the strands", () => {
+    let obj = spawnObject();
+    let x = new bioc.GRanges(obj.seqnames, obj.ranges);
+
+    x.$setStrand([1, 0, 1, -1]);
+    expect(x.strand()).toEqual(new Int8Array([1, 0, 1, -1]));
+
+    // Fails if not the right length.
+    expect(() => x.$setStrand([1])).toThrow("should have length");
+
+    // Fails with illegal values.
+    expect(() => x.$setStrand([2,3,4,5])).toThrow("'strand' must be");
 })
 
 test("GRanges setters work for the elementMetadata", () => {

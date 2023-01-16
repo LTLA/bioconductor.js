@@ -17,18 +17,37 @@ import * as vec from "./Vector.js";
  * @extends Vector
  */
 export class GRanges extends vec.Vector {
+    static #convertToInt8Array(x) {
+        if (x instanceof Int8Array) {
+            return x;
+        } else {
+            return new Int8Array(x);
+        }
+    }
+
+    static #checkStrandedness(strand) {
+        for (const y of strand) {
+            if (y < -1 || y > 1) {
+                throw new Error("'strand' must be -1, 0 or 1");
+            }
+        }
+    }
+
     /**
      * @param {Array} seqnames - Array of strings containing the sequence names for each genomic range.
      * @param {IRanges} ranges - Position and width of the range on its specified sequence.
      * This should have the same length as `seqnames`.
      * @param {Object} [options={}] - Optional parameters.
+     * @param {?(Array|TypedArray)} [options.strand=null] - Array containing the strandedness of each genomic range.
+     * This should be 0 (no strand), 1 (forward strand) or -1 (reverse strand).
+     * If `null`, this is assumed to be 0 for all genomic ranges.
      * @param {?Array} [options.names=null] - Array of strings of length equal to `start`, containing names for each genomic range.
      * Alternatively `null`, in which case the ranges are assumed to be unnamed.
      * @param {?DataFrame} [options.elementMetadata=null] - A {@linkplain DataFrame} with number of rows equal to the length of `start`, containing arbitrary per-range annotations.
      * Alternatively `null`, in which case a zero-column DataFrame is automatically constructed.
      * @param {Object} [options.metadata={}] - Object containing arbitrary metadata as key-value pairs.
      */
-    constructor(seqnames, ranges, { names = null, elementMetadata = null, metadata = {} } = {}) {
+    constructor(seqnames, ranges, { strand = null, names = null, elementMetadata = null, metadata = {} } = {}) {
         super(seqnames.length, { names, elementMetadata, metadata });
 
         utils.checkStringArray(seqnames, "seqnames");
@@ -39,6 +58,18 @@ export class GRanges extends vec.Vector {
             throw utils.formatLengthError("'ranges'", "'seqnames'");
         }
         this._ranges = ranges;
+
+        if (strand !== null) {
+            if (n !== strand.length) {
+                throw utils.formatLengthError("'strand'", "'seqnames'");
+            }
+            strand = GRanges.#convertToInt8Array(strand);
+            GRanges.#checkStrandedness(strand);
+        } else {
+            strand = new Int8Array(n);
+            strand.fill(0);
+        }
+        this._strand = strand;
     }
 
     /**************************************************************************
@@ -78,6 +109,13 @@ export class GRanges extends vec.Vector {
      */
     ranges() {
         return this._ranges;
+    }
+
+    /**
+     * @return {Int8Array} Array containing the strandedness for each genomic range - 0 (no strand), 1 (forward strand) or -1 (reverse strand).
+     */
+    strand() {
+        return this._strand;
     }
 
     /**************************************************************************
@@ -130,6 +168,22 @@ export class GRanges extends vec.Vector {
         return this;
     }
 
+    /**
+     * @param {Array|TypedArray} strand - Array of strands for each genomic range.
+     * This should have length equal to the number of ranges. 
+     * Entries may be 0 (no strand), 1 (forward strand) or -1 (reverse strand).
+     * @return {GRanges} A reference to this GRanges object, after setting the strands to `strand`.
+     */
+    $setStrand(strand) {
+        if (this._strand.length !== strand.length) {
+            throw utils.formatLengthError("'strand'", "'seqnames'");
+        }
+        strand = GRanges.#convertToInt8Array(strand);
+        GRanges.#checkStrandedness(strand);
+        this._strand = strand;
+        return this;
+    }
+
     /**************************************************************************
      **************************************************************************
      **************************************************************************/
@@ -142,21 +196,25 @@ export class GRanges extends vec.Vector {
         super._bioconductor_SLICE(output, i, { allowView });
         output._seqnames = generics.SLICE(this._seqnames, i, { allowView });
         output._ranges = generics.SLICE(this._ranges, i, { allowView });
+        output._strand = generics.SLICE(this._strand, i, { allowView });
         return;
     }
 
     _bioconductor_COMBINE(output, objects) {
         super._bioconductor_COMBINE(output, objects);
 
-        let all_s = [];
+        let all_sn = [];
         let all_rr = [];
+        let all_st = [];
         for (const x of objects) {
-            all_s.push(x._seqnames);
+            all_sn.push(x._seqnames);
             all_rr.push(x._ranges);
+            all_st.push(x._strand);
         }
 
-        output._seqnames = generics.COMBINE(all_s);
+        output._seqnames = generics.COMBINE(all_sn);
         output._ranges = generics.COMBINE(all_rr);
+        output._strand = generics.COMBINE(all_st);
         return;
     }
 
@@ -165,6 +223,7 @@ export class GRanges extends vec.Vector {
         super._bioconductor_CLONE(output, options);
         output._seqnames = generics.CLONE(this._seqnames, options);
         output._ranges = generics.CLONE(this._ranges, options);
+        output._strand = generics.CLONE(this._strand, options);
         return;
     }
 }
