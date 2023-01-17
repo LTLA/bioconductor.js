@@ -2,6 +2,7 @@ import * as generics from "./AllGenerics.js";
 import * as utils from "./utils.js";
 import * as df from "./DataFrame.js";
 import * as vec from "./Vector.js";
+import * as olap from "./overlap-utils.js";
 
 /**
  * An IRanges object is a collection of integer ranges, inspired by the class of the same name from the Bioconductor ecosystem.
@@ -128,6 +129,18 @@ export class IRanges extends vec.Vector {
      **************************************************************************
      **************************************************************************/
 
+    /**
+     * @return {IRangesOverlapIndex} A pre-built index for computing overlaps with other {@linkplain IRanges} instances.
+     */
+    buildOverlapIndex() {
+        let tree = olap.buildIntervalTree(this._start, this.end());
+        return new IRangesOverlapIndex(tree);
+    }
+
+    /**************************************************************************
+     **************************************************************************
+     **************************************************************************/
+
     _bioconductor_LENGTH() {
         return this._start.length;
     }
@@ -162,3 +175,29 @@ export class IRanges extends vec.Vector {
     }
 }
 
+/**
+ * Pre-built index for overlapping {@linkplain IRanges} objects.
+ * This is typically constructed using the {@linkcode IRanges#buildOverlapIndex IRanges.buildOverlapIndex} method for a "reference" object,
+ * and can be applied to different query IRanges to identify overlaps with the reference.
+ *
+ * @hideconstructor
+ */
+export class IRangesOverlapIndex {
+    constructor(tree) {
+        this._tree = tree;
+    }
+
+    /**
+     * @param {IRanges} query - The query object, containing ranges to be overlapped with those in the reference IRanges (that was used to construct this IRangesOverlapIndex object).
+     * @return {Array} An array of length equal to the number of ranges in `query`,
+     * where each element is an array containing the indices of the overlapping ranges in the reference {@linkplain IRanges} object.
+     */
+    overlap(query) {
+        let n = generics.LENGTH(query);
+        let output = new Array(n);
+        for (var i = 0; i < n; i++) {
+            output[i] = olap.queryIntervalTree(query._start[i], query._start[i] + query._width[i], this._tree);
+        }
+        return output;
+    }
+}

@@ -90,3 +90,20 @@ export function combineNames(all_names, all_lengths, total_n = null) {
 
     return output;
 }
+
+export function createSequence(n) {
+    let output = new Int32Array(n);
+    for (var i = 0; i < n; i++) {
+        output[i] = i;
+    }
+    return output;
+}
+
+export function isSorted(n, cmp) {
+    for (var i = 1; i < n; ++i) {
+        if (cmp(i-1, i) > 0) {
+            return false;
+        }
+    }
+    return true;
+}
