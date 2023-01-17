@@ -69,8 +69,8 @@ export function buildIntervalTree(start, end, { slice = null } = {}) {
             recursive_build_tree(startRanks[i], endRanks[i], i, tree, 0);
         }
     } else {
-        for (const i of slice) {
-            recursive_build_tree(startRanks[i], endRanks[i], i, tree, 0);
+        for (var i = 0; i < startRanks.length; i++) {
+            recursive_build_tree(startRanks[i], endRanks[i], slice[i], tree, 0);
         }
     }
 

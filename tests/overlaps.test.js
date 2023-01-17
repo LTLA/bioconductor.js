@@ -103,3 +103,26 @@ test("tree searching works correctly with heavy overlaps", () => {
         expect(results).toEqual(expected);
     }
 })
+
+test("tree searching works correctly after slicing", () => {
+    let starts = [];
+    let ends = [];
+    for (var i = 0; i < 100; i++) {
+        let s = Math.floor(Math.random() * 1000);
+        starts.push(s);
+        ends.push(s + Math.floor(Math.random() * 20));
+    }
+
+    let slice = [0, 5, 9, 11, 14, 17, 22, 33, 41, 42, 44, 49, 57];
+    let tree = overlap.buildIntervalTree(starts, ends, { slice: slice });
+    let ref = overlap.buildIntervalTree(bioc.SLICE(starts, slice), bioc.SLICE(ends, slice));
+
+    for (var i = 0; i < 200; i++) {
+        let qs = Math.floor(Math.random() * 1000);
+        let qe = qs + Math.floor(Math.random() * 20);
+
+        let results = overlap.queryIntervalTree(qs, qe, tree);
+        let expected = overlap.queryIntervalTree(qs, qe, ref).map(j => slice[j]);
+        expect(results).toEqual(expected);
+    }
+})
