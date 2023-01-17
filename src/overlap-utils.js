@@ -1,8 +1,11 @@
+import * as utils from "./utils.js";
 
-export function buildIntervalTree(start, end, { slice = null } = {}) {
-    // Converting all start/end positions into ranks.
-    let n = (slice == null ? this._start.length : slice.length);
+export function convertPositionToRank(start, end, { slice = null } = {}) {
+    let n = (slice == null ? start.length : slice.length);
+
     let positions = new Int32Array(n * 2);
+    let add = new Uint8Array(n * 2);
+    let index = new Int32Array(n * 2);
 
     {
         let counter = 0;
@@ -11,6 +14,10 @@ export function buildIntervalTree(start, end, { slice = null } = {}) {
             let next = at + 1;
             positions[at] = start[i];
             positions[next] = end[i];
+            add[at] = 1;
+            add[next] = 0;
+            index[at] = counter;
+            index[next] = counter;
             counter++;
         };
 
@@ -28,47 +35,53 @@ export function buildIntervalTree(start, end, { slice = null } = {}) {
     let order = utils.createSequence(positions.length);
     order.sort((i, j) => positions[i] - positions[j]);
 
-    let ranks2position = [];
-    let position2ranks = {};
-    let last = -Number.POSITIVE_INFINITY;
+    let rank2position = [];
+    let new_starts = new Int32Array(n);
+    let new_ends = new Int32Array(n);
+
+    let last = null;
     for (const i of order) {
         let pos = positions[i];
-        if (pos != last) {
-            position2ranks[pos] = ranks2position.length;
-            ranks2position.push(pos);
+        let idx = index[i];
+
+        if (pos !== last) {
+            rank2position.push(pos);
             last = pos;
         }
-    }
-    
-    // Now, building an nicely balanced interval tree based on the ranks.
-    let tree = [ create_node(0, ranks2position.length) ];
 
-    {
-        let build_tree = i => {
-            let r1 = position2ranks[start[i]];
-            let r2 = position2ranks[end[i]];
-            recursive_build_tree(r1, r2, i, tree, 0);
-        };
-
-        if (slice === null) {
-            for (var i = 0; i < n; i++) {
-                build_tree(i);
-            }
+        if (add[i]) {
+            new_starts[idx] = rank2position.length - 1;
         } else {
-            for (const i of slice) {
-                build_tree(i);
-            }
+            new_ends[idx] = rank2position.length - 1;
+        }
+    }
+
+    return { rank2position, startRanks: new_starts, endRanks: new_ends };
+}
+
+export function buildIntervalTree(start, end, { slice = null } = {}) {
+    let { rank2position, startRanks, endRanks } = convertPositionToRank(start, end, { slice });
+
+    // Now, building an nicely balanced interval tree based on the ranks.
+    let tree = [ create_node(0, rank2position.length) ];
+    if (slice === null) {
+        for (var i = 0; i < startRanks.length; i++) {
+            recursive_build_tree(startRanks[i], endRanks[i], i, tree, 0);
+        }
+    } else {
+        for (const i of slice) {
+            recursive_build_tree(startRanks[i], endRanks[i], i, tree, 0);
         }
     }
 
     // Running a clean-up operation to convert ranks back to positions.
-    let one_past_the_end = (ranks2position.length > 0 ? ranks2position[ranks2position.length - 1] + 1 : 1);
-    ranks2position.push(one_past_the_end);
+    let one_past_the_end = (rank2position.length > 0 ? rank2position[rank2position.length - 1] + 1 : 1);
+    rank2position.push(one_past_the_end);
 
     for (const x of tree) {
-        x.left_bound = ranks2position[x.left_bound];
-        x.right_bound = ranks2position[x.right_bound];
-        x.center = ranks2position[x.center];
+        x.left_bound = rank2position[x.left_bound];
+        x.right_bound = rank2position[x.right_bound];
+        x.center = rank2position[x.center];
 
         // Also sorting ranges by increasing start and DECREASING end positions.
         let start_overlaps_sorted = x.overlaps.slice().sort((a, b) => start[a] - start[b]);
@@ -106,7 +119,7 @@ function recursive_build_tree(start, end, index, tree, node) {
     } else if (end < current.center || (end == current.center && end > start)) { // Let 0-length ranges fall through to the next clause if they lie exactly on the center.
         if (current.left_node === null) {
             current.left_node = tree.length;
-            tree.push(create_node(current.left_bound, center));
+            tree.push(create_node(current.left_bound, current.center));
         }
         recursive_build_tree(start, end, index, tree, current.left_node);
 
@@ -120,7 +133,7 @@ function recursive_build_tree(start, end, index, tree, node) {
 
 export function queryIntervalTree(start, end, tree) {
     let results = [];
-    recursive_query_tree(start, end, tree, 0, results):    
+    recursive_query_tree(start, end, tree, 0, results); 
     return results;
 }
 
