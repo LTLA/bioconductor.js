@@ -3,7 +3,7 @@
 <head>
     
     <meta charset="utf-8">
-    <title>miscellaneous.js - Documentation</title>
+    <title>GRangesOverlapIndex - Documentation</title>
     
     
     <script src="scripts/prettify/prettify.js"></script>
@@ -34,55 +34,344 @@
 
 <div id="main">
     
-    <h1 class="page-title">miscellaneous.js</h1>
+    <h1 class="page-title">GRangesOverlapIndex</h1>
     
 
     
 
 
 
-    
-    <section>
-        <article>
-            <pre class="prettyprint source linenums"><code>/**
- * @param {Array|TypedArray} x - Array of values to be interpreted as truthy or falsey.
- * @param {Object} [options={}] - Optional parameters.
- * @param {boolean} [options.not=false] - Whether to select the entries of `x` that are falsey.
- *
- * @return {Array} Array of indices of the entries of `x` that are truthy (if `not=false`) or falsey (if `not=true`).
- * This array is guaranteed to be sorted in ascending order.
- */
-export function which(x, { not = false } = {}) {
-    let output = [];
-    x.forEach((y, i) => {
-        if ((!y) == not) {
-            output.push(i);
-        }
-    });
-    return output;
-}
 
-/**
- * Given a factor, return the indices corresponding to each level.
- * This can be used in subsequent {@linkcode splitRows} calls.
- *
- * @param {Array|TypedArray} factor - Array containing the factor of interest.
- *
- * @return {Object} Object where each key is a factor level and each value is an array containing the indices corresponding to that level in `factor`.
- */
-export function presplitFactor(factor) {
-    let by = {};
-    factor.forEach((x, i) => {
-        if (!(x in by)) {
-            by[x] = [];
-        }
-        by[x].push(i);
-    });
-    return by;
-}
-</code></pre>
-        </article>
-    </section>
+<section>
+
+<header>
+    
+        <h2>
+        GRangesOverlapIndex
+        </h2>
+        
+            <div class="class-description usertext"><p>Pre-built index for overlapping <a href="GRanges.html">GRanges</a> objects.
+This is typically constructed using the <a href="GRanges.html#buildOverlapIndex"><code>GRanges.buildOverlapIndex</code></a> method for a &quot;reference&quot; object,
+and can be applied to different query GRanges to identify overlaps with the reference.</p></div>
+        
+    
+</header>
+
+<article>
+    
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Classes</h3>
+
+        <dl>
+            <dt><a href="GRangesOverlapIndex.html">GRangesOverlapIndex</a></dt>
+            <dd></dd>
+        </dl>
+    
+    
+    
+
+     
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    <h4 class="name" id="overlap"><span class="type-signature"></span>overlap<span class="signature">(query, options<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Array}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="GRanges.js.html">GRanges.js</a>, <a href="GRanges.js.html#line280">line 280</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>query</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="GRanges.html">GRanges</a></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>The query object, containing ranges to be overlapped with those in the reference GRanges (that was used to construct this GRangesOverlapIndex object).</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>options</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>{}</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>Optional parameters.</p>
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>ignoreStrand</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>true</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>Whether to ignore differences in strandedness between the ranges in <code>query</code> and the reference object.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>An array of length equal to the number of ranges in <code>query</code>,
+where each element is an array containing the indices of the overlapping ranges in the reference <a href="GRanges.html">GRanges</a> object.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Array</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+    
+
+    
+
+    
+</article>
+
+</section>
 
 
 
