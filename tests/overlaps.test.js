@@ -34,19 +34,68 @@ function slowReference(ref_start, ref_end, query_start, query_end) {
     return overlaps;
 }
 
-test("tree searching works correctly for simple cases", () => {
+test("tree searching works correctly for the general case", () => {
     let starts = [];
     let ends = [];
-    for (var i = 0; i < 100; i++) {
+    for (var i = 0; i < 1000; i++) {
         let s = Math.floor(Math.random() * 1000);
         starts.push(s);
         ends.push(s + Math.floor(Math.random() * 20));
     }
     let tree = overlap.buildIntervalTree(starts, ends);
 
-    for (var i = 0; i < 20; i++) {
+    for (var i = 0; i < 200; i++) {
         let qs = Math.floor(Math.random() * 1000);
         let qe = qs + Math.floor(Math.random() * 20);
+
+        let results = overlap.queryIntervalTree(qs, qe, tree);
+        results.sort((a, b) => a - b);
+        let expected = slowReference(starts, ends, qs, qe);
+
+//        console.log([
+//            qs, 
+//            qe, 
+//            [expected.map(i => starts[i]), expected.map(i => ends[i])], 
+//            [results.map(i => starts[i]), results.map(i => ends[i])], 
+//        ]);
+
+        expect(results).toEqual(expected);
+    }
+})
+
+test("tree searching works correctly for zero-length intervals", () => {
+    let starts = [];
+    let ends = [];
+    for (var i = 0; i < 100; i++) {
+        let s = Math.floor(Math.random() * 50);
+        starts.push(s);
+        ends.push(s);
+    }
+    let tree = overlap.buildIntervalTree(starts, ends);
+
+    for (var i = 0; i < 20; i++) {
+        let q = Math.floor(Math.random() * 50);
+
+        let results = overlap.queryIntervalTree(q, q, tree);
+        results.sort((a, b) => a - b);
+        let expected = slowReference(starts, ends, q, q);
+        expect(results).toEqual(expected);
+    }
+})
+
+test("tree searching works correctly with heavy overlaps", () => {
+    let starts = [];
+    let ends = [];
+    for (var i = 0; i < 100; i++) {
+        let s = Math.floor(Math.random() * 1000);
+        starts.push(s);
+        ends.push(s + Math.floor(50 + Math.random() * 50));
+    }
+    let tree = overlap.buildIntervalTree(starts, ends);
+
+    for (var i = 0; i < 20; i++) {
+        let qs = Math.floor(Math.random() * 1000);
+        let qe = qs + Math.floor(50 + Math.random() * 50);
 
         let results = overlap.queryIntervalTree(qs, qe, tree);
         results.sort((a, b) => a - b);
@@ -54,4 +103,3 @@ test("tree searching works correctly for simple cases", () => {
         expect(results).toEqual(expected);
     }
 })
-

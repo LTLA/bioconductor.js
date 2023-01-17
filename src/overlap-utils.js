@@ -154,7 +154,7 @@ function recursive_query_tree(start, end, tree, node, results) {
 
     } else if (end < current.center || (end == current.center && end > start)) { // Again, let zero-length ranges fall through if they lie directly on the center.
         for (const overlap of current.overlaps.start) {
-            if (overlap[0] < end) {
+            if (overlap[0] < end || (overlap[0] == end && start == end)) { // handle zero-length ranges directly on the start position of the center-overlapping range.
                 results.push(overlap[1]);
             } else {
                 break;
