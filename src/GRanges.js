@@ -2,6 +2,7 @@ import * as generics from "./AllGenerics.js";
 import * as utils from "./utils.js";
 import * as ir from "./IRanges.js";
 import * as vec from "./Vector.js";
+import * as olap from "./overlap-utils.js";
 
 /**
  * A GRanges object is a collection of genomic ranges, inspired by the class of the same name from the Bioconductor ecosystem.
@@ -39,7 +40,7 @@ export class GRanges extends vec.Vector {
      * This should have the same length as `seqnames`.
      * @param {Object} [options={}] - Optional parameters.
      * @param {?(Array|TypedArray)} [options.strand=null] - Array containing the strandedness of each genomic range.
-     * This should be 0 (no strand), 1 (forward strand) or -1 (reverse strand).
+     * This should be 0 (any strand), 1 (forward strand) or -1 (reverse strand).
      * If `null`, this is assumed to be 0 for all genomic ranges.
      * @param {?Array} [options.names=null] - Array of strings of length equal to `start`, containing names for each genomic range.
      * Alternatively `null`, in which case the ranges are assumed to be unnamed.
@@ -112,7 +113,7 @@ export class GRanges extends vec.Vector {
     }
 
     /**
-     * @return {Int8Array} Array containing the strandedness for each genomic range - 0 (no strand), 1 (forward strand) or -1 (reverse strand).
+     * @return {Int8Array} Array containing the strandedness for each genomic range - 0 (any strand), 1 (forward strand) or -1 (reverse strand).
      */
     strand() {
         return this._strand;
@@ -171,7 +172,7 @@ export class GRanges extends vec.Vector {
     /**
      * @param {Array|TypedArray} strand - Array of strands for each genomic range.
      * This should have length equal to the number of ranges. 
-     * Entries may be 0 (no strand), 1 (forward strand) or -1 (reverse strand).
+     * Entries may be 0 (any strand), 1 (forward strand) or -1 (reverse strand).
      * @return {GRanges} A reference to this GRanges object, after setting the strands to `strand`.
      */
     $setStrand(strand) {
@@ -182,6 +183,34 @@ export class GRanges extends vec.Vector {
         GRanges.#checkStrandedness(strand);
         this._strand = strand;
         return this;
+    }
+
+    /**************************************************************************
+     **************************************************************************
+     **************************************************************************/
+
+    /**
+     * @return {GRangesOverlapIndex} A pre-built index for computing overlaps with other {@linkplain GRanges} instances.
+     */
+    buildOverlapIndex() {
+        let indices = utils.createSequence(generics.LENGTH(this));
+        let by_seqname = generics.SPLIT(indices, this._seqnames);
+        let starts = this.start();
+        let ends = this.end();
+
+        for (const name of Object.keys(by_seqname)) {
+            let seqname_indices = by_seqname[name];
+            let seqname_strand = generics.SLICE(this._strand, seqname_indices);
+            let by_strand = generics.SPLIT(seqname_indices, seqname_strand);
+
+            for (const str of Object.keys(by_strand)) {
+                let str_indices = by_strand[str];
+                by_strand[str] = olap.buildIntervalTree(starts, ends, { slice: str_indices });
+            }
+            by_seqname[name] = by_strand;
+        }
+
+        return new GRangesOverlapIndex(by_seqname);
     }
 
     /**************************************************************************
@@ -228,3 +257,62 @@ export class GRanges extends vec.Vector {
     }
 }
 
+/**
+ * Pre-built index for overlapping {@linkplain GRanges} objects.
+ * This is typically constructed using the {@linkcode GRanges#buildOverlapIndex GRanges.buildOverlapIndex} method for a "reference" object,
+ * and can be applied to different query GRanges to identify overlaps with the reference.
+ *
+ * @hideconstructor
+ */
+export class GRangesOverlapIndex {
+    constructor(index) {
+        this._index = index;
+    }
+
+    /**
+     * @param {GRanges} query - The query object, containing ranges to be overlapped with those in the reference GRanges (that was used to construct this GRangesOverlapIndex object).
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.ignoreStrand=true] - Whether to ignore differences in strandedness between the ranges in `query` and the reference object.
+     *
+     * @return {Array} An array of length equal to the number of ranges in `query`,
+     * where each element is an array containing the indices of the overlapping ranges in the reference {@linkplain GRanges} object.
+     */
+    overlap(query, { ignoreStrand = true } = {}) {
+        let n = generics.LENGTH(query);
+        let results = new Array(n);
+        let starts = query.start();
+        let ends = query.end();
+
+        for (var i = 0; i < n; i++) {
+            results[i] = [];
+            let my_results = results[i];
+
+            let name = query._seqnames[i];
+            if (!(name in this._index)) {
+                continue;
+            }
+            let seq_index = this._index[name];
+
+            let strand = query._strand[i];
+            let allowed_strands;
+            if (ignoreStrand || strand == 0) {
+                allowed_strands = Object.keys(seq_index);
+            } else {
+                let sstr = String(strand);
+                if (!(sstr in seq_index)) {
+                    continue;
+                }
+                allowed_strands = [ sstr ];
+            }
+
+            let start = starts[i];
+            let end = ends[i];
+            for (const str of allowed_strands) {
+                let str_results = olap.queryIntervalTree(start, end, seq_index[str]);
+                str_results.forEach(x => my_results.push(x));
+            }
+        }
+
+        return results;
+    }
+}

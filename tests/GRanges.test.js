@@ -235,3 +235,24 @@ test("CLONE generic works correctly for GRanges", () => {
     expect("foo" in x.metadata()).toBe(true);
     expect("foo" in y.metadata()).toBe(false);
 })
+
+test("overlap method works correctly for GRanges", () => {
+    // Ignoring the strand.
+    let x = new bioc.GRanges(["A", "B", "A", "B"], new bioc.IRanges([1, 10, 20, 50], [5, 2, 7, 60]));
+    let y = new bioc.GRanges(["A", "B", "A"], new bioc.IRanges([2, 0, 21], [8, 60, 30]));
+
+    let idx = x.buildOverlapIndex();
+    let results = idx.overlap(y);
+    expect(results).toEqual([[0], [3, 1], [2]]);
+
+    // Strand is effectively ignored when dealing with '*' references.
+    y.$setStrand([ 1, -1, -1 ]);
+    let results2 = idx.overlap(y);
+    expect(results2).toEqual(results);
+
+    // Now respecting the strand.
+    x.$setStrand([ -1, -1, 1, 1 ]);
+    let idx3 = x.buildOverlapIndex();
+    let results3 = idx3.overlap(y, { ignoreStrand: false });
+    expect(results3).toEqual([[], [1], []]);
+})
