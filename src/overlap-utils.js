@@ -133,6 +133,14 @@ function recursive_build_tree(start, end, index, tree, node) {
 
 export function queryIntervalTree(start, end, tree) {
     let results = [];
+    if (start > tree.right_bound) {
+        return results;
+    }
+
+    if (end < tree.left_bound || (end == tree.left_bound && end > start)) { // Still allow 0-length ranges to fall through for search.
+        return results;
+    }
+
     recursive_query_tree(start, end, tree, 0, results); 
     return results;
 }

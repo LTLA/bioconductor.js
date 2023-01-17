@@ -126,3 +126,19 @@ test("tree searching works correctly after slicing", () => {
         expect(results).toEqual(expected);
     }
 })
+
+test("tree searching skips correctly for out-of-range queries", () => {
+    let tree = overlap.buildIntervalTree([10, 20, 30], [30, 40, 50]);
+
+    expect(overlap.queryIntervalTree(0, 5, tree)).toEqual([]);
+    expect(overlap.queryIntervalTree(60, 65, tree)).toEqual([]);
+
+    expect(overlap.queryIntervalTree(10, 10, tree)).toEqual([0]);
+    expect(overlap.queryIntervalTree(9, 10, tree)).toEqual([]);
+    expect(overlap.queryIntervalTree(9, 9, tree)).toEqual([]);
+
+    expect(overlap.queryIntervalTree(50, 50, tree)).toEqual([]);
+    expect(overlap.queryIntervalTree(49, 50, tree)).toEqual([2]);
+    expect(overlap.queryIntervalTree(49, 49, tree)).toEqual([2]);
+})
+
