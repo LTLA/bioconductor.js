@@ -193,3 +193,12 @@ test("CLONE generic works correctly for IRanges", () => {
     expect("foo" in x.metadata()).toBe(true);
     expect("foo" in y.metadata()).toBe(false);
 })
+
+test("overlap method works correctly for IRanges", () => {
+    let x = new bioc.IRanges([1, 10, 20, 50], [5, 2, 7, 60]);
+    let y = new bioc.IRanges([2, 30, 21], [8, 10, 30]);
+
+    let idx = x.buildOverlapIndex();
+    let results = idx.overlap(y);
+    expect(results).toEqual([[0], [], [2, 3]]);
+})
