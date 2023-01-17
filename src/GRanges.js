@@ -190,20 +190,41 @@ export class GRanges extends vec.Vector {
      **************************************************************************/
 
     /**
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {?(Array|Set)} [options.restrictToSeqnames=null] - Array or Set containing the sequence names to use in the index.
+     * If `null`, all available sequence names are used.
+     * @param {?(Array|Set)} [options.restrictToStrand=null] - Array or Set containing the strands to use in the index.
+     * If `null`, all available strands are used.
+     *
      * @return {GRangesOverlapIndex} A pre-built index for computing overlaps with other {@linkplain GRanges} instances.
      */
-    buildOverlapIndex() {
+    buildOverlapIndex({ restrictToSeqnames = null, restrictToStrand = null } = {}) {
         let indices = utils.createSequence(generics.LENGTH(this));
         let by_seqname = generics.SPLIT(indices, this._seqnames);
         let starts = this.start();
         let ends = this.end();
 
+        if (restrictToSeqnames !== null && restrictToSeqnames instanceof Array) {
+            restrictToSeqnames = new Set(restrictToSeqnames);
+        }
+        if (restrictToStrand !== null && restrictToStrand instanceof Array) {
+            restrictToStrand = new Set(restrictToStrand);
+        }
+
         for (const name of Object.keys(by_seqname)) {
+            if (restrictToSeqnames !== null && !restrictToSeqnames.has(name)) {
+                delete by_seqname[name];
+                continue;
+            }
             let seqname_indices = by_seqname[name];
             let seqname_strand = generics.SLICE(this._strand, seqname_indices);
             let by_strand = generics.SPLIT(seqname_indices, seqname_strand);
 
             for (const str of Object.keys(by_strand)) {
+                if (restrictToStrand !== null && !restrictToStrand.has(Number(str))) {
+                    delete by_strand[str];
+                    continue;
+                }
                 let str_indices = by_strand[str];
                 by_strand[str] = olap.buildIntervalTree(starts, ends, { slice: str_indices });
             }

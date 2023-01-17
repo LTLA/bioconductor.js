@@ -256,3 +256,17 @@ test("overlap method works correctly for GRanges", () => {
     let results3 = idx3.overlap(y, { ignoreStrand: false });
     expect(results3).toEqual([[], [1], []]);
 })
+
+test("overlap method works correctly for GRanges with restricted seqnames/strands", () => {
+    // Ignoring the strand.
+    let x = new bioc.GRanges(["A", "B", "A", "B"], new bioc.IRanges([1, 10, 20, 50], [5, 2, 7, 60]), { strand: [ 1, -1, -1, 1 ] });
+    let y = new bioc.GRanges(["A", "B", "A"], new bioc.IRanges([2, 0, 21], [8, 60, 30]));
+
+    let idx = x.buildOverlapIndex({ restrictToSeqnames: ["A"] });
+    let results = idx.overlap(y);
+    expect(results).toEqual([[0], [], [2]]);
+
+    idx = x.buildOverlapIndex({ restrictToStrand: [1] });
+    results = idx.overlap(y);
+    expect(results).toEqual([[0], [3], []]);
+})
