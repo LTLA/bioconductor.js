@@ -39,34 +39,82 @@ let more_results = new bioc.DataFrame(
     }
 );
 
-bioc.COMBINE(results, [more_results]);
+bioc.COMBINE([results, more_results]);
 ```
 
-The generics allow us to manipulate complex objects like a nested `DataFrame`:
+See the [reference documentation](https://ltla.github.io/bioconductor.js) for more details.
+
+# Representing (genomic) ranges
+
+We can construct equivalents of Bioconductor's `IRanges` and `GRanges` objects, representing integer and genomic ranges respectively.
 
 ```js
-let results = new bioc.DataFrame(
+let ir = new bioc.IRanges(/* start = */ [1,2,3], /* width = */ [ 10, 20, 30 ]);
+let gr = new bioc.GRanges([ "chrA", "chrB", "chrC" ], ir, { strand: [ 1, 0, -1 ] });
+
+// Generics still work on these range objects:
+bioc.LENGTH(gr);
+bioc.SLICE(gr, [ 2, 1, 0 ]);
+bioc.CLONE(gr);
+```
+
+We can find overlaps between two sets of ranges, akin to Bioconductor's `findOverlaps()` function:
+
+```js
+let index = gr.buildOverlapIndex();
+let gr2 = new bioc.GRanges([ "chrA", "chrC", "chrA" ], new bioc.IRanges([5, 3, 2], [9, 9, 9]));
+let overlaps = index.overlap(gr2);
+```
+
+We can store per-range metadata in the `elementMetadata` field of each object, just like Bioconductor's `mcols()`.
+
+```js
+let meta = gr.elementMetadata();
+meta.$setColumn("symbol", [ "Nanog", "Snap25", "Malat1" ]);
+gr.$setElementMetadata(meta);
+gr.elementMetadata().columnNames();
+```
+
+# Using generics
+
+Our generics allow us to operate on different objects in a consistent manner.
+For example, a `DataFrame` allows us to store any object as a column as long as it defines methods for the `LENGTH`, `SLICE`, `CLONE` and `COMBINE` generics.
+This allows us to construct complex objects like a `DataFrame` nested inside another `DataFrame`.
+
+```js
+let genomic_results = new bioc.DataFrame(
     { 
         logFC: new Float64Array([-1, -2, 1.3, 2.1]),
         pvalue: new Float64Array([0.01, 0.02, 0.001, 1e-8]),
-        location: new bioc.DataFrame(
+        location: new bioc.DataFrame({
             "chromosome": [ "chrA", "chrB", "chrC", "chrD" ],
             "start": [ 1, 2, 3, 4 ],
-            "end": [ 10, 20, 30, 40 ],
+            "width": [ 10, 20, 30, 40 ],
             "strand": new Uint8Array([-1, 1, 1, -1 ])
-        )
+        })
     },
     {
         rowNames: [ "p53", "SNAP25", "MALAT1", "INS" ]
     }
 );
 
-let subset = bioc.SLICE(results, { start: 2, end: 4 });
+let subset = bioc.SLICE(genomic_results, { start: 2, end: 4 });
 bioc.LENGTH(subset); 
 subset.column("location");
 ```
 
-See the [reference documentation](https://ltla.github.io/bioconductor.js) for more details.
+Indeed, we can even store an `IRanges` as a column of our `DataFrame`, and all generics on the `DataFrame` will propagate to the column.
+
+```js
+let old_location = genomic_results.column("location");
+let new_location = new bioc.GRanges(old_location.column("chromosome"),
+    new bioc.IRanges(old_location.column("start"), old_location.column("width")),
+    { strand: old_location.column("strand") });
+genomic_results.$setColumn("location", new_location);
+
+subset = bioc.SLICE(genomic_results, { start: 2, end: 4 });
+subset.column("location");
+```
 
 ## Supported classes and generics
 
@@ -75,6 +123,8 @@ For classes:
 |**Javascript**|**R/Bioconductor equivalent**|
 |---|---|
 | [`DataFrame`](https://ltla.github.io/bioconductor.js/DataFrame.html) | `S4Vectors::DFrame` |
+| [`IRanges`](https://ltla.github.io/bioconductor.js/IRanges.html) | `IRanges::IRanges` |
+| [`GRanges`](https://ltla.github.io/bioconductor.js/GRanges.html) | `GenomicRanges::GRanges` |
 
 For generics:
 
