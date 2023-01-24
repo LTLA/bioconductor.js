@@ -1,4 +1,23 @@
+/**
+ * Dense matrix of numbers.
+ * Not really a Bioconductor-exclusive data structure, but we need this at a minimum for the {@linkplain SummarizedExperiment} to be useful.
+ *
+ * - {@linkcode NUMBER_OF_ROWS}
+ * - {@linkcode NUMBER_OF_COLUMNS}
+ * - {@linkcode SLICE_2D}
+ * - {@linkcode COMBINE_ROWS}
+ * - {@linkcode COMBINE_COLUMNS}
+ * - {@linkcode CLONE}
+ */
 export class DenseMatrix {
+    /**
+     * @param {number} numberOfRows - Number of rows, duh.
+     * @param {number} numberOfColumns - Number of columns.
+     * @param {TypedArray} values - 1-dimensional array of the matrix contents.
+     * This should have length equal to the product of `numberOfRows` and `numberOfColumns`.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.columnMajor=true] - Whether `values` represents a column-major layout.
+     */
     constructor(numberOfRows, numberOfColumns, values, { columnMajor = true } = {}) {
         this._numberOfRows = numberOfRows;
         this._numberOfColumns = numberOfColumns;
@@ -9,18 +28,36 @@ export class DenseMatrix {
         }
     }
 
+    static name = "DenseMatrix";
+
     /**************************************************************************
      **************************************************************************
      **************************************************************************/
 
+    /**
+     * @return {number} Number of rows.
+     */
     numberOfRows() {
         return this._numberOfRows;
     }
 
+    /**
+     * @return {number} Number of columns.
+     */
     numberOfColumns() {
         return this._numberOfColumns;
     }
 
+    /**
+     * @return {boolean} Whether the matrix is column-major.
+     */
+    isColumnMajor() {
+        return this._columnMajor;
+    }
+
+    /**
+     * @return {TypedArray} Matrix contents as a 1-dimensional array.
+     */
     values() {
         return this._values;
     }
@@ -46,10 +83,30 @@ export class DenseMatrix {
         }
     }
 
+    /**
+     * Retrieve the contents of a particular row.
+     *
+     * @param {number} i - Index of the row of interest.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.allowView=false] - Whether to allow a view to be returned, if possible.
+     *
+     * @return {TypedArray} Contents of the row `i`.
+     * This may be a view on the array returned by {@linkcode DenseMatrix#values values}, if permitted by the layout.
+     */
     row(i, { allowView = false } = {}) {
         return this.#extractor(i, this._numberOfRows, this._numberOfColumns, allowView, !this._columnMajor);
     }
 
+    /**
+     * Retrieve the contents of a particular column.
+     *
+     * @param {number} i - Index of the column of interest.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.allowView=false] - Whether to allow a view to be returned, if possible.
+     *
+     * @return {TypedArray} Contents of the column `i`.
+     * This may be a view on the array returned by {@linkcode DenseMatrix#values values}, if permitted by the layout.
+     */
     column(i, { allowView = false } = {}) {
         return this.#extractor(i, this._numberOfColumns, this._numberOfRows, allowView, this._columnMajor);
     }
@@ -58,6 +115,11 @@ export class DenseMatrix {
      **************************************************************************
      **************************************************************************/
 
+    /**
+     * @param {TypedArray} values - 1-dimensional array of matrix contents,
+     * of the same length as the array returned by {@linkcode DenseMatrix#values values}.
+     * @return {DenseMatrix} A reference to this DenseMatrix after modifying the matrix contents.
+     */
     $setValues(values) {
         if (values.length !== this._values.length) {
             throw new Error("replacement 'values' should have length equal to 'values()'");
@@ -80,6 +142,11 @@ export class DenseMatrix {
         }
     }
 
+    /**
+     * @param {number} i - Row index to set.
+     * @param {TypedArray} values - Row contents, of length equal to the number of columns in this DenseMatrix.
+     * @return {DenseMatrix} A reference to this DenseMatrix after modifying the matrix contents.
+     */
     $setRow(i, values) {
         if (values.length !== this._numberOfColumns) {
             throw new Error("replacement row should have length equal to 'numberOfColumns()'");
@@ -88,6 +155,11 @@ export class DenseMatrix {
         return this;
     }
 
+    /**
+     * @param {number} i - Column index to set.
+     * @param {TypedArray} values - Row contents, of length equal to the number of rows in this DenseMatrix.
+     * @return {DenseMatrix} A reference to this DenseMatrix after modifying the matrix contents.
+     */
     $setColumn(i, values) {
         if (values.length !== this._numberOfRows) {
             throw new Error("replacement column should have length equal to 'numberOfRows()'");

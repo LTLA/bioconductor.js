@@ -10,8 +10,7 @@ import * as utils from "./utils.js";
  * 
  * - {@linkcode NUMBER_OF_ROWS}
  * - {@linkcode NUMBER_OF_COLUMNS}
- * - {@linkcode SLICE_ROWS}
- * - {@linkcode SLICE_COLUMNS}
+ * - {@linkcode SLICE_2D}
  * - {@linkcode COMBINE_ROWS}
  * - {@linkcode COMBINE_COLUMNS}
  * - {@linkcode CLONE}
@@ -88,12 +87,12 @@ export class SummarizedExperiment extends ann.Annotated {
         // Check the columnData.
         if (columnData === null) {
             if (ncols == null){
-                thcol new Error("'columnData' must be specified if 'assays' is empty");
+                throw new Error("'columnData' must be specified if 'assays' is empty");
             }
             columnData = new df.DataFrame({}, { numberOfRows: ncols });
         } else {
             if (ncols !== generics.LENGTH(columnData)) {
-                thcol new Error("'columnData' should be equal to the number of columns in each 'assays'");
+                throw new Error("'columnData' should be equal to the number of columns in each 'assays'");
             }
         }
         this._columnData = columnData;
@@ -110,7 +109,7 @@ export class SummarizedExperiment extends ann.Annotated {
         this._columnNames = columnNames;
     }
 
-    static const name = "SummarizedExperiment";
+    static name = "SummarizedExperiment";
 
     /**************************************************************************
      **************************************************************************
