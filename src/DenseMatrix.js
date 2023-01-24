@@ -38,7 +38,7 @@ export class DenseMatrix {
         } else {
             let start = i * nsecondary;
             let end = start + nsecondary;
-            if (allowView && ArrayBuffer.isView(this._values)) {
+            if (allowView) {
                 return this._values.subarray(start, end);
             } else {
                 return this._values.slice(start, end);
@@ -76,13 +76,7 @@ export class DenseMatrix {
             }
         } else {
             let start = i * nsecondary;
-            if (ArrayBuffer.isView(this._values)) {
-                this._values.set(replacement, start);
-            } else {
-                for (var s = 0; s < nsecondary; s++) {
-                    this._values[s + start] = replacement[s];
-                }
-            }
+            this._values.set(replacement, start);
         }
     }
 
@@ -114,66 +108,160 @@ export class DenseMatrix {
         return this.numberOfColumns();
     }
 
-    _bioconductor_COMBINE_ROWS(output, objects) {
-        let NC = objects[0]._numberOfColumns;
-        let NR = objects[0]._numberOfRows;
-        for (var i = 1; i < objects.length; i++) {
-            if (objects[i]._numberOfColumns !== NC) {
-                throw new Error("all objects must have the same number of columns");
-            }
-            NR += objects[i]._numberOfRows;
-        }
+    _bioconductor_SLICE_2D(output, rows, columns, {}) {
+        let full_rows = (rows === null);
+        let is_row_range = (!full_rows && rows.constructor == Object);
+        let new_rows = full_rows ? this._numberOfRows : (is_row_range ? rows.end - rows.start : rows.length);
+        output._numberOfRows = new_rows;
 
-        output._numberOfRows = NR;
-        output._numberOfColumns = NC;
-        output._columnMajor = objects[0]._columnMajor;
+        let full_columns = (columns === null);
+        let is_column_range = (!full_columns && columns.constructor == Object);
+        let new_columns = full_columns ? this._numberOfColumns : (is_column_range ? columns.end - columns.start : columns.length);
+        output._numberOfColumns = new_columns;
 
-        let final_values = new objects[0]._values.constructor(NR * NC);
-        output._values = final_values;
+        let new_values = new this._values.constructor(new_rows * new_columns);
+        output._values = new_values;
 
-        if (output._columnMajor) {
-            let used_rows = 0;
-            for (var i = 0; i < objects.length; i++) {
-                let current = objects[i];
-                let currows = current._numberOfRows;
-
-                if (current._columnMajor) {
-                    for (var c = 0; c < NC; c++) {
-                        let view_offset = c * currows;
-                        let view = current._values.view(view_offset, view_offset + currows);
-                        final_values.set(view, used_rows + c * NR);
-                    }
-                } else {
-                    for (var r = 0; r < currows; r++) {
-                        let offset = used_rows + r;
-                        for (var c = 0; c < NC; c++) {
-                            final_values[c * NR + offset] = current._values[r * NC + c];
-                        }
-                    }
-                }
-                 
-                used_rows += currows;
-            }
-
+        if (this._columnMajor) {
+            this.#primarySlicer(columns, full_columns, is_column_range, this._numberOfColumns, rows, full_rows, is_row_range, this._numberOfRows, new_rows, new_values);
         } else {
-            let used_rows = 0;
+            this.#primarySlicer(rows, full_rows, is_row_range, this._numberOfRows, columns, full_columns, is_column_range, this._numberOfColumns, new_columns, new_values);
+        }
+        output._columnMajor = this._columnMajor;
+    }
+
+    #primarySlicer(primarySlice, fullPrimary, isPrimaryRange, primaryDim, secondarySlice, fullSecondary, isSecondaryRange, inSecondaryDim, outSecondaryDim, outputValues) {
+        if (fullPrimary) {
+            for (var p = 0; p < primaryDim; p++) {
+                this.#secondarySlicer(secondarySlice, fullSecondary, isSecondaryRange, inSecondaryDim, outSecondaryDim, outputValues, p, p);
+            }
+        } else if (isPrimaryRange) {
+            for (var p = primarySlice.start; p < primarySlice.end; p++) {
+                this.#secondarySlicer(secondarySlice, fullSecondary, isSecondaryRange, inSecondaryDim, outSecondaryDim, outputValues, p - primarySlice.start, p);
+            }
+        } else {
+            for (var pi = 0; pi < primarySlice.length; pi++) {
+                this.#secondarySlicer(secondarySlice, fullSecondary, isSecondaryRange, inSecondaryDim, outSecondaryDim, outputValues, primarySlice[pi], pi);
+            }
+        }
+    }
+
+    #secondarySlicer(secondarySlice, fullSecondary, isSecondaryRange, inSecondaryDim, outSecondaryDim, outputValues, inPrimary, outPrimary) {
+        let in_offset = inPrimary * inSecondaryDim;
+        let out_offset = outPrimary * outSecondaryDim;
+
+        if (fullSecondary) {
+            let view = this._values.subarray(in_offset, in_offset + inSecondaryDim);
+            outputValues.set(view, out_offset);
+        } else if (isSecondaryRange) {
+            for (var s = secondarySlice.start; s < secondarySlice.end; s++) {
+                outputValues[outputOffset + s - secondarySlice.start] = this._values[in_offset + s];
+            }
+        } else {
+            for (var si = 0; si < secondarySlice.length; s++) {
+                outputValues[outputOffset + si] = this._values[in_offset + secondarySlice[si]];
+            }
+        }
+    }
+
+    #combiner(objects, primaryFun, secondaryFun, isPrimaryMajor, secondaryName) {
+        let num_primary = primaryFun(objects[0]);
+        let num_secondary = secondaryFun(objects[0]);
+        for (var i = 1; i < objects.length; i++) {
+            if (secondaryFun(objects[i]) !== num_secondary) {
+                throw new Error("all objects must have the same number of " + secondaryName);
+            }
+            num_primary += primaryFun(objects[i]);
+        }
+
+        let primary_major = isPrimaryMajor(objects[0]);
+        let values = new objects[0]._values.constructor(num_primary * num_secondary);
+
+        if (primary_major) {
+            let used_primary = 0;
             for (var i = 0; i < objects.length; i++) {
                 let current = objects[i];
-                let currows = current._numberOfRows;
+                let cur_primary = primaryFun(current);
+                let out_offset = used_primary * num_secondary;
 
-                if (!current._columnMajor) {
-                    final_values.set(current._values, used_rows * NC);
+                if (isPrimaryMajor(current)) {
+                    values.set(current._values, out_offset);
                 } else {
-                    for (var c = 0; c < NC; c++) {
-                        let offset = used_rows * NC + c;
-                        for (var r = 0; r < currows; r++) {
-                            final_values[offset + r * NC] = current._values[c * currows + r];
+                    for (var s = 0; s < num_secondary; s++) {
+                        let in_offset = s * cur_primary;
+                        let out_offset2 = out_offset + s;
+                        for (var p = 0; p < cur_primary; p++) {
+                            values[out_offset2 + p * num_secondary] = current._values[in_offset + p];
                         }
                     }
                 }
 
-                used_rows += currows;
+                used_primary += cur_primary;
+            }
+        } else {
+            let used_primary = 0;
+            for (var i = 0; i < objects.length; i++) {
+                let current = objects[i];
+                let cur_primary = primaryFun(current);
+
+                if (!isPrimaryMajor(current)) {
+                    for (var s = 0; s < num_secondary; s++) {
+                        let view_offset = s * cur_primary;
+                        let view = current._values.view(view_offset, view_offset + cur_primary);
+                        final_values.set(view, used_primary + s * num_primary);
+                    }
+                } else {
+                    for (var p = 0; p < cur_primary; p++) {
+                        let in_offset = p * num_secondary;
+                        let out_offset = used_primary + p;
+                        for (var s = 0; s < num_secondary; s++) {
+                            final_values[out_offset + s * num_primary] = current._values[in_offset + s];
+                        }
+                    }
+                }
+
+                used_primary += cur_primary;
             }
         }
+
+        return { num_primary, num_secondary, values, primary_major };
+    }
+
+    _bioconductor_COMBINE_ROWS(output, objects) {
+        let combined = this.#combiner(objects,
+            x => x._numberOfRows,
+            x => x._numberOfColumns,
+            x => !(x._columnMajor),
+            "columns"
+        );
+
+        output._numberOfRows = combined.num_primary;
+        output._numberOfColumns = combined.num_secondary;
+        output._values = combined.values;
+        output._columnMajor = !(combined.primary_major);
+        return;
+    }
+
+    _bioconductor_COMBINE_COLUMNS(output, objects) {
+        let combined = this.#combiner(objects,
+            x => x._numberOfColumns,
+            x => x._numberOfRows,
+            x => x._columnMajor,
+            "rows"
+        );
+
+        output._numberOfColumns = combined.num_primary;
+        output._numberOfRows = combined.num_secondary;
+        output._values = combined.values;
+        output._columnMajor = combined.primary_major;
+        return;
+    }
+
+    _bioconductor_CLONE(output, { deepCopy = true } = {}) {
+        output._values = (deepCopy ? this._values.slice() : this._values);
+        output._numberOfRows = this._numberOfRows;
+        output._numberOfColumns = this._numberOfColumns;
+        output._columnMajor = this._columnMajor;
+        return;
     }
 }

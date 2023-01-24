@@ -241,45 +241,34 @@ export function NUMBER_OF_COLUMNS(x) {
 }
 
 /**
- * Slice a two-dimensional object by its rows.
- * Custom classes should provide a `_bioconductor_SLICE_ROWS` method, accepting the same arguments as `SLICE_ROWS` except for `x`.
+ * Slice a two-dimensional object by its rows and/or columns.
  *
- * @param {*} x - Some vector-like object.
- * @param {Object|Array|TypedArray} i - An Array or TypedArray of integer indices specifying the row-wise slice of `x` to retain.
+ * Custom classes should provide a `_bioconductor_SLICE_2D` method, accepting the same arguments as this generic but with `x` replaced by an "empty" instance of the same class.
+ * Each method should then fill the empty instance with the sliced contents of `x`.
+ *
+ * @param {*} x - Some two-dimensional object.
+ * @param {?(Object|Array|TypedArray)} rows - An Array or TypedArray of integer indices specifying the row-wise slice of `x` to retain.
  *
  * Alternatively, an object containing `start` and `end`, where the slice is defined as the sequence of consecutive integers in `[start, end)`.
+ * 
+ * Alternatively `null`, to indicate that no slicing is to be performed on the rows.
+ * @param {?(Object|Array|TypedArray)} columns - An Array or TypedArray of integer indices specifying the column-wise slice of `x` to retain.
+ *
+ * Alternatively, an object containing `start` and `end`, where the slice is defined as the sequence of consecutive integers in `[start, end)`.
+ *
+ * Alternatively `null`, to indicate that no slicing is to be performed on the columns.
  * @param {Object} [options={}] - Optional parameters.
  * @param {boolean} [options.allowView=false] - Whether a view can be created to mimic the slice operation.
  * Whether this is actually done depends on the method, but may improve efficiency by avoiding unnecessary copies.
  *
  * @return {*} A two-dimensional object, typically of the same class as `x`, containing data for the specified slice.
  */
-export function SLICE_ROWS(x, i, { allowView = false } = {}) {
-    if (!("_bioconductor_SLICE_ROWS" in x)) {
-        throw new Error("no 'SLICE_ROWS' method available for '" + x.constructor.name + "' instance");
+export function SLICE_2D(x, rows, columns, { allowView = false } = {}) {
+    if (!("_bioconductor_SLICE_2D" in x)) {
+        throw new Error("no 'SLICE_2D' method available for '" + x.constructor.name + "' instance");
     }
-    return x._bioconductor_SLICE_ROWS(i, { allowView });
-}
-
-/**
- * Slice a two-dimensional object by its columns.
- * Custom classes should provide a `_bioconductor_SLICE_COLUMNS` method, accepting the same arguments as `SLICE_COLUMNS` except for `x`.
- *
- * @param {*} x - Some vector-like object.
- * @param {Object|Array|TypedArray} i - An Array or TypedArray of integer indices specifying the column-wise slice of `x` to retain.
- *
- * Alternatively, an object containing `start` and `end`, where the slice is defined as the sequence of consecutive integers in `[start, end)`.
- * @param {Object} [options={}] - Optional parameters.
- * @param {boolean} [options.allowView=false] - Whether a view can be created to mimic the slice operation.
- * Whether this is actually done depends on the method, but may improve efficiency by avoiding unnecessary copies.
- *
- * @return {*} A two-dimensional object, typically of the same class as `x`, containing data for the specified slice.
- */
-export function SLICE_COLUMNS(x, i, { allowView = false } = {}) {
-    if (!("_bioconductor_SLICE_COLUMNS" in x)) {
-        throw new Error("no 'SLICE_COLUMNS' method available for '" + x.constructor.name + "' instance");
-    }
-    return x._bioconductor_SLICE_COLUMNS(i, { allowView });
+    let output = Object.create(x.constructor.prototype);
+    return x._bioconductor_SLICE_2D(output, rows, columns, { allowView });
 }
 
 /**
