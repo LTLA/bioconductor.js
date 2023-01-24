@@ -518,7 +518,7 @@ If <code>null</code>, an arbitrary ordering is obtained from <code>columns</code
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line172">line 172</a>
+        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line164">line 164</a>
     </li></ul></dd>
     
 
@@ -663,7 +663,7 @@ If <code>null</code>, an arbitrary ordering is obtained from <code>columns</code
 
     
 
-    <h4 class="name" id="$setColumn"><span class="type-signature"></span>$setColumn<span class="signature">(i)</span><span class="type-signature"> &rarr; {<a href="DataFrame.html">DataFrame</a>}</span></h4>
+    <h4 class="name" id="$setColumn"><span class="type-signature"></span>$setColumn<span class="signature">(i, value)</span><span class="type-signature"> &rarr; {<a href="DataFrame.html">DataFrame</a>}</span></h4>
 
     
 
@@ -675,7 +675,7 @@ If <code>null</code>, an arbitrary ordering is obtained from <code>columns</code
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line197">line 197</a>
+        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line190">line 190</a>
     </li></ul></dd>
     
 
@@ -768,8 +768,31 @@ If <code>null</code>, an arbitrary ordering is obtained from <code>columns</code
 
             
 
-            <td class="description last"><p>Column to add, either by name or index.
+            <td class="description last"><p>Identity of the column to add, either by name or index.
 Numeric <code>i</code> should be non-negative and less than the number of columns.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>value</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">*</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Array-like column to set/add as the column.</p></td>
         </tr>
 
     
@@ -838,7 +861,7 @@ If no such column exists, a new column is appended to the DataFrame.</li>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line219">line 219</a>
+        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line212">line 212</a>
     </li></ul></dd>
     
 
@@ -1152,7 +1175,7 @@ This should have the same length as <a href="DataFrame.html#columnNames"><code>D
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line242">line 242</a>
+        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line235">line 235</a>
     </li></ul></dd>
     
 
@@ -1320,7 +1343,7 @@ This should have the same length as <a href="DataFrame.html#numberOfRows"><code>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line256">line 256</a>
+        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line249">line 249</a>
     </li></ul></dd>
     
 
@@ -1475,7 +1498,7 @@ This should refer to unique column names.</p></td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line152">line 152</a>
+        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line144">line 144</a>
     </li></ul></dd>
     
 
@@ -1632,7 +1655,7 @@ This should refer to unique column names.</p></td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line122">line 122</a>
+        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line114">line 114</a>
     </li></ul></dd>
     
 
@@ -1737,7 +1760,7 @@ This should refer to unique column names.</p></td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line130">line 130</a>
+        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line122">line 122</a>
     </li></ul></dd>
     
 
@@ -2001,7 +2024,7 @@ This should refer to unique column names.</p></td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line144">line 144</a>
+        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line136">line 136</a>
     </li></ul></dd>
     
 
@@ -2106,7 +2129,7 @@ This should refer to unique column names.</p></td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line137">line 137</a>
+        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line129">line 129</a>
     </li></ul></dd>
     
 
@@ -2211,7 +2234,7 @@ This should refer to unique column names.</p></td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line115">line 115</a>
+        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line107">line 107</a>
     </li></ul></dd>
     
 
@@ -2319,7 +2342,7 @@ This should refer to unique column names.</p></td>
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Wed Jan 18 2023 07:00:36 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Tue Jan 24 2023 01:01:27 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
