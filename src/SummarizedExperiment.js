@@ -318,34 +318,30 @@ export class SummarizedExperiment extends ann.Annotated {
         return this.numberOfColumns();
     }
 
-    _bioconductor_SLICE_ROWS(output, i, { allowView = false }) {
+    _bioconductor_SLICE_2D(output, rows, columns, { allowView = false }) {
         let assays = {};
         for (const [k, v] of Object.entries(this._assays)) {
-            assays[k] = generics.SLICE_ROWS(v, i, { allowView });
+            assays[k] = generics.SLICE_2D(v, rows, columns, { allowView });
         }
         output._assays = assays;
-        output._rowData = generics.SLICE(this._rowData, i, { allowView });
-        output._rowNames = (this._rowNames == null ? null : generics.SLICE(this._rowNames, i, { allowView }));
 
-        output._assayOrder = this._assayOrder;
-        output._columnData = this._columnData;
-        output._columnNames = this._columnNames;
-        output._metadata = this._metadata;
-        return;
-    }
-
-    _bioconductor_SLICE_COLUMNS(output, i, { allowView = false }) {
-        let assays = {};
-        for (const [k, v] of Object.entries(this._assays)) {
-            assays[k] = generics.SLICE_COLUMNS(v, i, { allowView });
+        if (rows !== null) {
+            output._rowData = generics.SLICE(this._rowData, i, { allowView });
+            output._rowNames = (this._rowNames == null ? null : generics.SLICE(this._rowNames, i, { allowView }));
+        } else {
+            output._rowData = this._rowData;
+            output._rowNames = this._rowNames;
         }
-        output._assays = assays;
-        output._columnData = generics.SLICE(this._columnData, i, { allowView });
-        output._columnNames = (this._columnNames == null ? null : generics.SLICE(this._columnNames, i, { allowView }));
+
+        if (columns !== null) {
+            output._columnData = generics.SLICE(this._columnData, i, { allowView });
+            output._columnNames = (this._columnNames == null ? null : generics.SLICE(this._columnNames, i, { allowView }));
+        } else {
+            output._columnData = this._columnData;
+            output._columnNames = this._columnNames;
+        }
 
         output._assayOrder = this._assayOrder;
-        output._rowData = this._rowData;
-        output._rowNames = this._rowNames;
         output._metadata = this._metadata;
         return;
     }
