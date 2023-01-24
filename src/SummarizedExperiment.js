@@ -14,6 +14,7 @@ import * as utils from "./utils.js";
  * - {@linkcode SLICE_COLUMNS}
  * - {@linkcode COMBINE_ROWS}
  * - {@linkcode COMBINE_COLUMNS}
+ * - {@linkcode CLONE}
  *
  * @extends Annotated
  */
@@ -55,6 +56,7 @@ export class SummarizedExperiment extends ann.Annotated {
                 }
             }
         }
+        this._assays = assays;
 
         if (assayOrder == null) {
             assayOrder = assays.keys();
@@ -68,6 +70,7 @@ export class SummarizedExperiment extends ann.Annotated {
                 throw new Error("values of 'assayOrder' should be the same as the keys of 'assays'");
             }
         }
+        this._assayOrder = assayOrder;
 
         // Check the rowData.
         if (rowData === null) {
@@ -199,7 +202,27 @@ export class SummarizedExperiment extends ann.Annotated {
 
     /**
      * @param {string|number} i - Identity of the assay to add, either by name or index.
-     * Numeric `i` should be non-negative and less than the number of columns.
+     * @return {SummarizedExperiment} Reference to this SummarizedExperiment after removing the specified assay.
+     */
+    $removeAssay(i) {
+        if (typeof i == "string") {
+            let ii = this._assayOrder.indexOf(i);
+            if (ii < 0) {
+                throw new Error("no assay '" + i + "' in this SummarizedExperiment");
+            }
+            this._assayOrder.splice(ii, 1);
+            delete this._assays[i];
+        } else {
+            this._check_index(i);
+            let n = this._assayOrder[i];
+            this._assayOrder.splice(i, 1);
+            delete this._assays[n];
+        }
+    }
+
+    /**
+     * @param {string|number} i - Identity of the assay to add, either by name or index.
+     * Numeric `i` should be non-negative and less than the number of assays.
      * @param {*} value - Multi-dimensional array-like object to set/add as the assay.
      * @return {SummarizedExperiment} Reference to this SummarizedExperiment with modified assays.
      * - If `i` is a number, the assay at the specified index is replaced.
@@ -280,4 +303,115 @@ export class SummarizedExperiment extends ann.Annotated {
         this._columnNames = names;
         return this;
     }
+
+    /**************************************************************************
+     **************************************************************************
+     **************************************************************************/
+
+    _bioconductor_NUMBER_OF_ROWS() {
+        return this.numberOfRows();
+    }
+
+    _bioconductor_NUMBER_OF_COLUMNS() {
+        return this.numberOfColumns();
+    }
+
+    _bioconductor_SLICE_ROWS(output, i, { allowView = false }) {
+        let assays = {};
+        for (const [k, v] of Object.entries(this._assays)) {
+            assays[k] = generics.SLICE_ROWS(v, i, { allowView });
+        }
+        output._assays = assays;
+        output._rowData = generics.SLICE(this._rowData, i, { allowView });
+        output._rowNames = (this._rowNames == null ? null : generics.SLICE(this._rowNames, i, { allowView }));
+
+        output._assayOrder = this._assayOrder;
+        output._columnData = this._columnData;
+        output._columnNames = this._columnNames;
+        output._metadata = this._metadata;
+        return;
+    }
+
+    _bioconductor_SLICE_COLUMNS(output, i, { allowView = false }) {
+        let assays = {};
+        for (const [k, v] of Object.entries(this._assays)) {
+            assays[k] = generics.SLICE_COLUMNS(v, i, { allowView });
+        }
+        output._assays = assays;
+        output._columnData = generics.SLICE(this._columnData, i, { allowView });
+        output._columnNames = (this._columnNames == null ? null : generics.SLICE(this._columnNames, i, { allowView }));
+
+        output._assayOrder = this._assayOrder;
+        output._rowData = this._rowData;
+        output._rowNames = this._rowNames;
+        output._metadata = this._metadata;
+        return;
+    }
+
+    _bioconductor_COMBINE_ROWS(output, objects) {
+        output._assayOrder = this._assayOrder;
+        for (const obj of objects) {
+            if (!utils.areArraysEqual(output._assayOrder, obj._assayOrder)) {
+                throw new Error("'assayNames' should be the same across SummarizedExperiments to be combined");
+            }
+        }
+
+        let assays = {};
+        for (const [k, v] of Object.entries(this._assays)) {
+            let found = objects.map(x => x._assays[k]);
+            assays[k] = generics.COMBINE_ROWS(found);
+        }
+        output._assays = assays;
+
+        let all_dfs = objects.map(x => x._rowData);
+        output._rowData = generics.COMBINE(all_dfs);
+
+        let all_n = objects.map(x => x._rowNames);
+        let all_l = objects.map(x => x.numberOfRows());
+        output._rowNames = utils.combineNames(all_n, all_l);
+
+        output._columnData = this._columnData;
+        output._columnNames = this._columnNames;
+        output._metadata = this._metadata;
+    }
+
+    _bioconductor_COMBINE_COLUMNS(output, objects) {
+        output._assayOrder = this._assayOrder;
+        for (const obj of objects) {
+            if (!utils.areArraysEqual(output._assayOrder, obj._assayOrder)) {
+                throw new Error("'assayNames' should be the same across SummarizedExperiments to be combined");
+            }
+        }
+
+        let assays = {};
+        for (const [k, v] of Object.entries(this._assays)) {
+            let found = objects.map(x => x._assays[k]);
+            assays[k] = generics.COMBINE_COLUMNS(found);
+        }
+        output._assays = assays;
+
+        let all_dfs = objects.map(x => x._columnData);
+        output._columnData = generics.COMBINE(all_dfs);
+
+        let all_n = objects.map(x => x._columnNames);
+        let all_l = objects.map(x => x.numberOfRows());
+        output._columnNames = utils.combineNames(all_n, all_l);
+
+        output._rowData = this._rowData;
+        output._rowNames = this._rowNames;
+        output._metadata = this._metadata;
+    }
+
+    _bioconductor_CLONE(output, { deepCopy = true }) {
+        super._bioconductor_CLONE(output, { deepCopy });
+        output._assays = generics.CLONE(this._assays, { deepCopy });
+        output._assayOrder = generics.CLONE(this._assayOrder, { deepCopy });
+        output._rowData = generics.CLONE(this._rowData, { deepCopy });
+        output._rowNames = generics.CLONE(this._rowNames, { deepCopy });
+        output._columnData = generics.CLONE(this._columnData, { deepCopy });
+        output._columnNames = generics.CLONE(this._columnNames, { deepCopy });
+        return;
+    }
+
+
 }
