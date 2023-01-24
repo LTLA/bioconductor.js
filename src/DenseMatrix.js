@@ -280,15 +280,15 @@ export class DenseMatrix {
                 if (!isPrimaryMajor(current)) {
                     for (var s = 0; s < num_secondary; s++) {
                         let view_offset = s * cur_primary;
-                        let view = current._values.view(view_offset, view_offset + cur_primary);
-                        final_values.set(view, used_primary + s * num_primary);
+                        let view = current._values.subarray(view_offset, view_offset + cur_primary);
+                        values.set(view, used_primary + s * num_primary);
                     }
                 } else {
                     for (var p = 0; p < cur_primary; p++) {
                         let in_offset = p * num_secondary;
                         let out_offset = used_primary + p;
                         for (var s = 0; s < num_secondary; s++) {
-                            final_values[out_offset + s * num_primary] = current._values[in_offset + s];
+                            values[out_offset + s * num_primary] = current._values[in_offset + s];
                         }
                     }
                 }

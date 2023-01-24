@@ -286,6 +286,7 @@ export function SLICE_2D(x, rows, columns, { allowView = false } = {}) {
  * @return {*} A two-dimensional object containing the row-wise concatenated data from the input objects, typically of the same class as the first entry of `objects`.
  */
 export function COMBINE_ROWS(objects) {
+    let x = objects[0];
     if (!("_bioconductor_COMBINE_ROWS" in x)) {
         throw new Error("no 'COMBINE_ROWS' method available for '" + x.constructor.name + "' instance");
     }
@@ -308,6 +309,7 @@ export function COMBINE_ROWS(objects) {
  * @return {*} A two-dimensional object containing the column-wise concatenated data from the input objects, typically of the same class as the first entry of `objects`.
  */
 export function COMBINE_COLUMNS(objects) {
+    let x = objects[0];
     if (!("_bioconductor_COMBINE_COLUMNS" in x)) {
         throw new Error("no 'COMBINE_COLUMNS' method available for '" + x.constructor.name + "' instance");
     }
