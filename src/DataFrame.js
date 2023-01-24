@@ -97,14 +97,6 @@ export class DataFrame extends ann.Annotated {
         }
     }
 
-    static _check_names(names, msg) {
-        for (const x of names) {
-            if (typeof x !== "string") {
-                throw new Error("array of " + msg + " should only contain strings");
-            }
-        }
-    }
-
     /**************************************************************************
      **************************************************************************
      **************************************************************************/
@@ -187,8 +179,9 @@ export class DataFrame extends ann.Annotated {
     }
 
     /**
-     * @param {string|number} i - Column to add, either by name or index.
+     * @param {string|number} i - Identity of the column to add, either by name or index.
      * Numeric `i` should be non-negative and less than the number of columns.
+     * @param {*} value - Array-like column to set/add as the column.
      * @return {DataFrame} Reference to this DataFrame with modified columns.
      * - If `i` is a number, the column at the specified index is replaced.
      * - If `i` is a string, any column with the same name is replaced.
