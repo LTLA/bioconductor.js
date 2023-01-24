@@ -62,8 +62,8 @@ export class DenseMatrix {
         return this._values;
     }
 
-    #extractor(i, nprimary, nsecondary, allowView, primaryFastest) {
-        if (primaryFastest) {
+    #extractor(i, nprimary, nsecondary, allowView, primaryMajor) {
+        if (!primaryMajor) {
             let output = new this._values.constructor(nsecondary);
             let offset = i;
             for (var s = 0; s < nsecondary; s++) {
@@ -128,8 +128,8 @@ export class DenseMatrix {
         return this;
     }
 
-    #inserter(i, nprimary, nsecondary, primaryFastest, replacement) {
-        if (primaryFastest) {
+    #inserter(i, nprimary, nsecondary, primaryMajor, replacement) {
+        if (!primaryMajor) {
             let output = new this._values.constructor(nsecondary);
             let offset = i;
             for (var s = 0; s < nsecondary; s++) {
@@ -200,6 +200,7 @@ export class DenseMatrix {
             this.#primarySlicer(rows, full_rows, is_row_range, this._numberOfRows, columns, full_columns, is_column_range, this._numberOfColumns, new_columns, new_values);
         }
         output._columnMajor = this._columnMajor;
+        return;
     }
 
     #primarySlicer(primarySlice, fullPrimary, isPrimaryRange, primaryDim, secondarySlice, fullSecondary, isSecondaryRange, inSecondaryDim, outSecondaryDim, outputValues) {
@@ -209,7 +210,7 @@ export class DenseMatrix {
             }
         } else if (isPrimaryRange) {
             for (var p = primarySlice.start; p < primarySlice.end; p++) {
-                this.#secondarySlicer(secondarySlice, fullSecondary, isSecondaryRange, inSecondaryDim, outSecondaryDim, outputValues, p - primarySlice.start, p);
+                this.#secondarySlicer(secondarySlice, fullSecondary, isSecondaryRange, inSecondaryDim, outSecondaryDim, outputValues, p, p - primarySlice.start);
             }
         } else {
             for (var pi = 0; pi < primarySlice.length; pi++) {
@@ -227,11 +228,11 @@ export class DenseMatrix {
             outputValues.set(view, out_offset);
         } else if (isSecondaryRange) {
             for (var s = secondarySlice.start; s < secondarySlice.end; s++) {
-                outputValues[outputOffset + s - secondarySlice.start] = this._values[in_offset + s];
+                outputValues[out_offset + s - secondarySlice.start] = this._values[in_offset + s];
             }
         } else {
-            for (var si = 0; si < secondarySlice.length; s++) {
-                outputValues[outputOffset + si] = this._values[in_offset + secondarySlice[si]];
+            for (var si = 0; si < secondarySlice.length; si++) {
+                outputValues[out_offset + si] = this._values[in_offset + secondarySlice[si]];
             }
         }
     }

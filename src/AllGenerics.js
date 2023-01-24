@@ -268,7 +268,8 @@ export function SLICE_2D(x, rows, columns, { allowView = false } = {}) {
         throw new Error("no 'SLICE_2D' method available for '" + x.constructor.name + "' instance");
     }
     let output = Object.create(x.constructor.prototype);
-    return x._bioconductor_SLICE_2D(output, rows, columns, { allowView });
+    x._bioconductor_SLICE_2D(output, rows, columns, { allowView });
+    return output;
 }
 
 /**
