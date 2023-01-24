@@ -211,3 +211,117 @@ export function SPLIT(x, factor) {
 
     return output;
 }
+
+/**
+ * Return the number of rows for a two-dimensional object.
+ * Custom classes should provide a `_bioconductor_NUMBER_OF_ROWS` method, accepting no arguments.
+ *
+ * @param {*} x - Some two-dimensional object.
+ * @return {number} Number of rows.
+ */
+export function NUMBER_OF_ROWS(x) {
+    if (!("_bioconductor_NUMBER_OF_ROWS" in x)) {
+        throw new Error("no 'NUMBER_OF_ROWS' method available for '" + x.constructor.name + "' instance");
+    }
+    return x._bioconductor_NUMBER_OF_ROWS();
+}
+
+/**
+ * Return the number of columns for a two-dimensional object.
+ * Custom classes should provide a `_bioconductor_NUMBER_OF_COLUMNS` method, accepting no arguments.
+ *
+ * @param {*} x - Some two-dimensional object.
+ * @return {number} Number of columns.
+ */
+export function NUMBER_OF_COLUMNS(x) {
+    if (!("_bioconductor_NUMBER_OF_COLUMNS" in x)) {
+        throw new Error("no 'NUMBER_OF_COLUMNS' method available for '" + x.constructor.name + "' instance");
+    }
+    return x._bioconductor_NUMBER_OF_COLUMNS();
+}
+
+/**
+ * Slice a two-dimensional object by its rows.
+ * Custom classes should provide a `_bioconductor_SLICE_ROWS` method, accepting the same arguments as `SLICE_ROWS` except for `x`.
+ *
+ * @param {*} x - Some vector-like object.
+ * @param {Object|Array|TypedArray} i - An Array or TypedArray of integer indices specifying the row-wise slice of `x` to retain.
+ *
+ * Alternatively, an object containing `start` and `end`, where the slice is defined as the sequence of consecutive integers in `[start, end)`.
+ * @param {Object} [options={}] - Optional parameters.
+ * @param {boolean} [options.allowView=false] - Whether a view can be created to mimic the slice operation.
+ * Whether this is actually done depends on the method, but may improve efficiency by avoiding unnecessary copies.
+ *
+ * @return {*} A two-dimensional object, typically of the same class as `x`, containing data for the specified slice.
+ */
+export function SLICE_ROWS(x, i, { allowView = false } = {}) {
+    if (!("_bioconductor_SLICE_ROWS" in x)) {
+        throw new Error("no 'SLICE_ROWS' method available for '" + x.constructor.name + "' instance");
+    }
+    return x._bioconductor_SLICE_ROWS(i, { allowView });
+}
+
+/**
+ * Slice a two-dimensional object by its columns.
+ * Custom classes should provide a `_bioconductor_SLICE_COLUMNS` method, accepting the same arguments as `SLICE_COLUMNS` except for `x`.
+ *
+ * @param {*} x - Some vector-like object.
+ * @param {Object|Array|TypedArray} i - An Array or TypedArray of integer indices specifying the column-wise slice of `x` to retain.
+ *
+ * Alternatively, an object containing `start` and `end`, where the slice is defined as the sequence of consecutive integers in `[start, end)`.
+ * @param {Object} [options={}] - Optional parameters.
+ * @param {boolean} [options.allowView=false] - Whether a view can be created to mimic the slice operation.
+ * Whether this is actually done depends on the method, but may improve efficiency by avoiding unnecessary copies.
+ *
+ * @return {*} A two-dimensional object, typically of the same class as `x`, containing data for the specified slice.
+ */
+export function SLICE_COLUMNS(x, i, { allowView = false } = {}) {
+    if (!("_bioconductor_SLICE_COLUMNS" in x)) {
+        throw new Error("no 'SLICE_COLUMNS' method available for '" + x.constructor.name + "' instance");
+    }
+    return x._bioconductor_SLICE_COLUMNS(i, { allowView });
+}
+
+/**
+ * Combine multiple two-dimensional objects by row.
+ * Custom classes should provide a `_bioconductor_COMBINE_ROWS` method to define the combining operation.
+ * This method should accept:
+ * - an "empty" instance of the class of the first object, to be populated with data.
+ * - an array of objects to be combined, like `objects`.
+ *
+ * @param {Array} objects - Array of two-dimensional objects to be combined by row.
+ * It is assumed that the objects are of the same class, or at least compatible with each other -
+ * for custom classes, the definition of "compatibility" depends on the `_bioconductor_COMBINE_ROWS` method of the first element of `objects`.
+ *
+ * @return {*} A two-dimensional object containing the row-wise concatenated data from the input objects, typically of the same class as the first entry of `objects`.
+ */
+export function COMBINE_ROWS(objects) {
+    if (!("_bioconductor_COMBINE_ROWS" in x)) {
+        throw new Error("no 'COMBINE_ROWS' method available for '" + x.constructor.name + "' instance");
+    }
+    let output = Object.create(x.constructor.prototype);
+    x._bioconductor_COMBINE_ROWS(output, objects);
+    return output;
+}
+
+/**
+ * Combine multiple two-dimensional objects by column.
+ * Custom classes should provide a `_bioconductor_COMBINE_COLUMNS` method to define the combining operation.
+ * This method should accept:
+ * - an "empty" instance of the class of the first object, to be populated with data.
+ * - an array of objects to be combined, like `objects`.
+ *
+ * @param {Array} objects - Array of two-dimensional objects to be combined by column.
+ * It is assumed that the objects are of the same class, or at least compatible with each other -
+ * for custom classes, the definition of "compatibility" depends on the `_bioconductor_COMBINE_COLUMNS` method of the first element of `objects`.
+ *
+ * @return {*} A two-dimensional object containing the column-wise concatenated data from the input objects, typically of the same class as the first entry of `objects`.
+ */
+export function COMBINE_COLUMNS(objects) {
+    if (!("_bioconductor_COMBINE_COLUMNS" in x)) {
+        throw new Error("no 'COMBINE_COLUMNS' method available for '" + x.constructor.name + "' instance");
+    }
+    let output = Object.create(x.constructor.prototype);
+    x._bioconductor_COMBINE_COLUMNS(output, objects);
+    return output;
+}

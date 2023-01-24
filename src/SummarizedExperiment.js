@@ -110,6 +110,8 @@ export class SummarizedExperiment extends ann.Annotated {
         this._columnNames = columnNames;
     }
 
+    static const name = "SummarizedExperiment";
+
     /**************************************************************************
      **************************************************************************
      **************************************************************************/
@@ -412,6 +414,4 @@ export class SummarizedExperiment extends ann.Annotated {
         output._columnNames = generics.CLONE(this._columnNames, { deepCopy });
         return;
     }
-
-
 }
