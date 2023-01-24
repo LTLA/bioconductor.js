@@ -51,21 +51,20 @@ export class SummarizedExperiment extends ann.Annotated {
                     nrows = nr;
                     ncols = nc;
                 } else if (nrows !== nr || ncols !== nc) {
-                    throw new Error("expected all assays in 'assays' to have the same first two dimensions");
+                    throw new Error("expected all assays in 'assays' to have the same number of rows and columns");
                 }
             }
         }
         this._assays = assays;
 
         if (assayOrder == null) {
-            assayOrder = assays.keys();
+            assayOrder = Object.keys(assays);
         } else {
             utils.checkNamesArray(assayOrder, "'assayOrder'", vals.length, "the number of entries in 'assays'");
-            let uniq = Array.from(new Set(assayOrder));
-            uniq.sort();
+            let observed = assayOrder.slice().sort();
             let expected = Object.keys(assays);
             expected.sort();
-            if (!utils.areArraysEqual(uniq, expected)) {
+            if (!utils.areArraysEqual(observed, expected)) {
                 throw new Error("values of 'assayOrder' should be the same as the keys of 'assays'");
             }
         }
@@ -78,7 +77,7 @@ export class SummarizedExperiment extends ann.Annotated {
             }
             rowData = new df.DataFrame({}, { numberOfRows: nrows });
         } else {
-            if (nrows !== generics.LENGTH(rowData)) {
+            if (nrows !== null && nrows !== generics.LENGTH(rowData)) {
                 throw new Error("'rowData' should be equal to the number of rows in each 'assays'");
             }
         }
@@ -91,7 +90,7 @@ export class SummarizedExperiment extends ann.Annotated {
             }
             columnData = new df.DataFrame({}, { numberOfRows: ncols });
         } else {
-            if (ncols !== generics.LENGTH(columnData)) {
+            if (ncols !== null && ncols !== generics.LENGTH(columnData)) {
                 throw new Error("'columnData' should be equal to the number of columns in each 'assays'");
             }
         }
