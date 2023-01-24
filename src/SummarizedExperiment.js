@@ -252,7 +252,7 @@ export class SummarizedExperiment extends ann.Annotated {
      * @return {SummarizedExperiment} Reference to this SummarizedExperiment with modified row data.
      */
     $setRowData(value) {
-        if (value instanceof df.DataFrame) {
+        if (!(value instanceof df.DataFrame)) {
             throw new Error("'value' should be a DataFrame");
         }
         if (value.numberOfRows() !== this.numberOfRows()) {
@@ -268,10 +268,10 @@ export class SummarizedExperiment extends ann.Annotated {
      * @return {SummarizedExperiment} Reference to this SummarizedExperiment with modified column data.
      */
     $setColumnData(value) {
-        if (value instanceof df.DataFrame) {
+        if (!(value instanceof df.DataFrame)) {
             throw new Error("'value' should be a DataFrame");
         }
-        if (value.numberOfColumns() !== this.numberOfColumns()) {
+        if (value.numberOfRows() !== this.numberOfColumns()) {
             throw new Error("expected 'value' to have the same number of rows as the number of columns of this 'SummarizedExperiment'");
         }
         this._columnData = value;

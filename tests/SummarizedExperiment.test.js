@@ -100,3 +100,69 @@ test("Construction of a SummarizedExperiment works with metadata", () => {
     expect(se.metadata().foo).toEqual(1);
 })
 
+test("setting/removing of the assays works as expected", () => {
+    let mat = spawn_random_matrix(10, 20);
+    let out = new bioc.SummarizedExperiment({ counts: mat });
+    expect(out.assayNames()).toEqual(["counts"]);
+    expect(out.assay(0).values()).toEqual(mat.values());
+
+    let mat2 = spawn_random_matrix(10, 20);
+    out.$setAssay(0, mat2);
+    expect(out.assayNames()).toEqual(["counts"]);
+    expect(out.assay(0).values()).toEqual(mat2.values());
+
+    out.$setAssay("logcounts", mat);
+    expect(out.assayNames()).toEqual(["counts", "logcounts"]);
+    expect(out.assay(1).values()).toEqual(mat.values());
+
+    out.$removeAssay(0);
+    expect(out.assayNames()).toEqual(["logcounts"]);
+    expect(out.assay(0).values()).toEqual(mat.values());
+
+    out.$removeAssay("logcounts");
+    expect(out.assayNames()).toEqual([]);
+
+    // Errors.
+    expect(() => { out.$setAssay('foo', spawn_random_matrix(10, 10)) }).toThrow("same dimensions");
+    expect(() => { out.$setAssay('foo', spawn_random_matrix(20, 20)) }).toThrow("same dimensions");
+    expect(() => { out.$removeAssay('foo') }).toThrow("no assay");
+})
+
+test("setting/removing of the DFs works as expected", () => {
+    let mat = spawn_random_matrix(10, 20);
+    let out = new bioc.SummarizedExperiment({ counts: mat });
+
+    let rdf = new bioc.DataFrame({ foo: spawn_random_vector(10) });
+    out.$setRowData(rdf);
+    expect(out.rowData().column("foo")).toEqual(rdf.column("foo"));
+
+    let cdf = new bioc.DataFrame({ bar: spawn_random_vector(20) });
+    out.$setColumnData(cdf);
+    expect(out.columnData().column("bar")).toEqual(cdf.column("bar"));
+
+    // Errors.
+    expect(() => { out.$setRowData(bioc.SLICE(rdf, { start: 5, end: 10 })) }).toThrow("same number of rows");
+    expect(() => { out.$setColumnData(bioc.SLICE(rdf, { start: 5, end: 10 })) }).toThrow("same number of rows");
+})
+
+test("setting/removing of the names works as expected", () => {
+    let mat = spawn_random_matrix(5, 4);
+    let out = new bioc.SummarizedExperiment({ counts: mat });
+
+    let rnames = [ "A", "B", "C", "D", "E" ];
+    out.$setRowNames(rnames);
+    expect(out.rowNames()).toEqual(rnames);
+
+    let cnames = [ "a", "b", "c", "d" ];
+    out.$setColumnNames(cnames);
+    expect(out.columnNames()).toEqual(cnames);
+
+    out.$setRowNames(null);
+    out.$setColumnNames(null);
+    expect(out.rowNames()).toBeNull();
+    expect(out.columnNames()).toBeNull();
+
+    // Errors.
+    expect(() => { out.$setRowNames(["a", "b"]) }).toThrow("numberOfRows");
+    expect(() => { out.$setColumnNames(["a", "b"]) }).toThrow("numberOfColumns");
+})
