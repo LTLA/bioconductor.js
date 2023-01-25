@@ -117,8 +117,8 @@ export class Vector extends ann.Annotated {
         return;
     }
 
-    _bioconductor_CLONE(output, { deepcopy = true }) {
-        let options = { deepcopy };
+    _bioconductor_CLONE(output, { deepCopy = true }) {
+        let options = { deepCopy };
         super._bioconductor_CLONE(output, options);
         output._elementMetadata = generics.CLONE(this._elementMetadata, options);
         output._names = generics.CLONE(this._names, options);

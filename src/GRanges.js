@@ -268,8 +268,8 @@ export class GRanges extends vec.Vector {
         return;
     }
 
-    _bioconductor_CLONE(output, { deepcopy = true }) {
-        let options = { deepcopy };
+    _bioconductor_CLONE(output, { deepCopy = true }) {
+        let options = { deepCopy };
         super._bioconductor_CLONE(output, options);
         output._seqnames = generics.CLONE(this._seqnames, options);
         output._ranges = generics.CLONE(this._ranges, options);

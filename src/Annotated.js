@@ -30,8 +30,8 @@ export class Annotated {
         return this;
     }
 
-    _bioconductor_CLONE(output, { deepcopy = true }) {
-        output._metadata = generics.CLONE(this._metadata, { deepcopy });
+    _bioconductor_CLONE(output, { deepCopy = true }) {
+        output._metadata = generics.CLONE(this._metadata, { deepCopy });
         return;
     }
 }

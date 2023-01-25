@@ -167,10 +167,10 @@ export class IRanges extends vec.Vector {
         return;
     }
 
-    _bioconductor_CLONE(output, { deepcopy = true }) {
-        super._bioconductor_CLONE(output, { deepcopy });
-        output._start = generics.CLONE(this._start, { deepcopy });
-        output._width = generics.CLONE(this._width, { deepcopy });
+    _bioconductor_CLONE(output, { deepCopy = true }) {
+        super._bioconductor_CLONE(output, { deepCopy });
+        output._start = generics.CLONE(this._start, { deepCopy });
+        output._width = generics.CLONE(this._width, { deepCopy });
         return;
     }
 }
