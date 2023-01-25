@@ -36,7 +36,7 @@ export class GroupedGRanges extends vec.Vector {
      * Alternatively, a single GRanges containing a concatenation of ranges from all groups.
      * In this case, `rangeLengths` must be supplied.
      * @param {Object} [options={}] - Optional parameters.
-     * @param {?(TypedArray|Array)} [rangeLengths=null] - Length of the ranges within each group.
+     * @param {?(TypedArray|Array)} [options.rangeLengths=null] - Length of the ranges within each group.
      * This should be coercible to an Int32Array, contain non-negative values, and have a sum equal to the length of `ranges`.
      * Only used if `ranges` is a single {@linkplain GRanges} object, where each group's ranges are assumed to form contiguous intervals along `ranges`.
      * @param {?Array} [options.names=null] - Array of strings of length equal to `start`, containing names for each genomic range.
@@ -107,6 +107,7 @@ export class GroupedGRanges extends vec.Vector {
 
     /**
      * @param {number} i - Index of the group of interest.
+     * @param {Object} [options={}] - Optional parameters.
      * @param {boolean} [options.allowView=false] - Whether a view can be created in any internal slicing operations.
      *
      * @return {GRanges} The genomic ranges for group `i`.
