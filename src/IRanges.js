@@ -17,22 +17,6 @@ import * as olap from "./overlap-utils.js";
  * @extends Vector
  */
 export class IRanges extends vec.Vector {
-    static #convertToInt32Array(x) {
-        if (x instanceof Int32Array) {
-            return x;
-        } else {
-            return new Int32Array(x);
-        }
-    }
-
-    static #checkNonNegative(x, msg) {
-        for (const y of x) {
-            if (y < 0) {
-                throw new Error("detected a negative entry in '" + msg + "'");
-            }
-        }
-    }
-
     /**************************************************************************
      **************************************************************************
      **************************************************************************/
@@ -52,11 +36,11 @@ export class IRanges extends vec.Vector {
     constructor(start, width, { names = null, elementMetadata = null, metadata = {} } = {}) {
         super(start.length, { names, elementMetadata, metadata });
 
-        this._start = IRanges.#convertToInt32Array(start);
-        IRanges.#checkNonNegative(this._start, "start");
+        this._start = utils.convertToInt32Array(start);
+        utils.checkNonNegative(this._start, "start");
 
-        this._width = IRanges.#convertToInt32Array(width);
-        IRanges.#checkNonNegative(this._width, "width");
+        this._width = utils.convertToInt32Array(width);
+        utils.checkNonNegative(this._width, "width");
 
         let n = this._start.length;
         if (n !== this._width.length) {
@@ -101,11 +85,11 @@ export class IRanges extends vec.Vector {
      * @return {IRanges} A reference to this IRanges object, after setting the start positions to `value`.
      */
     $setStart(value) {
-        let candidate = IRanges.#convertToInt32Array(value);
+        let candidate = utils.convertToInt32Array(value);
         if (candidate.length !== generics.LENGTH(this)) {
             throw new Error("'start' should be replaced by array of the same length");
         }
-        IRanges.#checkNonNegative(candidate, "start");
+        utils.checkNonNegative(candidate, "start");
         this._start = candidate;
         return this;
     }
@@ -116,11 +100,11 @@ export class IRanges extends vec.Vector {
      * @return {IRanges} A reference to this IRanges object, after setting the widths to `value`.
      */
     $setWidth(value) {
-        let candidate = IRanges.#convertToInt32Array(value);
+        let candidate = utils.convertToInt32Array(value);
         if (candidate.length !== generics.LENGTH(this)) {
             throw new Error("'width' should be replaced by array of the same length");
         }
-        IRanges.#checkNonNegative(candidate, "width");
+        utils.checkNonNegative(candidate, "width");
         this._width = candidate;
         return this;
     }

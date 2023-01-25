@@ -107,3 +107,19 @@ export function isSorted(n, cmp) {
     }
     return true;
 }
+
+export function convertToInt32Array(x) {
+    if (x instanceof Int32Array) {
+        return x;
+    } else {
+        return new Int32Array(x);
+    }
+}
+
+export function checkNonNegative(x, msg) {
+    for (const y of x) {
+        if (y < 0) {
+            throw new Error("detected a negative entry in '" + msg + "'");
+        }
+    }
+}
