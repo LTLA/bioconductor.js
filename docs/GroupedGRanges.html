@@ -75,7 +75,7 @@ This improves efficiency for large numbers of small GRanges, especially in place
     <h2>Constructor</h2>
     
 
-    <h4 class="name" id="GroupedGRanges"><span class="type-signature"></span>new GroupedGRanges<span class="signature">(ranges, options<span class="signature-attributes">opt</span>, rangeLengths<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="GroupedGRanges"><span class="type-signature"></span>new GroupedGRanges<span class="signature">(ranges, options<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
 
     
 
@@ -238,9 +238,32 @@ In this case, <code>rangeLengths</code> must be supplied.</p></td>
                 </td>
             
 
-            <td class="description last"><p>Optional parameters.</p></td>
-        </tr>
+            <td class="description last"><p>Optional parameters.</p>
+                <h6>Properties</h6>
+                
 
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
     
 
         <tr>
@@ -291,7 +314,7 @@ Only used if <code>ranges</code> is a single <a href="GRanges.html">GRanges</a> 
 
         <tr>
             
-                <td class="name"><code>options.names</code></td>
+                <td class="name"><code>names</code></td>
             
 
             <td class="type">
@@ -333,7 +356,7 @@ Alternatively <code>null</code>, in which case the ranges are assumed to be unna
 
         <tr>
             
-                <td class="name"><code>options.elementMetadata</code></td>
+                <td class="name"><code>elementMetadata</code></td>
             
 
             <td class="type">
@@ -375,7 +398,7 @@ Alternatively <code>null</code>, in which case a zero-column DataFrame is automa
 
         <tr>
             
-                <td class="name"><code>options.metadata</code></td>
+                <td class="name"><code>metadata</code></td>
             
 
             <td class="type">
@@ -408,6 +431,13 @@ Alternatively <code>null</code>, in which case a zero-column DataFrame is automa
             
 
             <td class="description last"><p>Object containing arbitrary metadata as key-value pairs.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
         </tr>
 
     
@@ -993,7 +1023,7 @@ Alternatively <code>null</code>, if no names are present.</p></td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="GroupedGRanges.js.html">GroupedGRanges.js</a>, <a href="GroupedGRanges.js.html#line134">line 134</a>
+        <a href="GroupedGRanges.js.html">GroupedGRanges.js</a>, <a href="GroupedGRanges.js.html#line135">line 135</a>
     </li></ul></dd>
     
 
@@ -1147,7 +1177,7 @@ Alternatively <code>null</code>, if no names are present.</p></td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="GroupedGRanges.js.html">GroupedGRanges.js</a>, <a href="GroupedGRanges.js.html#line158">line 158</a>
+        <a href="GroupedGRanges.js.html">GroupedGRanges.js</a>, <a href="GroupedGRanges.js.html#line159">line 159</a>
     </li></ul></dd>
     
 
@@ -1539,7 +1569,7 @@ If <code>null</code>, all available strands are used.</p></td>
 
     
 
-    <h4 class="name" id="group"><span class="type-signature"></span>group<span class="signature">(i)</span><span class="type-signature"> &rarr; {<a href="GRanges.html">GRanges</a>}</span></h4>
+    <h4 class="name" id="group"><span class="type-signature"></span>group<span class="signature">(i, options<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="GRanges.html">GRanges</a>}</span></h4>
 
     
 
@@ -1551,7 +1581,7 @@ If <code>null</code>, all available strands are used.</p></td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="GroupedGRanges.js.html">GroupedGRanges.js</a>, <a href="GroupedGRanges.js.html#line114">line 114</a>
+        <a href="GroupedGRanges.js.html">GroupedGRanges.js</a>, <a href="GroupedGRanges.js.html#line115">line 115</a>
     </li></ul></dd>
     
 
@@ -1664,7 +1694,69 @@ If <code>null</code>, all available strands are used.</p></td>
 
         <tr>
             
-                <td class="name"><code>options.allowView</code></td>
+                <td class="name"><code>options</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>{}</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>Optional parameters.</p>
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>allowView</code></td>
             
 
             <td class="type">
@@ -1697,6 +1789,13 @@ If <code>null</code>, all available strands are used.</p></td>
             
 
             <td class="description last"><p>Whether a view can be created in any internal slicing operations.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
         </tr>
 
     
@@ -1980,7 +2079,7 @@ If <code>null</code>, all available strands are used.</p></td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="GroupedGRanges.js.html">GroupedGRanges.js</a>, <a href="GroupedGRanges.js.html#line122">line 122</a>
+        <a href="GroupedGRanges.js.html">GroupedGRanges.js</a>, <a href="GroupedGRanges.js.html#line123">line 123</a>
     </li></ul></dd>
     
 
@@ -2403,7 +2502,7 @@ If <code>null</code>, all available strands are used.</p></td>
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Wed Jan 25 2023 22:16:45 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Wed Jan 25 2023 22:26:37 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
