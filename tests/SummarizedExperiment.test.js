@@ -166,3 +166,235 @@ test("setting/removing of the names works as expected", () => {
     expect(() => { out.$setRowNames(["a", "b"]) }).toThrow("numberOfRows");
     expect(() => { out.$setColumnNames(["a", "b"]) }).toThrow("numberOfColumns");
 })
+
+test("NUMBER_OF generics work as expected", () => {
+    let mat = spawn_random_matrix(11, 13);
+    let out = new bioc.SummarizedExperiment({ counts: mat });
+    expect(bioc.NUMBER_OF_ROWS(out)).toBe(11);
+    expect(bioc.NUMBER_OF_COLUMNS(out)).toBe(13);
+})
+
+test("SLICE_2D generic works as expected", () => {
+    let mat = spawn_random_matrix(11, 13);
+    let rdf = new bioc.DataFrame({ foo: spawn_random_vector(11) });
+    let cdf = new bioc.DataFrame({ bar: spawn_random_vector(13) });
+    let out = new bioc.SummarizedExperiment({ counts: mat }, { rowData: rdf, columnData: cdf });
+
+    // No-op.
+    {
+        let sliced = bioc.SLICE_2D(out, null, null);
+
+        expect(sliced.numberOfRows()).toBe(out.numberOfRows());
+        expect(sliced.rowData().column("foo")).toBe(rdf.column("foo"));
+        expect(sliced.numberOfColumns()).toBe(out.numberOfColumns());
+        expect(sliced.columnData().column("bar")).toBe(cdf.column("bar"));
+
+        expect(sliced.assayNames()).toEqual(out.assayNames());
+        expect(sliced.assay(0).values()).toEqual(mat.values());
+
+        expect(sliced.rowNames()).toBeNull();
+        expect(sliced.columnNames()).toBeNull();
+    }
+
+    // Rows only.
+    {
+        let ridx = [ 1, 1, 2, 3, 5, 8 ];
+        let sliced = bioc.SLICE_2D(out, ridx, null);
+
+        expect(sliced.numberOfRows()).toBe(ridx.length);
+        expect(sliced.rowData().column("foo")).toEqual(bioc.SLICE(rdf.column("foo"), ridx));
+        expect(sliced.numberOfColumns()).toBe(out.numberOfColumns());
+        expect(sliced.columnData().column("bar")).toEqual(cdf.column("bar"));
+
+        expect(sliced.assay(0).numberOfRows()).toEqual(ridx.length);
+        expect(sliced.assay("counts").numberOfColumns()).toEqual(out.numberOfColumns());
+
+        expect(sliced.rowNames()).toBeNull();
+        expect(sliced.columnNames()).toBeNull();
+    }
+
+    // Columns only.
+    {
+        let cidx = [ 1, 1, 2, 3, 5, 8 ];
+        let sliced = bioc.SLICE_2D(out, null, cidx);
+
+        expect(sliced.numberOfRows()).toBe(out.numberOfRows());
+        expect(sliced.rowData().column("foo")).toEqual(rdf.column("foo"));
+        expect(sliced.numberOfColumns()).toBe(cidx.length);
+        expect(sliced.columnData().column("bar")).toEqual(bioc.SLICE(cdf.column("bar"), cidx));
+
+        expect(sliced.assay("counts").numberOfRows()).toEqual(out.numberOfRows());
+        expect(sliced.assay(0).numberOfColumns()).toEqual(cidx.length);
+
+        expect(sliced.rowNames()).toBeNull();
+        expect(sliced.columnNames()).toBeNull();
+    }
+
+    // Both at the same time.
+    {
+        let sliced = bioc.SLICE_2D(out, { start: 5, end: 9 }, { start: 0, end: 10 });
+
+        expect(sliced.numberOfRows()).toBe(4);
+        expect(sliced.rowData().column("foo")).toEqual(rdf.column("foo").slice(5, 9));
+        expect(sliced.numberOfColumns()).toBe(10);
+        expect(sliced.columnData().column("bar")).toEqual(cdf.column("bar").slice(0, 10));
+
+        expect(sliced.assay("counts").numberOfRows()).toEqual(4);
+        expect(sliced.assay(0).numberOfColumns()).toEqual(10);
+
+        expect(sliced.rowNames()).toBeNull();
+        expect(sliced.columnNames()).toBeNull();
+    }
+
+    // Handles names and metadata properly.
+    {
+        let mat = spawn_random_matrix(6, 5);
+        let se = new bioc.SummarizedExperiment({ foo: mat }, { 
+            rowNames: [ "A", "B", "C", "D", "E", "F" ], 
+            columnNames: [ "a", "b", "c", "d", "e" ],
+            metadata: { wailord: 999 }
+        });
+
+        let sliced = bioc.SLICE_2D(se, [ 5, 3, 1 ], [ 0, 2, 4 ]);
+        expect(sliced.rowNames()).toEqual(["F", "D", "B"]);
+        expect(sliced.columnNames()).toEqual(["a", "c", "e"]);
+        expect(sliced.metadata().wailord).toBe(999);
+    }
+})
+
+function mock_names(n, prefix="X") {
+    let output = [];
+    for (var i = 0; i < n; i++) {
+        output.push(prefix + String(i));
+    }
+    return output;
+}
+
+test("COMBINE_ROWS generic works as expected", () => {
+    let NC = 16;
+
+    let NR1 = 11;
+    let mat1 = spawn_random_matrix(NR1, NC);
+    let rdf1 = new bioc.DataFrame({ foo: spawn_random_vector(NR1) });
+    let cdf1 = new bioc.DataFrame({ bar: spawn_random_vector(NC) });
+    let se1 = new bioc.SummarizedExperiment({ counts: mat1 }, { rowData: rdf1, columnData: cdf1, metadata: { bob: "builder" } });
+
+    let NR2 = 9;
+    let mat2 = spawn_random_matrix(NR2, NC);
+    let rdf2 = new bioc.DataFrame({ foo: spawn_random_vector(NR2) });
+    let cdf2 = new bioc.DataFrame({ weyland: spawn_random_vector(NC) });
+    let se2 = new bioc.SummarizedExperiment({ counts: mat2 }, { rowData: rdf2, columnData: cdf2, metadata: { second: "yutani" }});
+
+    // Basic handling.
+    {
+        let combined = bioc.COMBINE_ROWS([se1, se2]);
+        expect(combined.numberOfRows()).toEqual(NR1 + NR2);
+        expect(combined.numberOfColumns()).toEqual(NC);
+
+        expect(combined.rowData().column("foo")).toEqual(bioc.COMBINE([rdf1.column("foo"), rdf2.column("foo")]));
+        expect(combined.columnData().column("bar")).toEqual(cdf1.column("bar"));
+        expect(combined.columnData().hasColumn("weyland")).toBe(false);
+
+        expect(combined.assayNames()).toEqual(["counts"]);
+        expect(combined.assay("counts").values()).toEqual(bioc.COMBINE_ROWS([mat1, mat2]).values());
+
+        expect(combined.metadata()).toEqual({ bob: "builder" });
+    }
+
+    // Multiple assays.
+    {
+        let lmat1 = spawn_random_matrix(NR1, NC);
+        let lmat2 = spawn_random_matrix(NR2, NC);
+        let se1 = new bioc.SummarizedExperiment({ counts: mat1, logcounts: lmat1 });
+        let se2 = new bioc.SummarizedExperiment({ counts: mat2, logcounts: lmat2 });
+
+        let combined = bioc.COMBINE_ROWS([se1, se2]);
+        expect(combined.assayNames()).toEqual(["counts", "logcounts"]);
+        expect(combined.assay(0).values()).toEqual(bioc.COMBINE_ROWS([mat1, mat2]).values());
+        expect(combined.assay(1).values()).toEqual(bioc.COMBINE_ROWS([lmat1, lmat2]).values());
+    }
+
+    // With names.
+    {
+        let se1 = new bioc.SummarizedExperiment({ counts: mat1 }, { rowNames: mock_names(NR1), columnNames: mock_names(NC, "Y") });
+        let se2 = new bioc.SummarizedExperiment({ counts: mat2 }, { rowNames: mock_names(NR2), columnNames: mock_names(NC, "Y") });
+
+        let combined = bioc.COMBINE_ROWS([se1, se2]);
+        expect(combined.rowNames()).toEqual(bioc.COMBINE([se1.rowNames(), se2.rowNames()]));
+        expect(combined.columnNames()).toEqual(se1.columnNames());
+    }
+})
+
+test("COMBINE_COLUMNS generic works as expected", () => {
+    let NR = 9
+
+    let NC1 = 7;
+    let mat1 = spawn_random_matrix(NR, NC1);
+    let rdf1 = new bioc.DataFrame({ foo: spawn_random_vector(NR) });
+    let cdf1 = new bioc.DataFrame({ bar: spawn_random_vector(NC1) });
+    let se1 = new bioc.SummarizedExperiment({ counts: mat1 }, { rowData: rdf1, columnData: cdf1, metadata: { bob: "builder" } });
+
+    let NC2 = 8;
+    let mat2 = spawn_random_matrix(NR, NC2);
+    let rdf2 = new bioc.DataFrame({ weyland: spawn_random_vector(NR) });
+    let cdf2 = new bioc.DataFrame({ bar: spawn_random_vector(NC2) });
+    let se2 = new bioc.SummarizedExperiment({ counts: mat2 }, { rowData: rdf2, columnData: cdf2, metadata: { second: "yutani" }});
+
+    // Basic handling.
+    {
+        let combined = bioc.COMBINE_COLUMNS([se1, se2]);
+        expect(combined.numberOfRows()).toEqual(NR);
+        expect(combined.numberOfColumns()).toEqual(NC1 + NC2);
+
+        expect(combined.rowData().column("foo")).toEqual(rdf1.column("foo"));
+        expect(combined.rowData().hasColumn("weyland")).toBe(false);
+        expect(combined.columnData().column("bar")).toEqual(bioc.COMBINE([cdf1.column("bar"), cdf2.column("bar")]));
+
+        expect(combined.assayNames()).toEqual(["counts"]);
+        expect(combined.assay("counts").values()).toEqual(bioc.COMBINE_COLUMNS([mat1, mat2]).values());
+
+        expect(combined.metadata()).toEqual({ bob: "builder" });
+    }
+
+    // Multiple assays.
+    {
+        let lmat1 = spawn_random_matrix(NR, NC1);
+        let lmat2 = spawn_random_matrix(NR, NC2);
+        let se1 = new bioc.SummarizedExperiment({ counts: mat1, logcounts: lmat1 });
+        let se2 = new bioc.SummarizedExperiment({ counts: mat2, logcounts: lmat2 });
+
+        let combined = bioc.COMBINE_COLUMNS([se1, se2]);
+        expect(combined.assayNames()).toEqual(["counts", "logcounts"]);
+        expect(combined.assay(0).values()).toEqual(bioc.COMBINE_COLUMNS([mat1, mat2]).values());
+        expect(combined.assay(1).values()).toEqual(bioc.COMBINE_COLUMNS([lmat1, lmat2]).values());
+    }
+
+    // With names.
+    {
+        let se1 = new bioc.SummarizedExperiment({ counts: mat1 }, { rowNames: mock_names(NR), columnNames: mock_names(NC1, "Y") });
+        let se2 = new bioc.SummarizedExperiment({ counts: mat2 }, { rowNames: mock_names(NR), columnNames: mock_names(NC2, "Y") });
+
+        let combined = bioc.COMBINE_COLUMNS([se1, se2]);
+        expect(combined.rowNames()).toEqual(se1.rowNames());
+        expect(combined.columnNames()).toEqual(bioc.COMBINE([se1.columnNames(), se2.columnNames()]));
+    }
+})
+
+test("CLONE generic works as expected", () => {
+    let mat = spawn_random_matrix(11, 13);
+    let rdf = new bioc.DataFrame({ foo: spawn_random_vector(11) });
+    let cdf = new bioc.DataFrame({ bar: spawn_random_vector(13) });
+    let out = new bioc.SummarizedExperiment({ counts: mat }, { rowData: rdf, columnData: cdf });
+
+    // Deep copy
+    let deep = bioc.CLONE(out);
+    deep.assay(0).values()[0] = -100;
+    expect(deep.assay(0).values()[0]).toEqual(-100);
+    expect(out.assay(0).values()[0]).not.toEqual(-100);
+
+    // Shallow copy.
+    let shallow = bioc.CLONE(out, { deepCopy: false });
+    shallow.assay(0).values()[0] = -100;
+    expect(shallow.assay(0).values()[0]).toEqual(-100);
+    expect(out.assay(0).values()[0]).toEqual(-100);
+})

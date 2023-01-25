@@ -324,16 +324,16 @@ export class SummarizedExperiment extends ann.Annotated {
         output._assays = assays;
 
         if (rows !== null) {
-            output._rowData = generics.SLICE(this._rowData, i, { allowView });
-            output._rowNames = (this._rowNames == null ? null : generics.SLICE(this._rowNames, i, { allowView }));
+            output._rowData = generics.SLICE(this._rowData, rows, { allowView });
+            output._rowNames = (this._rowNames == null ? null : generics.SLICE(this._rowNames, rows, { allowView }));
         } else {
             output._rowData = this._rowData;
             output._rowNames = this._rowNames;
         }
 
         if (columns !== null) {
-            output._columnData = generics.SLICE(this._columnData, i, { allowView });
-            output._columnNames = (this._columnNames == null ? null : generics.SLICE(this._columnNames, i, { allowView }));
+            output._columnData = generics.SLICE(this._columnData, columns, { allowView });
+            output._columnNames = (this._columnNames == null ? null : generics.SLICE(this._columnNames, columns, { allowView }));
         } else {
             output._columnData = this._columnData;
             output._columnNames = this._columnNames;
@@ -390,7 +390,7 @@ export class SummarizedExperiment extends ann.Annotated {
         output._columnData = generics.COMBINE(all_dfs);
 
         let all_n = objects.map(x => x._columnNames);
-        let all_l = objects.map(x => x.numberOfRows());
+        let all_l = objects.map(x => x.numberOfColumns());
         output._columnNames = utils.combineNames(all_n, all_l);
 
         output._rowData = this._rowData;
@@ -400,12 +400,17 @@ export class SummarizedExperiment extends ann.Annotated {
 
     _bioconductor_CLONE(output, { deepCopy = true }) {
         super._bioconductor_CLONE(output, { deepCopy });
-        output._assays = generics.CLONE(this._assays, { deepCopy });
-        output._assayOrder = generics.CLONE(this._assayOrder, { deepCopy });
-        output._rowData = generics.CLONE(this._rowData, { deepCopy });
-        output._rowNames = generics.CLONE(this._rowNames, { deepCopy });
-        output._columnData = generics.CLONE(this._columnData, { deepCopy });
-        output._columnNames = generics.CLONE(this._columnNames, { deepCopy });
+
+        let copier = x => generics.CLONE(x, { deepCopy });
+
+        output._assays = copier(this._assays);
+        output._assayOrder = copier(this._assayOrder);
+
+        output._rowData = copier(this._rowData);
+        output._rowNames = (this._rowNames === null ? null : copier(this._rowNames));
+
+        output._columnData = copier(this._columnData);
+        output._columnNames = (this._columnNames === null ? null : copier(this._columnNames));
         return;
     }
 }
