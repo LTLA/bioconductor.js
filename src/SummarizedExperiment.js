@@ -15,6 +15,15 @@ import * as utils from "./utils.js";
  * - {@linkcode COMBINE_COLUMNS}
  * - {@linkcode CLONE}
  *
+ * Assays are expected to provide methods for the following generics:
+ *
+ * - {@linkcode NUMBER_OF_ROWS}
+ * - {@linkcode NUMBER_OF_COLUMNS}
+ * - {@linkcode SLICE_2D}
+ * - {@linkcode COMBINE_ROWS}
+ * - {@linkcode COMBINE_COLUMNS}
+ * - {@linkcode CLONE}
+ *
  * @extends Annotated
  */
 export class SummarizedExperiment extends ann.Annotated {

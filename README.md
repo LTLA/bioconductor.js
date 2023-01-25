@@ -75,6 +75,47 @@ gr.$setElementMetadata(meta);
 gr.elementMetadata().columnNames();
 ```
 
+# Handling experimental data
+
+The `SummarizedExperiment` object is a data structure for storing experimental data in a matrix-like object, 
+along with further annotations on the rows (usually features) and samples (usually columns).
+To illustrate, let's mock up a small count matrix, ostensibly from an RNA-seq experiment:
+
+```js
+// Making a column-major dense matrix of random data.
+let ngenes = 100;
+let nsamples = 20;
+let expression = new Int32Array(ngenes * nsamples);
+expression.forEach((x, i) => expression[i] = Math.random() * 10);
+let mat = new bioc.DenseMatrix(ngenes, nsamples, expression);
+
+// Mocking up row names, column annotations.
+let rownames = [];
+for (var g = 0; g < ngenes; g++) {
+    rownames.push("Gene_" + String(g));
+}
+
+let treatment = new Array(nsamples);
+treatment.fill("control", 0, 10);
+treatment.fill("treated", 10, nsamples);
+let sample_meta = new bioc.DataFrame({ group: treatment });
+```
+
+We can now store all of this information in a `SummarizedExperiment`:
+
+```js
+let se = new bioc.SummarizedExperiment({ counts: mat }, 
+    { rowNames: rownames, columnData: sample_meta });
+```
+
+This can be manipulated by generics for two-dimensional objects:
+
+```js
+bioc.NUMBER_OF_ROWS(se);
+bioc.SLICE_2D(se, { start: 0, end: 50 }, [0, 2, 4, 8, 10, 12, 14, 16, 18]);
+bioc.COMBINE_COLUMNS([se, se]);
+```
+
 # Using generics
 
 Our generics allow us to operate on different objects in a consistent manner.
@@ -125,6 +166,7 @@ For classes:
 | [`DataFrame`](https://ltla.github.io/bioconductor.js/DataFrame.html) | `S4Vectors::DFrame` |
 | [`IRanges`](https://ltla.github.io/bioconductor.js/IRanges.html) | `IRanges::IRanges` |
 | [`GRanges`](https://ltla.github.io/bioconductor.js/GRanges.html) | `GenomicRanges::GRanges` |
+| [`GRanges`](https://ltla.github.io/bioconductor.js/SummarizedExperiment.html) | `SummarizedExperiment::SummarizedExperiment` |
 
 For generics:
 
@@ -134,6 +176,11 @@ For generics:
 | [`SLICE`](https://ltla.github.io/bioconductor.js/SLICE.html) | `S4Vectors::extractROWS` |
 | [`COMBINE`](https://ltla.github.io/bioconductor.js/COMBINE.html) | `S4Vectors::bindROWS` |
 | [`CLONE`](https://ltla.github.io/bioconductor.js/CLONE.html) | - |
+| [`NUMBER_OF_ROWS`](https://ltla.github.io/bioconductor.js/NUMBER_OF_ROWS.html) | `base::NROW` |
+| [`NUMBER_OF_COLUMNS`](https://ltla.github.io/bioconductor.js/NUMBER_OF_COLUMNS.html) | `base::NCOL` |
+| [`SLICE_2D`](https://ltla.github.io/bioconductor.js/SLICE_2D.html) | `[` |
+| [`COMBINE_ROWS`](https://ltla.github.io/bioconductor.js/COMBINE_ROWS.html) | `S4Vectors::bindROWS` |
+| [`COMBINE_COLUMNS`](https://ltla.github.io/bioconductor.js/COMBINE_COLUMNS.html) | `S4Vectors::bindCOLS` |
 
 ## Design considerations
 
