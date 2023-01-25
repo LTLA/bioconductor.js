@@ -13,6 +13,9 @@ import * as generics from "./AllGenerics.js";
  * - {@linkcode COMBINE}
  * - {@linkcode CLONE}
  *
+ * Our implementation re-uses Bioconductor's strategy of storing the groups in a single concatenated GRanges.
+ * This improves efficiency for large numbers of small GRanges, especially in placeholder objects where all the GRanges are zero-length.
+ * 
  * @extends Vector
  */
 export class GroupedGRanges extends vec.Vector {
@@ -28,6 +31,7 @@ export class GroupedGRanges extends vec.Vector {
 
     /**
      * @param {Array|GRanges} ranges - An array of {@linkplain GRanges} objects, where each element represents a group of genomic ranges.
+     * All objects should have compatible columns in their {@linkplain Vector#elementMetadata elementMetadata}.
      * 
      * Alternatively, a single GRanges containing a concatenation of ranges from all groups.
      * In this case, `rangeLengths` must be supplied.
@@ -154,6 +158,7 @@ export class GroupedGRanges extends vec.Vector {
     buildOverlapIndex({ restrictToSeqnames = null, restrictToStrand = null } = {}) {
         return new GroupedGRangesOverlapIndex(
             this._ranges.buildOverlapIndex({ restrictToSeqnames, restrictToStrand }),
+            generics.LENGTH(this._ranges),
             this._rangeStarts,
             this._rangeLengths
         );
@@ -224,10 +229,20 @@ export class GroupedGRanges extends vec.Vector {
  * @hideconstructor
  */
 export class GroupedGRangesOverlapIndex {
-    constructor(index, rangeStarts, rangeLengths) {
+    constructor(index, fullLength, rangeStarts, rangeLengths) {
         this._index = index;
         this._rangeStarts = rangeStarts;
         this._rangeLengths = rangeLengths;
+
+        let rev_map = new Int32Array(fullLength);
+        for (var i = 0; i < rangeStarts.length; i++) {
+            let start = rangeStarts[i];
+            let end = start + rangeLengths[i];
+            for (var s = start; s < end; s++) {
+                rev_map[s] = i;
+            }
+        }
+        this._reverseMapping = rev_map;
     }
 
     /**
@@ -240,22 +255,13 @@ export class GroupedGRangesOverlapIndex {
      */
     overlap(query, { ignoreStrand = true } = {}) {
         let output = new Array(this._rangeStarts.length);
+        let rev_map = this._reverseMapping;
 
         if (query instanceof GroupedGRanges) {
             let overlaps = this._index.overlap(query._ranges);
-
-            let rev_map = new Int32Array(query._ranges.length);
-            for (var i = 0; i < query._rangeStarts; i++) {
+            for (var i = 0; i < query._rangeStarts.length; i++) {
                 let start = query._rangeStarts[i];
                 let end = start + query._rangeLengths[i];
-                for (var s = start; s < end; s++) {
-                    rev_map[s] = i;
-                }
-            }
-
-            for (var i = 0; i < this._rangeStarts; i++) {
-                let start = this._rangeStarts[i];
-                let end = start + this._rangeLengths[i];
 
                 let results = new Set;
                 for (var s = start; s < end; s++) {
@@ -266,15 +272,9 @@ export class GroupedGRangesOverlapIndex {
 
         } else {
             let overlaps = this._index.overlap(query);
-
-            for (var i = 0; i < this._rangeStarts; i++) {
-                let start = this._rangeStarts[i];
-                let end = start + this._rangeLengths[i];
-
+            for (var i = 0; i < overlaps.length; i++) {
                 let results = new Set;
-                for (var s = start; s < end; s++) {
-                    overlaps[s].forEach(x => results.add(x));
-                }
+                overlaps[i].forEach(x => results.add(rev_map[x]));
                 output[i] = Array.from(results);
             }
         }

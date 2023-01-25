@@ -115,3 +115,83 @@ test("SLICE generic works as expected with a range", () => {
     expect(Array.from(sliced.rangeLengths())).toEqual(sliced_lengths);
 })
 
+test("COMBINE generic works as expected", () => {
+    let grl_raw = spawn_GRanges_list(10);
+    let ggr = new bioc.GroupedGRanges(grl_raw);
+
+    let grl_raw2 = spawn_GRanges_list(15);
+    let ggr2 = new bioc.GroupedGRanges(grl_raw2);
+
+    let combined = bioc.COMBINE([ggr, ggr2]);
+    expect(combined.ranges().seqnames()).toEqual(bioc.COMBINE([ggr.ranges().seqnames(), ggr2.ranges().seqnames()]));
+    expect(combined.ranges().start()).toEqual(bioc.COMBINE([ggr.ranges().start(), ggr2.ranges().start()]));
+    expect(combined.ranges().end()).toEqual(bioc.COMBINE([ggr.ranges().end(), ggr2.ranges().end()]));
+
+    expect(combined.numberOfGroups()).toEqual(25);
+    expect(combined.group(0).start()).toEqual(ggr.group(0).start());
+    expect(combined.group(10).start()).toEqual(ggr2.group(0).start());
+    expect(combined.group(24).start()).toEqual(ggr2.group(14).start());
+})
+
+test("CLONE generic works as expected", () => {
+    let grl_raw = spawn_GRanges_list(10);
+    let ggr = new bioc.GroupedGRanges(grl_raw);
+
+    // Deep copy.
+    let cloned = bioc.CLONE(ggr);
+    cloned.ranges().start()[0] = 1000;
+    expect(cloned.ranges().start()[0]).toBe(1000);
+    expect(ggr.ranges().start()[0]).not.toBe(1000);
+
+    // Shallow copy.
+    let shallow = bioc.CLONE(ggr, { deepCopy: false });
+    shallow.ranges().start()[0] = 1000;
+    expect(shallow.ranges().start()[0]).toBe(1000);
+    expect(ggr.ranges().start()[0]).toBe(1000);
+})
+
+test("overlaps work as expected", () => {
+    let grl_raw = new bioc.GRanges(["A", "A", "B", "B"], new bioc.IRanges([1, 10, 20, 50], [5, 2, 7, 60]));
+    let ggr = new bioc.GroupedGRanges(grl_raw, { rangeLengths: [2, 2] });
+    let index = ggr.buildOverlapIndex();
+
+    // Overlap with a GRanges.
+    let query_gr = new bioc.GRanges(["A", "A", "A", "B", "B", "B"], new bioc.IRanges([1, 6, 11, 10, 30, 45], [3, 4, 5, 20, 10, 20]));
+    {
+        let olap = index.overlap(query_gr);
+        expect(olap[0]).toEqual([0]);
+        expect(olap[1]).toEqual([]);
+        expect(olap[2]).toEqual([0]);
+
+        expect(olap[3]).toEqual([1]);
+        expect(olap[4]).toEqual([]);
+        expect(olap[5]).toEqual([1]);
+
+        // Redundant hits are uniquified.
+        let full = new bioc.GRanges(["A", "B"], new bioc.IRanges([1, 1], [1000, 1000]));
+        let olap2 = index.overlap(full);
+        expect(olap2[0]).toEqual([0]);
+        expect(olap2[1]).toEqual([1]);
+    }
+
+    // Overlap with a GRangesList.
+    {
+        let query_grl1 = new bioc.GroupedGRanges(query_gr, { rangeLengths: [ 3, 3 ] });
+        let olap1 = index.overlap(query_grl1);
+        expect(olap1[0]).toEqual([0]);
+        expect(olap1[1]).toEqual([1]);
+
+        let query_grl2 = new bioc.GroupedGRanges(query_gr, { rangeLengths: [ 4, 2 ] });
+        let olap2 = index.overlap(query_grl2);
+        expect(olap2[0]).toEqual([0, 1]);
+        expect(olap2[1]).toEqual([1]);
+
+        let query_grl3 = new bioc.GroupedGRanges(query_gr, { rangeLengths: [ 1, 1, 2, 1, 1 ] });
+        let olap3 = index.overlap(query_grl3);
+        expect(olap3[0]).toEqual([0]);
+        expect(olap3[1]).toEqual([]);
+        expect(olap3[2]).toEqual([0, 1]);
+        expect(olap3[3]).toEqual([]);
+        expect(olap3[4]).toEqual([1]);
+    }
+})
