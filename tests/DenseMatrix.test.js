@@ -1,15 +1,10 @@
 import * as bioc from "../src/index.js";
-
-function spawn_random_vector(n) {
-    let v = new Float64Array(n);
-    v.forEach((x, i) => { v[i] = Math.random(); });
-    return v;
-}
+import * as utils from "./utils.js";
 
 test("Constructing a DenseMatrix works", () => {
     let NR = 9;
     let NC = 11;
-    let v = new spawn_random_vector(NR * NC);
+    let v = utils.spawn_random_vector(NR * NC);
 
     // Column-major.
     let mat = new bioc.DenseMatrix(NR, NC, v);
@@ -32,7 +27,7 @@ test("Constructing a DenseMatrix works", () => {
 test("row and column extractors work as expected", () => {
     let NR = 7;
     let NC = 6;
-    let v = new spawn_random_vector(NR * NC);
+    let v = utils.spawn_random_vector(NR * NC);
 
     // Column-major.
     let mat = new bioc.DenseMatrix(NR, NC, v);
@@ -64,10 +59,10 @@ test("row and column extractors work as expected", () => {
 test("values setters work as expected", () => {
     let NR = 8;
     let NC = 13;
-    let v = new spawn_random_vector(NR * NC);
+    let v = utils.spawn_random_vector(NR * NC);
     let mat = new bioc.DenseMatrix(NR, NC, v);
 
-    let v2 = new spawn_random_vector(NR * NC);
+    let v2 = utils.spawn_random_vector(NR * NC);
     mat.$setValues(v2);
     expect(mat.values()).toEqual(v2);
 
@@ -77,8 +72,8 @@ test("values setters work as expected", () => {
 test("row and column setters work as expected", () => {
     let NR = 8;
     let NC = 13;
-    let v = new spawn_random_vector(NR * NC);
-    let v2 = new spawn_random_vector(NR * NC);
+    let v = utils.spawn_random_vector(NR * NC);
+    let v2 = utils.spawn_random_vector(NR * NC);
 
     // Column-major.
     let mat2 = new bioc.DenseMatrix(NR, NC, v2);
@@ -126,7 +121,7 @@ test("row and column setters work as expected", () => {
 test("NUMBER_OF generics work as expected", () => {
     let NR = 8;
     let NC = 13;
-    let v = new spawn_random_vector(NR * NC);
+    let v = utils.spawn_random_vector(NR * NC);
 
     let mat = new bioc.DenseMatrix(NR, NC, v);
     expect(bioc.NUMBER_OF_ROWS(mat)).toBe(NR);
@@ -136,7 +131,7 @@ test("NUMBER_OF generics work as expected", () => {
 test("SLICE_2D generic works as expected (none)", () => {
     let NR = 10;
     let NC = 15;
-    let v = new spawn_random_vector(NR * NC);
+    let v = utils.spawn_random_vector(NR * NC);
 
     for (const major of [ true, false ]) {
         let mat = new bioc.DenseMatrix(NR, NC, v, { columnMajor: major });
@@ -151,7 +146,7 @@ test("SLICE_2D generic works as expected (none)", () => {
 test("SLICE_2D generic works as expected (rows only)", () => {
     let NR = 5;
     let NC = 11;
-    let v = new spawn_random_vector(NR * NC);
+    let v = utils.spawn_random_vector(NR * NC);
 
     for (const major of [ true, false ]) {
         let mat = new bioc.DenseMatrix(NR, NC, v, { columnMajor: major });
@@ -195,7 +190,7 @@ test("SLICE_2D generic works as expected (rows only)", () => {
 test("SLICE_2D generic works as expected (columns only)", () => {
     let NR = 8;
     let NC = 7;
-    let v = new spawn_random_vector(NR * NC);
+    let v = utils.spawn_random_vector(NR * NC);
 
     for (const major of [ true, false ]) {
         let mat = new bioc.DenseMatrix(NR, NC, v, { columnMajor: major });
@@ -242,7 +237,7 @@ test("SLICE_2D generic works as expected (columns only)", () => {
 test("SLICE_2D generic works as expected (both rows and columns)", () => {
     let NR = 10;
     let NC = 15;
-    let v = new spawn_random_vector(NR * NC);
+    let v = utils.spawn_random_vector(NR * NC);
 
     for (const major of [ true, false ]) {
         let mat = new bioc.DenseMatrix(NR, NC, v, { columnMajor: major });
@@ -295,12 +290,12 @@ test("COMBINE_ROWS generic works as expected", () => {
 
     for (const major1 of [ true, false ]) {
         let NR1 = 10;
-        let v1 = new spawn_random_vector(NR1 * NC);
+        let v1 = utils.spawn_random_vector(NR1 * NC);
         let mat1 = new bioc.DenseMatrix(NR1, NC, v1, { columnMajor: major1 });
 
         for (const major2 of [ true, false ]) {
             let NR2 = 20;
-            let v2 = new spawn_random_vector(NR2 * NC);
+            let v2 = utils.spawn_random_vector(NR2 * NC);
             let mat2 = new bioc.DenseMatrix(NR2, NC, v2, { columnMajor: major2 });
 
             let combined = bioc.COMBINE_ROWS([mat1, mat2]);
@@ -330,7 +325,7 @@ test("COMBINE_ROWS generic works as expected", () => {
     {
         let NR = 8;
         let NC = 7;
-        let v = new spawn_random_vector(NR * NC);
+        let v = utils.spawn_random_vector(NR * NC);
         let mat1 = new bioc.DenseMatrix(NR, NC, v);
         let mat2 = new bioc.DenseMatrix(4, 14, v);
         expect(() => bioc.COMBINE_ROWS([mat1, mat2])).toThrow("same number of columns");
@@ -342,12 +337,12 @@ test("COMBINE_COLUMNS generic works as expected", () => {
 
     for (const major1 of [ true, false ]) {
         let NC1 = 13;
-        let v1 = new spawn_random_vector(NR * NC1);
+        let v1 = utils.spawn_random_vector(NR * NC1);
         let mat1 = new bioc.DenseMatrix(NR, NC1, v1, { columnMajor: major1 });
 
         for (const major2 of [ true, false ]) {
             let NC2 = 11;
-            let v2 = new spawn_random_vector(NR * NC2);
+            let v2 = utils.spawn_random_vector(NR * NC2);
             let mat2 = new bioc.DenseMatrix(NR, NC2, v2, { columnMajor: major2 });
 
             let combined = bioc.COMBINE_COLUMNS([mat1, mat2]);
@@ -377,7 +372,7 @@ test("COMBINE_COLUMNS generic works as expected", () => {
     {
         let NR = 8;
         let NC = 7;
-        let v = new spawn_random_vector(NR * NC);
+        let v = utils.spawn_random_vector(NR * NC);
         let mat1 = new bioc.DenseMatrix(NR, NC, v);
         let mat2 = new bioc.DenseMatrix(4, 14, v);
         expect(() => bioc.COMBINE_COLUMNS([mat1, mat2])).toThrow("same number of rows");
@@ -387,7 +382,7 @@ test("COMBINE_COLUMNS generic works as expected", () => {
 test("CLONE generic works as expected", () => {
     let NR = 7;
     let NC = 11;
-    let v = new spawn_random_vector(NR * NC);
+    let v = utils.spawn_random_vector(NR * NC);
     let mat = new bioc.DenseMatrix(NR, NC, v);
 
     let cloned = bioc.CLONE(mat);

@@ -1,18 +1,8 @@
 import * as bioc from "../src/index.js";
-
-function spawn_random_vector(N) {
-    let v = new Float64Array(N);
-    v.forEach((x, i) => { v[i] = Math.random(); });
-    return v;
-}
-
-function spawn_random_matrix(NR, NC) {
-    let v = spawn_random_vector(NR * NC);
-    return new bioc.DenseMatrix(NR, NC, v);
-}
+import * as utils from "./utils.js";
 
 test("Basic construction of a SummarizedExperiment works", () => {
-    let mat = spawn_random_matrix(10, 20);
+    let mat = utils.spawn_random_matrix(10, 20);
     let out = new bioc.SummarizedExperiment({ counts: mat });
     expect(out.numberOfRows()).toEqual(10);
     expect(out.numberOfColumns()).toEqual(20);
@@ -31,9 +21,9 @@ test("Basic construction of a SummarizedExperiment works", () => {
 })
 
 test("Construction of a SummarizedExperiment works with DFs", () => {
-    let mat = spawn_random_matrix(10, 20);
-    let rdf = new bioc.DataFrame({ foo: spawn_random_vector(10) });
-    let cdf = new bioc.DataFrame({ bar: spawn_random_vector(20) });
+    let mat = utils.spawn_random_matrix(10, 20);
+    let rdf = new bioc.DataFrame({ foo: utils.spawn_random_vector(10) });
+    let cdf = new bioc.DataFrame({ bar: utils.spawn_random_vector(20) });
 
     let se = new bioc.SummarizedExperiment({ counts: mat }, { rowData: rdf, columnData: cdf });
     expect(se.rowData().column("foo")).toEqual(rdf.column("foo"));
@@ -54,7 +44,7 @@ test("Construction of a SummarizedExperiment works with DFs", () => {
 })
 
 test("Construction of a SummarizedExperiment works with multiple assays", () => {
-    let assays = { counts: spawn_random_matrix(10, 20), logcounts: spawn_random_matrix(10, 20) };
+    let assays = { counts: utils.spawn_random_matrix(10, 20), logcounts: utils.spawn_random_matrix(10, 20) };
     let se = new bioc.SummarizedExperiment(assays);
 
     expect(se.numberOfRows()).toEqual(10);
@@ -72,14 +62,14 @@ test("Construction of a SummarizedExperiment works with multiple assays", () => 
     }
 
     // Errors with mismatching assays.
-    assays["logcounts"] = spawn_random_matrix(10, 30);
+    assays["logcounts"] = utils.spawn_random_matrix(10, 30);
     expect(() => new bioc.SummarizedExperiment(assays)).toThrow("same number of rows and columns");
-    assays["logcounts"] = spawn_random_matrix(30, 20);
+    assays["logcounts"] = utils.spawn_random_matrix(30, 20);
     expect(() => new bioc.SummarizedExperiment(assays)).toThrow("same number of rows and columns");
 })
 
 test("Construction of a SummarizedExperiment works with names", () => {
-    let mat = spawn_random_matrix(5, 4);
+    let mat = utils.spawn_random_matrix(5, 4);
     let rnames = [ "A", "B", "C", "D", "E" ];
     let cnames = [ "a", "b", "c", "d" ];
 
@@ -95,18 +85,18 @@ test("Construction of a SummarizedExperiment works with names", () => {
 })
 
 test("Construction of a SummarizedExperiment works with metadata", () => {
-    let mat = spawn_random_matrix(5, 4);
+    let mat = utils.spawn_random_matrix(5, 4);
     let se = new bioc.SummarizedExperiment({ counts: mat }, { metadata: { foo: 1 } });
     expect(se.metadata().foo).toEqual(1);
 })
 
 test("setting/removing of the assays works as expected", () => {
-    let mat = spawn_random_matrix(10, 20);
+    let mat = utils.spawn_random_matrix(10, 20);
     let out = new bioc.SummarizedExperiment({ counts: mat });
     expect(out.assayNames()).toEqual(["counts"]);
     expect(out.assay(0).values()).toEqual(mat.values());
 
-    let mat2 = spawn_random_matrix(10, 20);
+    let mat2 = utils.spawn_random_matrix(10, 20);
     out.$setAssay(0, mat2);
     expect(out.assayNames()).toEqual(["counts"]);
     expect(out.assay(0).values()).toEqual(mat2.values());
@@ -123,20 +113,20 @@ test("setting/removing of the assays works as expected", () => {
     expect(out.assayNames()).toEqual([]);
 
     // Errors.
-    expect(() => { out.$setAssay('foo', spawn_random_matrix(10, 10)) }).toThrow("same dimensions");
-    expect(() => { out.$setAssay('foo', spawn_random_matrix(20, 20)) }).toThrow("same dimensions");
+    expect(() => { out.$setAssay('foo', utils.spawn_random_matrix(10, 10)) }).toThrow("same dimensions");
+    expect(() => { out.$setAssay('foo', utils.spawn_random_matrix(20, 20)) }).toThrow("same dimensions");
     expect(() => { out.$removeAssay('foo') }).toThrow("no assay");
 })
 
 test("setting/removing of the DFs works as expected", () => {
-    let mat = spawn_random_matrix(10, 20);
+    let mat = utils.spawn_random_matrix(10, 20);
     let out = new bioc.SummarizedExperiment({ counts: mat });
 
-    let rdf = new bioc.DataFrame({ foo: spawn_random_vector(10) });
+    let rdf = new bioc.DataFrame({ foo: utils.spawn_random_vector(10) });
     out.$setRowData(rdf);
     expect(out.rowData().column("foo")).toEqual(rdf.column("foo"));
 
-    let cdf = new bioc.DataFrame({ bar: spawn_random_vector(20) });
+    let cdf = new bioc.DataFrame({ bar: utils.spawn_random_vector(20) });
     out.$setColumnData(cdf);
     expect(out.columnData().column("bar")).toEqual(cdf.column("bar"));
 
@@ -146,7 +136,7 @@ test("setting/removing of the DFs works as expected", () => {
 })
 
 test("setting/removing of the names works as expected", () => {
-    let mat = spawn_random_matrix(5, 4);
+    let mat = utils.spawn_random_matrix(5, 4);
     let out = new bioc.SummarizedExperiment({ counts: mat });
 
     let rnames = [ "A", "B", "C", "D", "E" ];
@@ -168,16 +158,16 @@ test("setting/removing of the names works as expected", () => {
 })
 
 test("NUMBER_OF generics work as expected", () => {
-    let mat = spawn_random_matrix(11, 13);
+    let mat = utils.spawn_random_matrix(11, 13);
     let out = new bioc.SummarizedExperiment({ counts: mat });
     expect(bioc.NUMBER_OF_ROWS(out)).toBe(11);
     expect(bioc.NUMBER_OF_COLUMNS(out)).toBe(13);
 })
 
 test("SLICE_2D generic works as expected", () => {
-    let mat = spawn_random_matrix(11, 13);
-    let rdf = new bioc.DataFrame({ foo: spawn_random_vector(11) });
-    let cdf = new bioc.DataFrame({ bar: spawn_random_vector(13) });
+    let mat = utils.spawn_random_matrix(11, 13);
+    let rdf = new bioc.DataFrame({ foo: utils.spawn_random_vector(11) });
+    let cdf = new bioc.DataFrame({ bar: utils.spawn_random_vector(13) });
     let out = new bioc.SummarizedExperiment({ counts: mat }, { rowData: rdf, columnData: cdf });
 
     // No-op.
@@ -248,7 +238,7 @@ test("SLICE_2D generic works as expected", () => {
 
     // Handles names and metadata properly.
     {
-        let mat = spawn_random_matrix(6, 5);
+        let mat = utils.spawn_random_matrix(6, 5);
         let se = new bioc.SummarizedExperiment({ foo: mat }, { 
             rowNames: [ "A", "B", "C", "D", "E", "F" ], 
             columnNames: [ "a", "b", "c", "d", "e" ],
@@ -274,15 +264,15 @@ test("COMBINE_ROWS generic works as expected", () => {
     let NC = 16;
 
     let NR1 = 11;
-    let mat1 = spawn_random_matrix(NR1, NC);
-    let rdf1 = new bioc.DataFrame({ foo: spawn_random_vector(NR1) });
-    let cdf1 = new bioc.DataFrame({ bar: spawn_random_vector(NC) });
+    let mat1 = utils.spawn_random_matrix(NR1, NC);
+    let rdf1 = new bioc.DataFrame({ foo: utils.spawn_random_vector(NR1) });
+    let cdf1 = new bioc.DataFrame({ bar: utils.spawn_random_vector(NC) });
     let se1 = new bioc.SummarizedExperiment({ counts: mat1 }, { rowData: rdf1, columnData: cdf1, metadata: { bob: "builder" } });
 
     let NR2 = 9;
-    let mat2 = spawn_random_matrix(NR2, NC);
-    let rdf2 = new bioc.DataFrame({ foo: spawn_random_vector(NR2) });
-    let cdf2 = new bioc.DataFrame({ weyland: spawn_random_vector(NC) });
+    let mat2 = utils.spawn_random_matrix(NR2, NC);
+    let rdf2 = new bioc.DataFrame({ foo: utils.spawn_random_vector(NR2) });
+    let cdf2 = new bioc.DataFrame({ weyland: utils.spawn_random_vector(NC) });
     let se2 = new bioc.SummarizedExperiment({ counts: mat2 }, { rowData: rdf2, columnData: cdf2, metadata: { second: "yutani" }});
 
     // Basic handling.
@@ -303,8 +293,8 @@ test("COMBINE_ROWS generic works as expected", () => {
 
     // Multiple assays.
     {
-        let lmat1 = spawn_random_matrix(NR1, NC);
-        let lmat2 = spawn_random_matrix(NR2, NC);
+        let lmat1 = utils.spawn_random_matrix(NR1, NC);
+        let lmat2 = utils.spawn_random_matrix(NR2, NC);
         let se1 = new bioc.SummarizedExperiment({ counts: mat1, logcounts: lmat1 });
         let se2 = new bioc.SummarizedExperiment({ counts: mat2, logcounts: lmat2 });
 
@@ -329,15 +319,15 @@ test("COMBINE_COLUMNS generic works as expected", () => {
     let NR = 9
 
     let NC1 = 7;
-    let mat1 = spawn_random_matrix(NR, NC1);
-    let rdf1 = new bioc.DataFrame({ foo: spawn_random_vector(NR) });
-    let cdf1 = new bioc.DataFrame({ bar: spawn_random_vector(NC1) });
+    let mat1 = utils.spawn_random_matrix(NR, NC1);
+    let rdf1 = new bioc.DataFrame({ foo: utils.spawn_random_vector(NR) });
+    let cdf1 = new bioc.DataFrame({ bar: utils.spawn_random_vector(NC1) });
     let se1 = new bioc.SummarizedExperiment({ counts: mat1 }, { rowData: rdf1, columnData: cdf1, metadata: { bob: "builder" } });
 
     let NC2 = 8;
-    let mat2 = spawn_random_matrix(NR, NC2);
-    let rdf2 = new bioc.DataFrame({ weyland: spawn_random_vector(NR) });
-    let cdf2 = new bioc.DataFrame({ bar: spawn_random_vector(NC2) });
+    let mat2 = utils.spawn_random_matrix(NR, NC2);
+    let rdf2 = new bioc.DataFrame({ weyland: utils.spawn_random_vector(NR) });
+    let cdf2 = new bioc.DataFrame({ bar: utils.spawn_random_vector(NC2) });
     let se2 = new bioc.SummarizedExperiment({ counts: mat2 }, { rowData: rdf2, columnData: cdf2, metadata: { second: "yutani" }});
 
     // Basic handling.
@@ -358,8 +348,8 @@ test("COMBINE_COLUMNS generic works as expected", () => {
 
     // Multiple assays.
     {
-        let lmat1 = spawn_random_matrix(NR, NC1);
-        let lmat2 = spawn_random_matrix(NR, NC2);
+        let lmat1 = utils.spawn_random_matrix(NR, NC1);
+        let lmat2 = utils.spawn_random_matrix(NR, NC2);
         let se1 = new bioc.SummarizedExperiment({ counts: mat1, logcounts: lmat1 });
         let se2 = new bioc.SummarizedExperiment({ counts: mat2, logcounts: lmat2 });
 
@@ -381,9 +371,9 @@ test("COMBINE_COLUMNS generic works as expected", () => {
 })
 
 test("CLONE generic works as expected", () => {
-    let mat = spawn_random_matrix(11, 13);
-    let rdf = new bioc.DataFrame({ foo: spawn_random_vector(11) });
-    let cdf = new bioc.DataFrame({ bar: spawn_random_vector(13) });
+    let mat = utils.spawn_random_matrix(11, 13);
+    let rdf = new bioc.DataFrame({ foo: utils.spawn_random_vector(11) });
+    let cdf = new bioc.DataFrame({ bar: utils.spawn_random_vector(13) });
     let out = new bioc.SummarizedExperiment({ counts: mat }, { rowData: rdf, columnData: cdf });
 
     // Deep copy

@@ -1,34 +1,9 @@
 import * as bioc from "../src/index.js";
-
-function spawn_random_vector(N) {
-    let v = new Float64Array(N);
-    v.forEach((x, i) => { v[i] = Math.random(); });
-    return v;
-}
-
-function spawn_random_GRanges(N) {
-    let s = new Int32Array(N);
-    s.forEach((x, i) => { s[i] = Math.random() * 1000; });
-
-    let w = new Int32Array(N);
-    w.forEach((x, i) => { w[i] = Math.random() * 100; });
-
-    let n = new Array(N);
-    for (var i = 0; i < N; ++i) {
-        n[i] = "chr" + String(Math.random() * 3 + 1);
-    }
-
-    return new bioc.GRanges(n, new bioc.IRanges(s, w));
-}
-
-function spawn_random_matrix(NR, NC) {
-    let v = spawn_random_vector(NR * NC);
-    return new bioc.DenseMatrix(NR, NC, v);
-}
+import * as utils from "./utils.js";
 
 test("Basic construction of a RangedSummarizedExperiment works", () => {
-    let mat = spawn_random_matrix(10, 20);
-    let gr = spawn_random_GRanges(10);
+    let mat = utils.spawn_random_matrix(10, 20);
+    let gr = utils.spawn_random_GRanges(10);
     let rse = new bioc.RangedSummarizedExperiment({ counts: mat }, gr);
 
     expect(rse.numberOfRows()).toBe(10);
@@ -41,11 +16,11 @@ test("Basic construction of a RangedSummarizedExperiment works", () => {
 })
 
 test("Construction of a RangedSummarizedExperiment works with all bits and pieces", () => {
-    let mat = spawn_random_matrix(5, 4);
-    let mat2 = spawn_random_matrix(5, 4);
-    let gr = spawn_random_GRanges(5);
-    let rdf = new bioc.DataFrame({ foo: spawn_random_vector(5) });
-    let cdf = new bioc.DataFrame({ bar: spawn_random_vector(4) });
+    let mat = utils.spawn_random_matrix(5, 4);
+    let mat2 = utils.spawn_random_matrix(5, 4);
+    let gr = utils.spawn_random_GRanges(5);
+    let rdf = new bioc.DataFrame({ foo: utils.spawn_random_vector(5) });
+    let cdf = new bioc.DataFrame({ bar: utils.spawn_random_vector(4) });
     let rnames = [ "A", "B", "C", "D", "E" ];
     let cnames = [ "a", "b", "c", "d" ];
 
@@ -71,11 +46,11 @@ test("Construction of a RangedSummarizedExperiment works with all bits and piece
 })
 
 test("setting/removing of the rowRanges works as expected", () => {
-    let mat = spawn_random_matrix(10, 20);
-    let gr = spawn_random_GRanges(10);
+    let mat = utils.spawn_random_matrix(10, 20);
+    let gr = utils.spawn_random_GRanges(10);
     let rse = new bioc.RangedSummarizedExperiment({ counts: mat }, gr);
 
-    let gr2 = spawn_random_GRanges(10);
+    let gr2 = utils.spawn_random_GRanges(10);
     rse.$setRowRanges(gr2);
     expect(rse.rowRanges().start()).toEqual(gr2.start());
     expect(rse.rowRanges().start()).not.toEqual(gr.start());
@@ -86,8 +61,8 @@ test("setting/removing of the rowRanges works as expected", () => {
 })
 
 test("SLICE_2D generic works as expected", () => {
-    let mat = spawn_random_matrix(10, 20);
-    let gr = spawn_random_GRanges(10);
+    let mat = utils.spawn_random_matrix(10, 20);
+    let gr = utils.spawn_random_GRanges(10);
     let rse = new bioc.RangedSummarizedExperiment({ counts: mat }, gr);
 
     // No-op.
@@ -115,13 +90,13 @@ test("COMBINE_ROWS generic works as expected", () => {
     let NC = 16;
 
     let NR1 = 11;
-    let mat1 = spawn_random_matrix(NR1, NC);
-    let gr1 = spawn_random_GRanges(NR1);
+    let mat1 = utils.spawn_random_matrix(NR1, NC);
+    let gr1 = utils.spawn_random_GRanges(NR1);
     let se1 = new bioc.RangedSummarizedExperiment({ counts: mat1 }, gr1);
 
     let NR2 = 9;
-    let mat2 = spawn_random_matrix(NR2, NC);
-    let gr2 = spawn_random_GRanges(NR2);
+    let mat2 = utils.spawn_random_matrix(NR2, NC);
+    let gr2 = utils.spawn_random_GRanges(NR2);
     let se2 = new bioc.RangedSummarizedExperiment({ counts: mat2 }, gr2);
 
     let combined = bioc.COMBINE_ROWS([se1, se2]);
@@ -134,13 +109,13 @@ test("COMBINE_COLUMNS generic works as expected", () => {
     let NR = 9
 
     let NC1 = 7;
-    let mat1 = spawn_random_matrix(NR, NC1);
-    let gr1 = spawn_random_GRanges(NR);
+    let mat1 = utils.spawn_random_matrix(NR, NC1);
+    let gr1 = utils.spawn_random_GRanges(NR);
     let se1 = new bioc.RangedSummarizedExperiment({ counts: mat1 }, gr1);
 
     let NC2 = 8;
-    let mat2 = spawn_random_matrix(NR, NC2);
-    let gr2 = spawn_random_GRanges(NR);
+    let mat2 = utils.spawn_random_matrix(NR, NC2);
+    let gr2 = utils.spawn_random_GRanges(NR);
     let se2 = new bioc.SummarizedExperiment({ counts: mat2 }, gr2);
 
     let combined = bioc.COMBINE_COLUMNS([se1, se2]);
@@ -150,8 +125,8 @@ test("COMBINE_COLUMNS generic works as expected", () => {
 })
 
 test("CLONE generic works as expected", () => {
-    let mat = spawn_random_matrix(11, 13);
-    let gr = spawn_random_GRanges(11);
+    let mat = utils.spawn_random_matrix(11, 13);
+    let gr = utils.spawn_random_GRanges(11);
     let out = new bioc.RangedSummarizedExperiment({ counts: mat }, gr);
 
     // Deep copy
