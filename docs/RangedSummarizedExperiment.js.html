@@ -3,7 +3,7 @@
 <head>
     
     <meta charset="utf-8">
-    <title>IRanges.js - Documentation</title>
+    <title>RangedSummarizedExperiment.js - Documentation</title>
     
     
     <script src="scripts/prettify/prettify.js"></script>
@@ -34,7 +34,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">IRanges.js</h1>
+    <h1 class="page-title">RangedSummarizedExperiment.js</h1>
     
 
     
@@ -45,96 +45,55 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>import * as generics from "./AllGenerics.js";
+import * as gr from "./GRanges.js";
+import * as se from "./SummarizedExperiment.js";
 import * as utils from "./utils.js";
-import * as df from "./DataFrame.js";
-import * as vec from "./Vector.js";
-import * as olap from "./overlap-utils.js";
 
 /**
- * An IRanges object is a collection of integer ranges, inspired by the class of the same name from the Bioconductor ecosystem.
- * Each range consists of a start position and a width, and may be associated with arbitrary range-level metadata in a {@linkplain DataFrame}.
- * The IRanges defines methods for the following generics:
+ * A RangedSummarizedExperiment is a {@linkplain SummarizedExperiment} subclass where each row represents a genomic interval.
+ * As such, it stores an additional {@linkplain GRanges} of length equal to the number of rows,
+ * where each element represents the genomic range for the corresponding row of the SummarizedExperiment.
+ * It supports the same set of generics as the {@linkplain SummarizedExperiment}.
  *
- * - {@linkcode LENGTH}
- * - {@linkcode SLICE}
- * - {@linkcode COMBINE}
- * - {@linkcode CLONE}
- *
- * @extends Vector
+ * @extends SummarizedExperiment
  */
-export class IRanges extends vec.Vector {
-    static #convertToInt32Array(x) {
-        if (x instanceof Int32Array) {
-            return x;
-        } else {
-            return new Int32Array(x);
+export class RangedSummarizedExperiment extends se.SummarizedExperiment {
+    #check_rowRanges(x) {
+        if (!(x instanceof gr.GRanges)) {
+            throw new Error("'rowRanges' should be a 'GRanges' instance");
+        }
+        if (generics.LENGTH(x) !== this._rowData.numberOfRows()) {
+            throw utils.formatLengthError("'rowRanges'", "the number of rows");
         }
     }
-
-    static #checkNonNegative(x, msg) {
-        for (const y of x) {
-            if (y &lt; 0) {
-                throw new Error("detected a negative entry in '" + msg + "'");
-            }
-        }
-    }
-
-    /**************************************************************************
-     **************************************************************************
-     **************************************************************************/
 
     /**
-     * @param {Array|TypedArray} start - Array of start positions for each range.
-     * This should be coercible into an Int32Array.
-     * @param {Array|TypedArray} width - Array of widths for each range.
-     * This should be coercible into an Int32Array.
+     * @param {Object} assays - Object where keys are the assay names and values are multi-dimensional arrays of experimental data.
+     * All arrays should have the same number of rows and columns.
+     * @param {GRanges} rowRanges - Genomic ranges corresponding to each row.
      * @param {Object} [options={}] - Optional parameters.
-     * @param {?Array} [options.names=null] - Array of strings of length equal to `start`, containing names for each range.
-     * Alternatively `null`, in which case the ranges are assumed to be unnamed.
-     * @param {?DataFrame} [options.elementMetadata=null] - A {@linkplain DataFrame} with number of rows equal to the length of `start`, containing arbitrary per-range annotations.
-     * Alternatively `null`, in which case a zero-column DataFrame is automatically constructed.
+     * @param {?Array} [options.assayOrder=null] - Array of strings specifying the ordering of the assays.
+     * If non-`null`, this should have the same values as the keys of `assays`.
+     * If `null`, an arbitrary ordering is obtained from `assays`.
+     * @param {?DataFrame} [options.rowData=null] - Data frame of row annotations.
+     * If non-`null`, this should have a number of rows equal to the number of rows in each entry of `assays`.
+     * If `null`, an empty {@linkplain DataFrame} is automatically created.
+     * @param {?DataFrame} [options.columnData=null] - Data frame of column annotations.
+     * If non-`null`, this should have a number of columns equal to the number of columns in each entry of `assays`.
+     * If `null`, an empty {@linkplain DataFrame} is automatically created.
+     * @param {?Array} [options.rowNames=null] - Array of strings of length equal to the number of rows in the `assays`, containing row names.
+     * Alternatively `null`, if no row names are present.
+     * @param {?Array} [options.columnNames=null] - Array of strings of length equal to the number of columns in the `assays`, containing column names.
+     * Alternatively `null`, if no column names are present.
      * @param {Object} [options.metadata={}] - Object containing arbitrary metadata as key-value pairs.
      */
-    constructor(start, width, { names = null, elementMetadata = null, metadata = {} } = {}) {
-        super(start.length, { names, elementMetadata, metadata });
+    constructor(assays, rowRanges, { assayOrder = null, rowData = null, columnData = null, rowNames = null, columnNames = null, metadata = {} } = {}) {
+        super(assays, { assayOrder, rowData, columnData, rowNames, columnNames, metadata });
 
-        this._start = IRanges.#convertToInt32Array(start);
-        IRanges.#checkNonNegative(this._start, "start");
+        this.#check_rowRanges(rowRanges);
+        this._rowRanges = rowRanges;
 
-        this._width = IRanges.#convertToInt32Array(width);
-        IRanges.#checkNonNegative(this._width, "width");
-
-        let n = this._start.length;
-        if (n !== this._width.length) {
-            throw new Error("'start' and 'width' should have the same length");
-        }
-    }
-
-    static className = "IRanges";
-
-    /**************************************************************************
-     **************************************************************************
-     **************************************************************************/
-
-    /**
-     * @return {Int32Array} Array of integers containing the start position for each range.
-     */
-    start() {
-        return this._start;
-    }
-
-    /**
-     * @return {Int32Array} Array of integers containing the end position (specifically, one-past-the-end) for each range.
-     */
-    end() {
-        return this._start.map((x, i) => x + this._width[i]);
-    }
-
-    /**
-     * @return {Int32Array} Array of integers containing the width of each range.
-     */
-    width() {
-        return this._width;
+        return;
     }
 
     /**************************************************************************
@@ -142,32 +101,24 @@ export class IRanges extends vec.Vector {
      **************************************************************************/
 
     /**
-     * @param {Array|TypedArray} value - Array of start positions for each range.
-     * This should have length equal to the number of ranges and be coercible into an Int32Array.
-     * @return {IRanges} A reference to this IRanges object, after setting the start positions to `value`.
+     * @return {GRanges} Genomic ranges corresponding to each row.
      */
-    $setStart(value) {
-        let candidate = IRanges.#convertToInt32Array(value);
-        if (candidate.length !== generics.LENGTH(this)) {
-            throw new Error("'start' should be replaced by array of the same length");
-        }
-        IRanges.#checkNonNegative(candidate, "start");
-        this._start = candidate;
-        return this;
+    rowRanges() {
+        return this._rowRanges;
     }
 
+    /**************************************************************************
+     **************************************************************************
+     **************************************************************************/
+
     /**
-     * @param {Array|TypedArray} value - Array of widths for each range.
-     * This should have length equal to the number of ranges and be coercible into an Int32Array.
-     * @return {IRanges} A reference to this IRanges object, after setting the widths to `value`.
+     * @param {GRanges} value - Genomic ranges corresponding to each row.
+     * This should have length equal to the number of rows in this RangedSummarizedExperiment.
+     * @return {RangedSummarizedExperiment} A reference to this RangedSummarizedExperiment after modifying its `rowRanges`.
      */
-    $setWidth(value) {
-        let candidate = IRanges.#convertToInt32Array(value);
-        if (candidate.length !== generics.LENGTH(this)) {
-            throw new Error("'width' should be replaced by array of the same length");
-        }
-        IRanges.#checkNonNegative(candidate, "width");
-        this._width = candidate;
+    $setRowRanges(value) {
+        this.#check_rowRanges(value);
+        this._rowRanges = value;
         return this;
     }
 
@@ -175,76 +126,38 @@ export class IRanges extends vec.Vector {
      **************************************************************************
      **************************************************************************/
 
-    /**
-     * @return {IRangesOverlapIndex} A pre-built index for computing overlaps with other {@linkplain IRanges} instances.
-     */
-    buildOverlapIndex() {
-        let tree = olap.buildIntervalTree(this._start, this.end());
-        return new IRangesOverlapIndex(tree);
-    }
-
-    /**************************************************************************
-     **************************************************************************
-     **************************************************************************/
-
-    _bioconductor_LENGTH() {
-        return this._start.length;
-    }
-
-    _bioconductor_SLICE(output, i, { allowView = false }) {
-        super._bioconductor_SLICE(output, i, { allowView });
-        output._start = generics.SLICE(this._start, i, { allowView });
-        output._width = generics.SLICE(this._width, i, { allowView });
-        return;
-    }
-
-    _bioconductor_COMBINE(output, objects) {
-        super._bioconductor_COMBINE(output, objects);
-
-        let all_s = [];
-        let all_w = [];
-        for (const x of objects) {
-            all_s.push(x._start);
-            all_w.push(x._width);
+    _bioconductor_SLICE_2D(output, rows, columns, { allowView = false }) {
+        super._bioconductor_SLICE_2D(output, rows, columns, { allowView });
+        if (rows !== null) {
+            output._rowRanges = generics.SLICE(this._rowRanges, rows);
+        } else {
+            output._rowRanges = this._rowRanges;
         }
+    }
 
-        output._start = generics.COMBINE(all_s);
-        output._width = generics.COMBINE(all_w);
+    _bioconductor_COMBINE_ROWS(output, objects) {
+        super._bioconductor_COMBINE_ROWS(output, objects);
+
+        let collected = objects.map(x => x._rowRanges);
+        output._rowRanges = generics.COMBINE(collected);
+
         return;
     }
 
-    _bioconductor_CLONE(output, { deepCopy = true }) {
+    _bioconductor_COMBINE_COLUMNS(output, objects) {
+        super._bioconductor_COMBINE_COLUMNS(output, objects);
+
+        output._rowRanges = objects[0]._rowRanges;
+
+        return;
+    }
+
+    _bioconductor_CLONE(output, { deepCopy }) {
         super._bioconductor_CLONE(output, { deepCopy });
-        output._start = generics.CLONE(this._start, { deepCopy });
-        output._width = generics.CLONE(this._width, { deepCopy });
+
+        output._rowRanges = generics.CLONE(this._rowRanges, { deepCopy });
+
         return;
-    }
-}
-
-/**
- * Pre-built index for overlapping {@linkplain IRanges} objects.
- * This is typically constructed using the {@linkcode IRanges#buildOverlapIndex IRanges.buildOverlapIndex} method for a "reference" object,
- * and can be applied to different query IRanges to identify overlaps with the reference.
- *
- * @hideconstructor
- */
-export class IRangesOverlapIndex {
-    constructor(tree) {
-        this._tree = tree;
-    }
-
-    /**
-     * @param {IRanges} query - The query object, containing ranges to be overlapped with those in the reference IRanges (that was used to construct this IRangesOverlapIndex object).
-     * @return {Array} An array of length equal to the number of ranges in `query`,
-     * where each element is an array containing the indices of the overlapping ranges in the reference {@linkplain IRanges} object.
-     */
-    overlap(query) {
-        let n = generics.LENGTH(query);
-        let output = new Array(n);
-        for (var i = 0; i &lt; n; i++) {
-            output[i] = olap.queryIntervalTree(query._start[i], query._start[i] + query._width[i], this._tree);
-        }
-        return output;
     }
 }
 </code></pre>
