@@ -3,7 +3,7 @@
 <head>
     
     <meta charset="utf-8">
-    <title>SummarizedExperiment.js - Documentation</title>
+    <title>GroupedGRanges.js - Documentation</title>
     
     
     <script src="scripts/prettify/prettify.js"></script>
@@ -34,7 +34,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">SummarizedExperiment.js</h1>
+    <h1 class="page-title">GroupedGRanges.js</h1>
     
 
     
@@ -44,430 +44,290 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>import * as generics from "./AllGenerics.js";
-import * as ann from "./Annotated.js";
-import * as df from "./DataFrame.js";
+            <pre class="prettyprint source linenums"><code>import * as vec from "./Vector.js";
+import * as gr from "./GRanges.js";
 import * as utils from "./utils.js";
+import * as generics from "./AllGenerics.js";
 
 /**
- * A SummarizedExperiment contains zero or more assays, consisting of multi-dimensional arrays (usually matrices) of experimental data,
- * as well as {@linkplain DataFrame}s containing further annotations on the rows or columns of those arrays.
- * The SummarizedExperiment class defines methods for the following generics:
+ * A GroupedGRanges object is a collection of groups of genomic ranges, inspired by the `GRangesList` class from the Bioconductor ecosystem.
+ * Each group consists of a {@linkplain GRanges} object of arbitrary length, which is most often used to represent a multi-exon gene.
+ * The GroupedGRanges can be considered a vector of groups, and defines methods for the following generics:
+ *
+ * - {@linkcode LENGTH}
+ * - {@linkcode SLICE}
+ * - {@linkcode COMBINE}
+ * - {@linkcode CLONE}
+ *
+ * Our implementation re-uses Bioconductor's strategy of storing the groups in a single concatenated GRanges.
+ * This improves efficiency for large numbers of small GRanges, especially in placeholder objects where all the GRanges are zero-length.
  * 
- * - {@linkcode NUMBER_OF_ROWS}
- * - {@linkcode NUMBER_OF_COLUMNS}
- * - {@linkcode SLICE_2D}
- * - {@linkcode COMBINE_ROWS}
- * - {@linkcode COMBINE_COLUMNS}
- * - {@linkcode CLONE}
- *
- * Assays are expected to provide methods for the following generics:
- *
- * - {@linkcode NUMBER_OF_ROWS}
- * - {@linkcode NUMBER_OF_COLUMNS}
- * - {@linkcode SLICE_2D}
- * - {@linkcode COMBINE_ROWS}
- * - {@linkcode COMBINE_COLUMNS}
- * - {@linkcode CLONE}
- *
- * @extends Annotated
+ * @extends Vector
  */
-export class SummarizedExperiment extends ann.Annotated {
+export class GroupedGRanges extends vec.Vector {
+    static #computeStarts(lengths) {
+        let starts = new Int32Array(lengths.length);
+        let last = 0;
+        for (var i = 0; i &lt; lengths.length; i++) {
+            starts[i] = last;
+            last += lengths[i];
+        }
+        return { starts: starts, total: last };
+    }
+
     /**
-     * @param {Object} assays - Object where keys are the assay names and values are multi-dimensional arrays of experimental data.
-     * All arrays should have the same number of rows and columns.
+     * @param {Array|GRanges} ranges - An array of {@linkplain GRanges} objects, where each element represents a group of genomic ranges.
+     * All objects should have compatible columns in their {@linkplain Vector#elementMetadata elementMetadata}.
+     * 
+     * Alternatively, a single GRanges containing a concatenation of ranges from all groups.
+     * In this case, `rangeLengths` must be supplied.
      * @param {Object} [options={}] - Optional parameters.
-     * @param {?Array} [options.assayOrder=null] - Array of strings specifying the ordering of the assays.
-     * If non-`null`, this should have the same values as the keys of `assays`.
-     * If `null`, an arbitrary ordering is obtained from `assays`.
-     * @param {?DataFrame} [options.rowData=null] - Data frame of row annotations.
-     * If non-`null`, this should have a number of rows equal to the number of rows in each entry of `assays`.
-     * If `null`, an empty {@linkplain DataFrame} is automatically created.
-     * @param {?DataFrame} [options.columnData=null] - Data frame of column annotations.
-     * If non-`null`, this should have a number of columns equal to the number of columns in each entry of `assays`.
-     * If `null`, an empty {@linkplain DataFrame} is automatically created.
-     * @param {?Array} [options.rowNames=null] - Array of strings of length equal to the number of rows in the `assays`, containing row names.
-     * Alternatively `null`, if no row names are present.
-     * @param {?Array} [options.columnNames=null] - Array of strings of length equal to the number of columns in the `assays`, containing column names.
-     * Alternatively `null`, if no column names are present.
+     * @param {?(TypedArray|Array)} [rangeLengths=null] - Length of the ranges within each group.
+     * This should be coercible to an Int32Array, contain non-negative values, and have a sum equal to the length of `ranges`.
+     * Only used if `ranges` is a single {@linkplain GRanges} object, where each group's ranges are assumed to form contiguous intervals along `ranges`.
+     * @param {?Array} [options.names=null] - Array of strings of length equal to `start`, containing names for each genomic range.
+     * Alternatively `null`, in which case the ranges are assumed to be unnamed.
+     * @param {?DataFrame} [options.elementMetadata=null] - A {@linkplain DataFrame} with number of rows equal to the length of `start`, containing arbitrary per-range annotations.
+     * Alternatively `null`, in which case a zero-column DataFrame is automatically constructed.
      * @param {Object} [options.metadata={}] - Object containing arbitrary metadata as key-value pairs.
      */
-    constructor(assays, { assayOrder = null, rowData = null, columnData = null, rowNames = null, columnNames = null, metadata = {} } = {}) {
-        super({ metadata });
+    constructor(ranges, { rangeLengths = null, names = null, elementMetadata = null, metadata = {} } = {}) {
+        if (ranges.constructor == Array) {
+            super(ranges.length, { names, elementMetadata, metadata });
+            rangeLengths = new Int32Array(ranges.length);
+            for (var i = 0; i &lt; rangeLengths.length; i++) {
+                if (!(ranges[i] instanceof gr.GRanges)) {
+                    throw new Error("'ranges' must either be a 'GRanges' or an array of 'GRanges'");
+                }
+                rangeLengths[i] = generics.LENGTH(ranges[i]);
+            }
+            ranges = generics.COMBINE(ranges);
 
-        // Check the assays.
-        let vals = Object.values(assays);
-        let nrows = null, ncols = null;
-        if (vals.length) {
-            for (var i = 0; i &lt; vals.length; i++) {
-                let nr = generics.NUMBER_OF_ROWS(vals[i]);
-                let nc = generics.NUMBER_OF_COLUMNS(vals[i]);
-                if (i == 0) {
-                    nrows = nr;
-                    ncols = nc;
-                } else if (nrows !== nr || ncols !== nc) {
-                    throw new Error("expected all assays in 'assays' to have the same number of rows and columns");
+        } else {
+            if (!(ranges instanceof gr.GRanges)) {
+                throw new Error("'ranges' must either be a 'GRanges' or an array of 'GRanges'");
+            }
+            if (rangeLengths == null) {
+                throw new Error("'rangeLengths' must be specified when 'ranges' is a 'GRanges'");
+            }
+            super(rangeLengths.length, { names, elementMetadata, metadata });
+            rangeLengths = utils.convertToInt32Array(rangeLengths);
+            utils.checkNonNegative(rangeLengths);
+        }
+
+        this._ranges = ranges;
+        this._rangeLengths = rangeLengths;
+
+        let accumulated = GroupedGRanges.#computeStarts(rangeLengths);
+        this._rangeStarts = accumulated.starts;
+
+        if (accumulated.total !== generics.LENGTH(ranges)) {
+            throw new Error("sum of 'rangeLengths' must be equal to the length of 'ranges'");
+        }
+    }
+
+    /**************************************************************************
+     **************************************************************************
+     **************************************************************************/
+
+    /**
+     * @return {GRanges} The concatenated set of ranges across all groups. 
+     */
+    ranges() {
+        return this._ranges;
+    }
+
+    /**
+     * @return {Int32Array} The start indices for each group's ranges along the concatenated set of ranges returned by {@linkcode GroupedGRanges#ranges ranges}.
+     */
+    rangeStarts() {
+        return this._rangeStarts;
+    }
+
+    /**
+     * @return {Int32Array} The length of each group's ranges along the concatenated set of ranges returned by {@linkcode GroupedGRanges#ranges ranges}.
+     */
+    rangeLengths() {
+        return this._rangeLengths;
+    }
+
+    /**
+     * @param {number} i - Index of the group of interest.
+     * @param {boolean} [options.allowView=false] - Whether a view can be created in any internal slicing operations.
+     *
+     * @return {GRanges} The genomic ranges for group `i`.
+     */
+    group(i, { allowView = false } = {}) {
+        let s = this._rangeStarts[i];
+        return generics.SLICE(this._ranges, { start: s, end: s + this._rangeLengths[i] }, { allowView });
+    }
+
+    /**
+     * @return {number} Number of groups in this object.
+     */
+    numberOfGroups() {
+        return this._rangeStarts.length;
+    }
+
+    /**************************************************************************
+     **************************************************************************
+     **************************************************************************/
+
+    /**
+     * @param {GRanges} ranges - Genomic ranges of length equal to the concatenated set of ranges returned by {@linkcode GroupedGRanges#ranges ranges}.
+     * @return {GroupedGRanges} A reference to this GroupedGRanges object after modifying the internal ranges.
+     */
+    $setRanges(ranges) {
+        if (!(ranges instanceof gr.GRanges)) {
+            throw new Error("'ranges' must be a 'GRanges'");
+        }
+        if (generics.LENGTH(ranges) !== generics.LENGTH(this._ranges)) {
+            throw utils.formatLengthError("'ranges'", "number of ranges");
+        }
+        this._ranges = ranges;
+        return this;
+    }
+
+    /**************************************************************************
+     **************************************************************************
+     **************************************************************************/
+
+    /**
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {?(Array|Set)} [options.restrictToSeqnames=null] - Array or Set containing the sequence names to use in the index.
+     * If `null`, all available sequence names are used.
+     * @param {?(Array|Set)} [options.restrictToStrand=null] - Array or Set containing the strands to use in the index.
+     * If `null`, all available strands are used.
+     *
+     * @return {GroupedGRangesOverlapIndex} A pre-built index for computing overlaps with other {@linkplain GRanges} instances.
+     */
+    buildOverlapIndex({ restrictToSeqnames = null, restrictToStrand = null } = {}) {
+        return new GroupedGRangesOverlapIndex(
+            this._ranges.buildOverlapIndex({ restrictToSeqnames, restrictToStrand }),
+            generics.LENGTH(this._ranges),
+            this._rangeStarts,
+            this._rangeLengths
+        );
+    }
+
+    /**************************************************************************
+     **************************************************************************
+     **************************************************************************/
+
+    _bioconductor_LENGTH() {
+        return this._rangeStarts.length;
+    }
+
+    _bioconductor_SLICE(output, i, { allowView = false } = {}) {
+        super._bioconductor_SLICE(output, i, { allowView });
+
+        output._rangeLengths = generics.SLICE(this._rangeLengths, i, { allowView });
+        let accumulated = GroupedGRanges.#computeStarts(output._rangeLengths);
+        output._rangeStarts = accumulated.starts;
+
+        if (i.constructor == Object) {
+            // Handle this specially for optimizing allowView = true.
+            let s = this._rangeStarts[i.start];
+            output._ranges = generics.SLICE(this._ranges, { start: s, end: s + accumulated.total }, { allowView });
+        } else {
+            let keep = new Int32Array(accumulated.total);
+
+            let counter = 0;
+            for (const j of i) {
+                let start = this._rangeStarts[j];
+                let end = start + this._rangeLengths[j];
+                for (var k = start; k &lt; end; k++) {
+                    keep[counter] = k;
+                    counter++;
                 }
             }
+
+            output._ranges = generics.SLICE(this._ranges, keep, { allowView });
         }
-        this._assays = assays;
-
-        if (assayOrder == null) {
-            assayOrder = Object.keys(assays);
-        } else {
-            utils.checkNamesArray(assayOrder, "'assayOrder'", vals.length, "the number of entries in 'assays'");
-            let observed = assayOrder.slice().sort();
-            let expected = Object.keys(assays);
-            expected.sort();
-            if (!utils.areArraysEqual(observed, expected)) {
-                throw new Error("values of 'assayOrder' should be the same as the keys of 'assays'");
-            }
-        }
-        this._assayOrder = assayOrder;
-
-        // Check the rowData.
-        if (rowData === null) {
-            if (nrows == null){
-                throw new Error("'rowData' must be specified if 'assays' is empty");
-            }
-            rowData = new df.DataFrame({}, { numberOfRows: nrows });
-        } else {
-            if (nrows !== null &amp;&amp; nrows !== generics.LENGTH(rowData)) {
-                throw new Error("'rowData' should be equal to the number of rows in each 'assays'");
-            }
-        }
-        this._rowData = rowData;
-
-        // Check the columnData.
-        if (columnData === null) {
-            if (ncols == null){
-                throw new Error("'columnData' must be specified if 'assays' is empty");
-            }
-            columnData = new df.DataFrame({}, { numberOfRows: ncols });
-        } else {
-            if (ncols !== null &amp;&amp; ncols !== generics.LENGTH(columnData)) {
-                throw new Error("'columnData' should be equal to the number of columns in each 'assays'");
-            }
-        }
-        this._columnData = columnData;
-
-        // Checking the names.
-        if (rowNames != null) {
-            utils.checkNamesArray(rowNames, "'rowNames'", this._rowData.numberOfRows(), "the number of rows in each 'assays'");
-        }
-        this._rowNames = rowNames;
-
-        if (columnNames != null) {
-            utils.checkNamesArray(columnNames, "'columnNames'", this._columnData.numberOfRows(), "the number of columns in each 'assays'");
-        }
-        this._columnNames = columnNames;
-    }
-
-    static name = "SummarizedExperiment";
-
-    /**************************************************************************
-     **************************************************************************
-     **************************************************************************/
-
-    _check_index(i) {
-        if (i &lt; 0 || i >= this._assayOrder.length) {
-            throw new Error("assay index '" + String(i) + "' out of range for this SummarizedExperiment");
-        }
-    }
-
-    /**************************************************************************
-     **************************************************************************
-     **************************************************************************/
-
-    /**
-     * @return {Array} Array of assay names.
-     */
-    assayNames() {
-        return this._assayOrder;
-    }
-
-    /**
-     * @return {number} Number of assays.
-     */
-    numberOfAssays() {
-        return this._assayOrder.length;
-    }
-
-    /**
-     * @param {string|number} i - Assay to retrieve, either by name or index.
-     * @return {*} The contents of assay `i` as an multi-dimensional array-like object.
-     */
-    assay(i) {
-        if (typeof i == "string") {
-            if (!(i in this._assays)) {
-                throw new Error("no assay '" + i + "' present in this SummarizedExperiment");
-            }
-            return this._assays[i];
-        } 
-
-        this._check_index(i);
-        return this._assays[this._assayOrder[i]];
-    }
-
-    /**
-     * @return {DataFrame} Data frame of row data, with one row per row in this SummarizedExperiment.
-     */
-    rowData() {
-        return this._rowData;
-    }
-
-    /**
-     * @return {number} Number of rows in this SummarizedExperiment.
-     */
-    numberOfRows() {
-        return this._rowData.numberOfRows();
-    }
-
-    /**
-     * @return {?Array} Array of strings containing row names, or `null` if no row names are available.
-     */
-    rowNames() {
-        return this._rowNames;
-    }
-
-    /**
-     * @return {DataFrame} Data frame of column data, with one row per column in this SummarizedExperiment.
-     */
-    columnData() {
-        return this._columnData;
-    }
-
-    /**
-     * @return {number} Number of columns in this SummarizedExperiment.
-     */
-    numberOfColumns() {
-        return this._columnData.numberOfRows();
-    }
-
-    /**
-     * @return {?Array} Array of strings containing column names, or `null` if no column names are available.
-     */
-    columnNames() {
-        return this._columnNames;
-    }
-
-    /**************************************************************************
-     **************************************************************************
-     **************************************************************************/
-
-    /**
-     * @param {string|number} i - Identity of the assay to add, either by name or index.
-     * @return {SummarizedExperiment} Reference to this SummarizedExperiment after removing the specified assay.
-     */
-    $removeAssay(i) {
-        if (typeof i == "string") {
-            let ii = this._assayOrder.indexOf(i);
-            if (ii &lt; 0) {
-                throw new Error("no assay '" + i + "' in this SummarizedExperiment");
-            }
-            this._assayOrder.splice(ii, 1);
-            delete this._assays[i];
-        } else {
-            this._check_index(i);
-            let n = this._assayOrder[i];
-            this._assayOrder.splice(i, 1);
-            delete this._assays[n];
-        }
-    }
-
-    /**
-     * @param {string|number} i - Identity of the assay to add, either by name or index.
-     * Numeric `i` should be non-negative and less than the number of assays.
-     * @param {*} value - Multi-dimensional array-like object to set/add as the assay.
-     * @return {SummarizedExperiment} Reference to this SummarizedExperiment with modified assays.
-     * - If `i` is a number, the assay at the specified index is replaced.
-     * - If `i` is a string, any assay with the same name is replaced.
-     *   If no such assay exists, a new assay is appended to the list of assays.
-     */
-    $setAssay(i, value) {
-        if (generics.NUMBER_OF_ROWS(value) !== this.numberOfRows() || generics.NUMBER_OF_COLUMNS(value) !== this.numberOfColumns()) {
-            throw new Error("expected 'value' to have the same dimensions as this 'SummarizedExperiment'");
-        }
-
-        if (typeof i == "string") {
-            if (!(i in this._assays)) {
-                this._assayOrder.push(i);
-            }
-            this._assays[i] = value;
-        } else {
-            this._check_index(i);
-            this._assays[this._assayOrder[i]] = value;
-        }
-        return this;
-    }
-
-    /**
-     * @param {DataFrame} value - Data frame containing the row annotations.
-     * This should have one row for each row of this SummarizedExperiment.
-     * @return {SummarizedExperiment} Reference to this SummarizedExperiment with modified row data.
-     */
-    $setRowData(value) {
-        if (!(value instanceof df.DataFrame)) {
-            throw new Error("'value' should be a DataFrame");
-        }
-        if (value.numberOfRows() !== this.numberOfRows()) {
-            throw new Error("expected 'value' to have the same number of rows as this 'SummarizedExperiment'");
-        }
-        this._rowData = value;
-        return this;
-    }
-
-    /**
-     * @param {DataFrame} value - Data frame containing the column annotations.
-     * This should have one row for each columns of this SummarizedExperiment.
-     * @return {SummarizedExperiment} Reference to this SummarizedExperiment with modified column data.
-     */
-    $setColumnData(value) {
-        if (!(value instanceof df.DataFrame)) {
-            throw new Error("'value' should be a DataFrame");
-        }
-        if (value.numberOfRows() !== this.numberOfColumns()) {
-            throw new Error("expected 'value' to have the same number of rows as the number of columns of this 'SummarizedExperiment'");
-        }
-        this._columnData = value;
-        return this;
-    }
-
-    /**
-     * @param {Array} names - Array of strings of length equal to the number of rows in this SummarizedExperiment, containing row names.
-     * Alternatively `null`, to remove all row names.
-     * @return {SummarizedExperiment} Reference to this SummarizedExperiment with modified row names.
-     */
-    $setRowNames(names) {
-        if (names !== null) {
-            utils.checkNamesArray(names, "replacement 'names'", this.numberOfRows(), "'numberOfRows()'");
-        }
-        this._rowNames = names;
-        return this;
-    }
-
-    /**
-     * @param {Array} names - Array of strings of length equal to the number of columns in this SummarizedExperiment, containing column names.
-     * Alternatively `null`, to remove all column names.
-     * @return {SummarizedExperiment} Reference to this SummarizedExperiment with modified column names.
-     */
-    $setColumnNames(names) {
-        if (names !== null) {
-            utils.checkNamesArray(names, "replacement 'names'", this.numberOfColumns(), "'numberOfColumns()'");
-        }
-        this._columnNames = names;
-        return this;
-    }
-
-    /**************************************************************************
-     **************************************************************************
-     **************************************************************************/
-
-    _bioconductor_NUMBER_OF_ROWS() {
-        return this.numberOfRows();
-    }
-
-    _bioconductor_NUMBER_OF_COLUMNS() {
-        return this.numberOfColumns();
-    }
-
-    _bioconductor_SLICE_2D(output, rows, columns, { allowView = false }) {
-        let assays = {};
-        for (const [k, v] of Object.entries(this._assays)) {
-            assays[k] = generics.SLICE_2D(v, rows, columns, { allowView });
-        }
-        output._assays = assays;
-
-        if (rows !== null) {
-            output._rowData = generics.SLICE(this._rowData, rows, { allowView });
-            output._rowNames = (this._rowNames == null ? null : generics.SLICE(this._rowNames, rows, { allowView }));
-        } else {
-            output._rowData = this._rowData;
-            output._rowNames = this._rowNames;
-        }
-
-        if (columns !== null) {
-            output._columnData = generics.SLICE(this._columnData, columns, { allowView });
-            output._columnNames = (this._columnNames == null ? null : generics.SLICE(this._columnNames, columns, { allowView }));
-        } else {
-            output._columnData = this._columnData;
-            output._columnNames = this._columnNames;
-        }
-
-        output._assayOrder = this._assayOrder;
-        output._metadata = this._metadata;
         return;
     }
 
-    _bioconductor_COMBINE_ROWS(output, objects) {
-        output._assayOrder = this._assayOrder;
-        for (const obj of objects) {
-            if (!utils.areArraysEqual(output._assayOrder, obj._assayOrder)) {
-                throw new Error("'assayNames' should be the same across SummarizedExperiments to be combined");
-            }
-        }
+    _bioconductor_COMBINE(output, objects) {
+        super._bioconductor_COMBINE(output, objects);
 
-        let assays = {};
-        for (const [k, v] of Object.entries(this._assays)) {
-            let found = objects.map(x => x._assays[k]);
-            assays[k] = generics.COMBINE_ROWS(found);
-        }
-        output._assays = assays;
+        output._rangeLengths = generics.COMBINE(objects.map(x => x._rangeLengths));
+        let accumulated = GroupedGRanges.#computeStarts(output._rangeLengths);
+        output._rangeStarts = accumulated.starts;
+        output._ranges = generics.COMBINE(objects.map(x => x._ranges));
 
-        let all_dfs = objects.map(x => x._rowData);
-        output._rowData = generics.COMBINE(all_dfs);
-
-        let all_n = objects.map(x => x._rowNames);
-        let all_l = objects.map(x => x.numberOfRows());
-        output._rowNames = utils.combineNames(all_n, all_l);
-
-        output._columnData = this._columnData;
-        output._columnNames = this._columnNames;
-        output._metadata = this._metadata;
-    }
-
-    _bioconductor_COMBINE_COLUMNS(output, objects) {
-        output._assayOrder = this._assayOrder;
-        for (const obj of objects) {
-            if (!utils.areArraysEqual(output._assayOrder, obj._assayOrder)) {
-                throw new Error("'assayNames' should be the same across SummarizedExperiments to be combined");
-            }
-        }
-
-        let assays = {};
-        for (const [k, v] of Object.entries(this._assays)) {
-            let found = objects.map(x => x._assays[k]);
-            assays[k] = generics.COMBINE_COLUMNS(found);
-        }
-        output._assays = assays;
-
-        let all_dfs = objects.map(x => x._columnData);
-        output._columnData = generics.COMBINE(all_dfs);
-
-        let all_n = objects.map(x => x._columnNames);
-        let all_l = objects.map(x => x.numberOfColumns());
-        output._columnNames = utils.combineNames(all_n, all_l);
-
-        output._rowData = this._rowData;
-        output._rowNames = this._rowNames;
-        output._metadata = this._metadata;
+        return;
     }
 
     _bioconductor_CLONE(output, { deepCopy = true }) {
         super._bioconductor_CLONE(output, { deepCopy });
-
-        let copier = x => generics.CLONE(x, { deepCopy });
-
-        output._assays = copier(this._assays);
-        output._assayOrder = copier(this._assayOrder);
-
-        output._rowData = copier(this._rowData);
-        output._rowNames = (this._rowNames === null ? null : copier(this._rowNames));
-
-        output._columnData = copier(this._columnData);
-        output._columnNames = (this._columnNames === null ? null : copier(this._columnNames));
+        output._rangeLengths = generics.CLONE(this._rangeLengths, { deepCopy });
+        output._rangeStarts = generics.CLONE(this._rangeStarts, { deepCopy });
+        output._ranges = generics.CLONE(this._ranges, { deepCopy });
         return;
     }
+}
+
+/**
+ * Pre-built index for overlapping {@linkplain GroupedGRanges} objects.
+ * This is typically constructed using the {@linkcode GroupedGRanges#buildOverlapIndex GroupedGRanges.buildOverlapIndex} method for a "reference" object,
+ * and can be applied to different query GroupedGRanges or {@linkplain GRanges} to identify overlaps with the reference.
+ *
+ * @hideconstructor
+ */
+export class GroupedGRangesOverlapIndex {
+    constructor(index, fullLength, rangeStarts, rangeLengths) {
+        this._index = index;
+        this._rangeStarts = rangeStarts;
+        this._rangeLengths = rangeLengths;
+
+        let rev_map = new Int32Array(fullLength);
+        for (var i = 0; i &lt; rangeStarts.length; i++) {
+            let start = rangeStarts[i];
+            let end = start + rangeLengths[i];
+            for (var s = start; s &lt; end; s++) {
+                rev_map[s] = i;
+            }
+        }
+        this._reverseMapping = rev_map;
+    }
+
+    /**
+     * @param {GroupedGRanges|GRanges} query - The query object, containing ranges to be overlapped with those in the reference GroupedGRanges (that was used to construct this GroupedGRangesOverlapIndex object).
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.ignoreStrand=true] - Whether to ignore differences in strandedness between the ranges in `query` and the reference object.
+     *
+     * @return {Array} An array of length equal to the number of ranges or groups in `query`,
+     * where each element is an array containing the indices of the overlapping ranges in the reference {@linkplain GRanges} object.
+     */
+    overlap(query, { ignoreStrand = true } = {}) {
+        let output = new Array(this._rangeStarts.length);
+        let rev_map = this._reverseMapping;
+
+        if (query instanceof GroupedGRanges) {
+            let overlaps = this._index.overlap(query._ranges);
+            for (var i = 0; i &lt; query._rangeStarts.length; i++) {
+                let start = query._rangeStarts[i];
+                let end = start + query._rangeLengths[i];
+
+                let results = new Set;
+                for (var s = start; s &lt; end; s++) {
+                    overlaps[s].forEach(x => results.add(rev_map[x]));
+                }
+                output[i] = Array.from(results);
+            }
+
+        } else {
+            let overlaps = this._index.overlap(query);
+            for (var i = 0; i &lt; overlaps.length; i++) {
+                let results = new Set;
+                overlaps[i].forEach(x => results.add(rev_map[x]));
+                output[i] = Array.from(results);
+            }
+        }
+
+        return output;
+    }
+
 }
 </code></pre>
         </article>

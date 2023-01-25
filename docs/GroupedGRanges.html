@@ -3,7 +3,7 @@
 <head>
     
     <meta charset="utf-8">
-    <title>DataFrame - Documentation</title>
+    <title>GroupedGRanges - Documentation</title>
     
     
     <script src="scripts/prettify/prettify.js"></script>
@@ -34,7 +34,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">DataFrame</h1>
+    <h1 class="page-title">GroupedGRanges</h1>
     
 
     
@@ -47,27 +47,20 @@
 <header>
     
         <h2>
-        DataFrame
+        GroupedGRanges
         </h2>
         
-            <div class="class-description usertext"><p>A DataFrame is a collection of equilength vector-like objects as &quot;columns&quot;.
-The number of rows in the DataFrame is equal to the length of the columns, where the i-th row consists of the i-th element from each column.</p>
-<p>This class supports optional row names, which are either <code>null</code> or an array of strings of length equal to the number of rows.</p>
-<p>This class supports empty instances with a non-zero number of rows, which may be useful for piece-wise construction.</p>
-<p>The vector-like object for each column is expected to have methods for the following generics:</p>
+            <div class="class-description usertext"><p>A GroupedGRanges object is a collection of groups of genomic ranges, inspired by the <code>GRangesList</code> class from the Bioconductor ecosystem.
+Each group consists of a <a href="GRanges.html">GRanges</a> object of arbitrary length, which is most often used to represent a multi-exon gene.
+The GroupedGRanges can be considered a vector of groups, and defines methods for the following generics:</p>
 <ul>
 <li><a href="global.html#LENGTH"><code>LENGTH</code></a></li>
 <li><a href="global.html#SLICE"><code>SLICE</code></a></li>
 <li><a href="global.html#COMBINE"><code>COMBINE</code></a></li>
 <li><a href="global.html#CLONE"><code>CLONE</code></a></li>
 </ul>
-<p>The DataFrame itself defines methods for the following generics:</p>
-<ul>
-<li><a href="global.html#LENGTH"><code>LENGTH</code></a></li>
-<li><a href="global.html#SLICE"><code>SLICE</code></a></li>
-<li><a href="global.html#COMBINE"><code>COMBINE</code></a></li>
-<li><a href="global.html#CLONE"><code>CLONE</code></a></li>
-</ul></div>
+<p>Our implementation re-uses Bioconductor's strategy of storing the groups in a single concatenated GRanges.
+This improves efficiency for large numbers of small GRanges, especially in placeholder objects where all the GRanges are zero-length.</p></div>
         
     
 </header>
@@ -82,7 +75,7 @@ The number of rows in the DataFrame is equal to the length of the columns, where
     <h2>Constructor</h2>
     
 
-    <h4 class="name" id="DataFrame"><span class="type-signature"></span>new DataFrame<span class="signature">(columns, options<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="GroupedGRanges"><span class="type-signature"></span>new GroupedGRanges<span class="signature">(ranges, options<span class="signature-attributes">opt</span>, rangeLengths<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"></span></h4>
 
     
 
@@ -94,7 +87,7 @@ The number of rows in the DataFrame is equal to the length of the columns, where
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line29">line 29</a>
+        <a href="GroupedGRanges.js.html">GroupedGRanges.js</a>, <a href="GroupedGRanges.js.html#line21">line 21</a>
     </li></ul></dd>
     
 
@@ -172,13 +165,16 @@ The number of rows in the DataFrame is equal to the length of the columns, where
 
         <tr>
             
-                <td class="name"><code>columns</code></td>
+                <td class="name"><code>ranges</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Object</span>
+<span class="param-type">Array</span>
+|
+
+<span class="param-type"><a href="GRanges.html">GRanges</a></span>
 
 
             
@@ -200,7 +196,10 @@ The number of rows in the DataFrame is equal to the length of the columns, where
                 </td>
             
 
-            <td class="description last"><p>Object where keys are the column names and the values are equilength vector-like objects.</p></td>
+            <td class="description last"><p>An array of <a href="GRanges.html">GRanges</a> objects, where each element represents a group of genomic ranges.
+All objects should have compatible columns in their <a href="Vector.html#elementMetadata">elementMetadata</a>.</p>
+<p>Alternatively, a single GRanges containing a concatenation of ranges from all groups.
+In this case, <code>rangeLengths</code> must be supplied.</p></td>
         </tr>
 
     
@@ -239,43 +238,23 @@ The number of rows in the DataFrame is equal to the length of the columns, where
                 </td>
             
 
-            <td class="description last"><p>Optional parameters.</p>
-                <h6>Properties</h6>
-                
+            <td class="description last"><p>Optional parameters.</p></td>
+        </tr>
 
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-        <th>Attributes</th>
-        
-
-        
-        <th>Default</th>
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
     
 
         <tr>
             
-                <td class="name"><code>numberOfRows</code></td>
+                <td class="name"><code>rangeLengths</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">number</span>
+<span class="param-type">TypedArray</span>
+|
+
+<span class="param-type">Array</span>
 
 
             
@@ -303,16 +282,16 @@ The number of rows in the DataFrame is equal to the length of the columns, where
                 </td>
             
 
-            <td class="description last"><p>Non-negative value specifying the number of rows in the DataFrame.
-If <code>null</code>, this is automatically determined from the length of the vectors in <code>columns</code>, or from the length of <code>rowNames</code>.
-If non-<code>null</code>, this should not conflict with the inferred lengths from <code>columns</code> or <code>rowNames</code>.</p></td>
+            <td class="description last"><p>Length of the ranges within each group.
+This should be coercible to an Int32Array, contain non-negative values, and have a sum equal to the length of <code>ranges</code>.
+Only used if <code>ranges</code> is a single <a href="GRanges.html">GRanges</a> object, where each group's ranges are assumed to form contiguous intervals along <code>ranges</code>.</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>rowNames</code></td>
+                <td class="name"><code>options.names</code></td>
             
 
             <td class="type">
@@ -346,22 +325,21 @@ If non-<code>null</code>, this should not conflict with the inferred lengths fro
                 </td>
             
 
-            <td class="description last"><p>Array of strings containing the names for each row.
-If non-<code>null</code>, this should have the same length as the vectors inside <code>columns</code>, if any exist.
-If <code>null</code>, no row names are used.</p></td>
+            <td class="description last"><p>Array of strings of length equal to <code>start</code>, containing names for each genomic range.
+Alternatively <code>null</code>, in which case the ranges are assumed to be unnamed.</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>columnOrder</code></td>
+                <td class="name"><code>options.elementMetadata</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Array</span>
+<span class="param-type"><a href="DataFrame.html">DataFrame</a></span>
 
 
             
@@ -389,16 +367,15 @@ If <code>null</code>, no row names are used.</p></td>
                 </td>
             
 
-            <td class="description last"><p>Array of strings specifying the ordering of the columns.
-If non-<code>null</code>, this should have the same values as the keys of <code>columns</code>.
-If <code>null</code>, an arbitrary ordering is obtained from <code>columns</code>.</p></td>
+            <td class="description last"><p>A <a href="DataFrame.html">DataFrame</a> with number of rows equal to the length of <code>start</code>, containing arbitrary per-range annotations.
+Alternatively <code>null</code>, in which case a zero-column DataFrame is automatically constructed.</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>metadata</code></td>
+                <td class="name"><code>options.metadata</code></td>
             
 
             <td class="type">
@@ -437,13 +414,6 @@ If <code>null</code>, an arbitrary ordering is obtained from <code>columns</code
     </tbody>
 </table>
 
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
 
 
 
@@ -473,7 +443,7 @@ If <code>null</code>, an arbitrary ordering is obtained from <code>columns</code
 
 
     <ul>
-        <li><a href="Annotated.html">Annotated</a></li>
+        <li><a href="Vector.html">Vector</a></li>
     </ul>
 
 
@@ -485,7 +455,7 @@ If <code>null</code>, an arbitrary ordering is obtained from <code>columns</code
         <h3 class="subsection-title">Classes</h3>
 
         <dl>
-            <dt><a href="DataFrame.html">DataFrame</a></dt>
+            <dt><a href="GroupedGRanges.html">GroupedGRanges</a></dt>
             <dd></dd>
         </dl>
     
@@ -506,7 +476,7 @@ If <code>null</code>, an arbitrary ordering is obtained from <code>columns</code
 
     
 
-    <h4 class="name" id="$removeColumn"><span class="type-signature"></span>$removeColumn<span class="signature">(i)</span><span class="type-signature"> &rarr; {<a href="DataFrame.html">DataFrame</a>}</span></h4>
+    <h4 class="name" id="$setElementMetadata"><span class="type-signature"></span>$setElementMetadata<span class="signature">(elementMetadata<span class="signature-attributes">nullable</span>)</span><span class="type-signature"> &rarr; {<a href="Vector.html">Vector</a>}</span></h4>
 
     
 
@@ -518,7 +488,7 @@ If <code>null</code>, an arbitrary ordering is obtained from <code>columns</code
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line164">line 164</a>
+        <a href="Vector.js.html">Vector.js</a>, <a href="Vector.js.html#line74">line 74</a>
     </li></ul></dd>
     
 
@@ -528,6 +498,11 @@ If <code>null</code>, an arbitrary ordering is obtained from <code>columns</code
 
     
 
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
+        <a href="Vector.html#$setElementMetadata">Vector#$setElementMetadata</a>
+    </li></ul></dd>
     
 
     
@@ -580,6 +555,8 @@ If <code>null</code>, an arbitrary ordering is obtained from <code>columns</code
         <th>Type</th>
 
         
+        <th>Attributes</th>
+        
 
         
 
@@ -592,26 +569,35 @@ If <code>null</code>, an arbitrary ordering is obtained from <code>columns</code
 
         <tr>
             
-                <td class="name"><code>i</code></td>
+                <td class="name"><code>elementMetadata</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">string</span>
-|
-
-<span class="param-type">number</span>
+<span class="param-type"><a href="DataFrame.html">DataFrame</a></span>
 
 
             
             </td>
 
             
+                <td class="attributes">
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
 
             
 
-            <td class="description last"><p>Column to remove, either by name or index.</p></td>
+            <td class="description last"><p>Arbitrary metadata for each vector element.
+This should have number of rows equal to the vector length.
+Alternatively <code>null</code>, in which case all existing per-element metadata is removed.</p></td>
         </tr>
 
     
@@ -637,7 +623,7 @@ If <code>null</code>, an arbitrary ordering is obtained from <code>columns</code
 
         
 <div class="param-desc">
-    <p>Reference to this DataFrame after the column is removed.</p>
+    <p>A reference to this Vector object, after setting the element metadata to <code>value</code>.</p>
 </div>
 
 
@@ -648,348 +634,7 @@ If <code>null</code>, an arbitrary ordering is obtained from <code>columns</code
     </dt>
     <dd>
         
-<span class="param-type"><a href="DataFrame.html">DataFrame</a></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="$setColumn"><span class="type-signature"></span>$setColumn<span class="signature">(i, value)</span><span class="type-signature"> &rarr; {<a href="DataFrame.html">DataFrame</a>}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line190">line 190</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>i</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-|
-
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Identity of the column to add, either by name or index.
-Numeric <code>i</code> should be non-negative and less than the number of columns.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>value</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">*</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Array-like column to set/add as the column.</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Reference to this DataFrame with modified columns.</p>
-<ul>
-<li>If <code>i</code> is a number, the column at the specified index is replaced.</li>
-<li>If <code>i</code> is a string, any column with the same name is replaced.
-If no such column exists, a new column is appended to the DataFrame.</li>
-</ul>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="DataFrame.html">DataFrame</a></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="$setColumnNames"><span class="type-signature"></span>$setColumnNames<span class="signature">(names)</span><span class="type-signature"> &rarr; {<a href="DataFrame.html">DataFrame</a>}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line212">line 212</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>names</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Array</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Array of unique strings containing the new name for each column.
-This should have the same length as <a href="DataFrame.html#columnNames"><code>DataFrame.columnNames</code></a>.</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Reference to this DataFrame with modified column names.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="DataFrame.html">DataFrame</a></span>
+<span class="param-type"><a href="Vector.html">Vector</a></span>
 
 
     </dd>
@@ -1029,7 +674,7 @@ This should have the same length as <a href="DataFrame.html#columnNames"><code>D
     
     <dt class="tag-overrides">Overrides:</dt>
     <dd class="tag-overrides"><ul class="dummy"><li>
-        <a href="Annotated.html#$setMetadata">Annotated#$setMetadata</a>
+        <a href="Vector.html#$setMetadata">Vector#$setMetadata</a>
     </li></ul></dd>
     
 
@@ -1163,7 +808,7 @@ This should have the same length as <a href="DataFrame.html#columnNames"><code>D
 
     
 
-    <h4 class="name" id="$setRowNames"><span class="type-signature"></span>$setRowNames<span class="signature">(names<span class="signature-attributes">nullable</span>)</span><span class="type-signature"> &rarr; {<a href="DataFrame.html">DataFrame</a>}</span></h4>
+    <h4 class="name" id="$setNames"><span class="type-signature"></span>$setNames<span class="signature">(names<span class="signature-attributes">nullable</span>)</span><span class="type-signature"> &rarr; {<a href="Vector.html">Vector</a>}</span></h4>
 
     
 
@@ -1175,7 +820,7 @@ This should have the same length as <a href="DataFrame.html#columnNames"><code>D
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line235">line 235</a>
+        <a href="Vector.js.html">Vector.js</a>, <a href="Vector.js.html#line85">line 85</a>
     </li></ul></dd>
     
 
@@ -1185,6 +830,11 @@ This should have the same length as <a href="DataFrame.html#columnNames"><code>D
 
     
 
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
+        <a href="Vector.html#$setNames">Vector#$setNames</a>
+    </li></ul></dd>
     
 
     
@@ -1277,9 +927,9 @@ This should have the same length as <a href="DataFrame.html#columnNames"><code>D
 
             
 
-            <td class="description last"><p>Array of unique strings containing the new name for each row.
-This should have the same length as <a href="DataFrame.html#numberOfRows"><code>DataFrame.numberOfRows</code></a>.</p>
-<p>Alternatively, this may be <code>null</code> to remove any existing column names.</p></td>
+            <td class="description last"><p>Array of strings containing a name for each range.
+This should have length equal to the number of ranges.
+Alternatively <code>null</code>, if no names are present.</p></td>
         </tr>
 
     
@@ -1305,7 +955,7 @@ This should have the same length as <a href="DataFrame.html#numberOfRows"><code>
 
         
 <div class="param-desc">
-    <p>Reference to this DataFrame with modified row names.</p>
+    <p>A reference to this Vector object, after setting the names to <code>names</code>.</p>
 </div>
 
 
@@ -1316,7 +966,7 @@ This should have the same length as <a href="DataFrame.html#numberOfRows"><code>
     </dt>
     <dd>
         
-<span class="param-type"><a href="DataFrame.html">DataFrame</a></span>
+<span class="param-type"><a href="Vector.html">Vector</a></span>
 
 
     </dd>
@@ -1331,7 +981,7 @@ This should have the same length as <a href="DataFrame.html#numberOfRows"><code>
 
     
 
-    <h4 class="name" id="$sliceColumns"><span class="type-signature"></span>$sliceColumns<span class="signature">(i)</span><span class="type-signature"> &rarr; {<a href="DataFrame.html">DataFrame</a>}</span></h4>
+    <h4 class="name" id="$setRanges"><span class="type-signature"></span>$setRanges<span class="signature">(ranges)</span><span class="type-signature"> &rarr; {<a href="GroupedGRanges.html">GroupedGRanges</a>}</span></h4>
 
     
 
@@ -1343,7 +993,7 @@ This should have the same length as <a href="DataFrame.html#numberOfRows"><code>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line249">line 249</a>
+        <a href="GroupedGRanges.js.html">GroupedGRanges.js</a>, <a href="GroupedGRanges.js.html#line134">line 134</a>
     </li></ul></dd>
     
 
@@ -1417,13 +1067,13 @@ This should have the same length as <a href="DataFrame.html#numberOfRows"><code>
 
         <tr>
             
-                <td class="name"><code>i</code></td>
+                <td class="name"><code>ranges</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Array</span>
+<span class="param-type"><a href="GRanges.html">GRanges</a></span>
 
 
             
@@ -1433,8 +1083,7 @@ This should have the same length as <a href="DataFrame.html#numberOfRows"><code>
 
             
 
-            <td class="description last"><p>Array of strings or indices specifying the columns to retain in the slice.
-This should refer to unique column names.</p></td>
+            <td class="description last"><p>Genomic ranges of length equal to the concatenated set of ranges returned by <a href="GroupedGRanges.html#ranges"><code>ranges</code></a>.</p></td>
         </tr>
 
     
@@ -1460,7 +1109,7 @@ This should refer to unique column names.</p></td>
 
         
 <div class="param-desc">
-    <p>Reference to this DataFrame after slicing to the specified columns.</p>
+    <p>A reference to this GroupedGRanges object after modifying the internal ranges.</p>
 </div>
 
 
@@ -1471,7 +1120,7 @@ This should refer to unique column names.</p></td>
     </dt>
     <dd>
         
-<span class="param-type"><a href="DataFrame.html">DataFrame</a></span>
+<span class="param-type"><a href="GroupedGRanges.html">GroupedGRanges</a></span>
 
 
     </dd>
@@ -1486,7 +1135,7 @@ This should refer to unique column names.</p></td>
 
     
 
-    <h4 class="name" id="column"><span class="type-signature"></span>column<span class="signature">(i)</span><span class="type-signature"> &rarr; {*}</span></h4>
+    <h4 class="name" id="buildOverlapIndex"><span class="type-signature"></span>buildOverlapIndex<span class="signature">(options<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="GroupedGRangesOverlapIndex.html">GroupedGRangesOverlapIndex</a>}</span></h4>
 
     
 
@@ -1498,7 +1147,7 @@ This should refer to unique column names.</p></td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line144">line 144</a>
+        <a href="GroupedGRanges.js.html">GroupedGRanges.js</a>, <a href="GroupedGRanges.js.html#line158">line 158</a>
     </li></ul></dd>
     
 
@@ -1560,7 +1209,415 @@ This should refer to unique column names.</p></td>
         <th>Type</th>
 
         
+        <th>Attributes</th>
+        
 
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>options</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>{}</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>Optional parameters.</p>
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>restrictToSeqnames</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+|
+
+<span class="param-type">Set</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>null</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>Array or Set containing the sequence names to use in the index.
+If <code>null</code>, all available sequence names are used.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>restrictToStrand</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+|
+
+<span class="param-type">Set</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>null</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>Array or Set containing the strands to use in the index.
+If <code>null</code>, all available strands are used.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>A pre-built index for computing overlaps with other <a href="GRanges.html">GRanges</a> instances.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="GroupedGRangesOverlapIndex.html">GroupedGRangesOverlapIndex</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="elementMetadata"><span class="type-signature"></span>elementMetadata<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="DataFrame.html">DataFrame</a>}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Vector.js.html">Vector.js</a>, <a href="Vector.js.html#line53">line 53</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
+        <a href="Vector.html#elementMetadata">Vector#elementMetadata</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>A <a href="DataFrame.html">DataFrame</a> with one row corresponding to each vector element, containing arbitrary per-element metadata.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="DataFrame.html">DataFrame</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="group"><span class="type-signature"></span>group<span class="signature">(i)</span><span class="type-signature"> &rarr; {<a href="GRanges.html">GRanges</a>}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="GroupedGRanges.js.html">GroupedGRanges.js</a>, <a href="GroupedGRanges.js.html#line114">line 114</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
         
 
         <th class="last">Description</th>
@@ -1578,9 +1635,6 @@ This should refer to unique column names.</p></td>
             <td class="type">
             
                 
-<span class="param-type">string</span>
-|
-
 <span class="param-type">number</span>
 
 
@@ -1588,269 +1642,61 @@ This should refer to unique column names.</p></td>
             </td>
 
             
+                <td class="attributes">
+                
 
+                
+
+                
+                </td>
             
 
-            <td class="description last"><p>Column to retrieve, either by name or index.</p></td>
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>Index of the group of interest.</p></td>
         </tr>
 
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>The contents of column <code>i</code> as a vector-like object.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">*</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="columnNames"><span class="type-signature"></span>columnNames<span class="signature">()</span><span class="type-signature"> &rarr; {Array}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line114">line 114</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Array of strings containing the column names in the specified order.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Array</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="hasColumn"><span class="type-signature"></span>hasColumn<span class="signature">(name)</span><span class="type-signature"> &rarr; {boolean}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line122">line 122</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
     
 
         <tr>
             
-                <td class="name"><code>name</code></td>
+                <td class="name"><code>options.allowView</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">string</span>
+<span class="param-type">boolean</span>
 
 
             
             </td>
 
             
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
 
+                
+
+                
+                </td>
             
 
-            <td class="description last"><p>Name of a column.</p></td>
+            
+                <td class="default">
+                
+                    <code>false</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>Whether a view can be created in any internal slicing operations.</p></td>
         </tr>
 
     
@@ -1876,7 +1722,7 @@ This should refer to unique column names.</p></td>
 
         
 <div class="param-desc">
-    <p>Whether the column exists in this DataFrame.</p>
+    <p>The genomic ranges for group <code>i</code>.</p>
 </div>
 
 
@@ -1887,7 +1733,7 @@ This should refer to unique column names.</p></td>
     </dt>
     <dd>
         
-<span class="param-type">boolean</span>
+<span class="param-type"><a href="GRanges.html">GRanges</a></span>
 
 
     </dd>
@@ -1927,7 +1773,7 @@ This should refer to unique column names.</p></td>
     
     <dt class="tag-overrides">Overrides:</dt>
     <dd class="tag-overrides"><ul class="dummy"><li>
-        <a href="Annotated.html#metadata">Annotated#metadata</a>
+        <a href="Vector.html#metadata">Vector#metadata</a>
     </li></ul></dd>
     
 
@@ -2012,7 +1858,7 @@ This should refer to unique column names.</p></td>
 
     
 
-    <h4 class="name" id="numberOfColumns"><span class="type-signature"></span>numberOfColumns<span class="signature">()</span><span class="type-signature"> &rarr; {number}</span></h4>
+    <h4 class="name" id="names"><span class="type-signature"></span>names<span class="signature">()</span><span class="type-signature"> &rarr; (nullable) {Array}</span></h4>
 
     
 
@@ -2024,7 +1870,7 @@ This should refer to unique column names.</p></td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line136">line 136</a>
+        <a href="Vector.js.html">Vector.js</a>, <a href="Vector.js.html#line60">line 60</a>
     </li></ul></dd>
     
 
@@ -2034,6 +1880,11 @@ This should refer to unique column names.</p></td>
 
     
 
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
+        <a href="Vector.html#names">Vector#names</a>
+    </li></ul></dd>
     
 
     
@@ -2091,217 +1942,7 @@ This should refer to unique column names.</p></td>
 
         
 <div class="param-desc">
-    <p>Number of columns in this DataFrame.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">number</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="numberOfRows"><span class="type-signature"></span>numberOfRows<span class="signature">()</span><span class="type-signature"> &rarr; {number}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line129">line 129</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Number of rows in this DataFrame.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">number</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="rowNames"><span class="type-signature"></span>rowNames<span class="signature">()</span><span class="type-signature"> &rarr; (nullable) {Array}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line107">line 107</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Array of strings containing row names, or <code>null</code> if no row names are available.</p>
+    <p>Array of strings containing the name of each range, or <code>null</code> if no names are available.</p>
 </div>
 
 
@@ -2313,6 +1954,426 @@ This should refer to unique column names.</p></td>
     <dd>
         
 <span class="param-type">Array</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="numberOfGroups"><span class="type-signature"></span>numberOfGroups<span class="signature">()</span><span class="type-signature"> &rarr; {number}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="GroupedGRanges.js.html">GroupedGRanges.js</a>, <a href="GroupedGRanges.js.html#line122">line 122</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Number of groups in this object.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">number</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="rangeLengths"><span class="type-signature"></span>rangeLengths<span class="signature">()</span><span class="type-signature"> &rarr; {Int32Array}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="GroupedGRanges.js.html">GroupedGRanges.js</a>, <a href="GroupedGRanges.js.html#line104">line 104</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>The length of each group's ranges along the concatenated set of ranges returned by <a href="GroupedGRanges.html#ranges"><code>ranges</code></a>.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Int32Array</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="ranges"><span class="type-signature"></span>ranges<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="GRanges.html">GRanges</a>}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="GroupedGRanges.js.html">GroupedGRanges.js</a>, <a href="GroupedGRanges.js.html#line90">line 90</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>The concatenated set of ranges across all groups.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="GRanges.html">GRanges</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="rangeStarts"><span class="type-signature"></span>rangeStarts<span class="signature">()</span><span class="type-signature"> &rarr; {Int32Array}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="GroupedGRanges.js.html">GroupedGRanges.js</a>, <a href="GroupedGRanges.js.html#line97">line 97</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>The start indices for each group's ranges along the concatenated set of ranges returned by <a href="GroupedGRanges.html#ranges"><code>ranges</code></a>.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Int32Array</span>
 
 
     </dd>
