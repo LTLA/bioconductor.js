@@ -166,6 +166,7 @@ For classes:
 | [`DataFrame`](https://ltla.github.io/bioconductor.js/DataFrame.html) | `S4Vectors::DFrame` |
 | [`IRanges`](https://ltla.github.io/bioconductor.js/IRanges.html) | `IRanges::IRanges` |
 | [`GRanges`](https://ltla.github.io/bioconductor.js/GRanges.html) | `GenomicRanges::GRanges` |
+| [`GroupedGRanges`](https://ltla.github.io/bioconductor.js/GroupedGRanges.html) | `GenomicRanges::GRangesList` |
 | [`SummarizedExperiment`](https://ltla.github.io/bioconductor.js/SummarizedExperiment.html) | `SummarizedExperiment::SummarizedExperiment` |
 | [`RangedSummarizedExperiment`](https://ltla.github.io/bioconductor.js/RangedSummarizedExperiment.html) | `SummarizedExperiment::RangedSummarizedExperiment` |
 
