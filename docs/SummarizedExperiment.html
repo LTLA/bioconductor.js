@@ -3,7 +3,7 @@
 <head>
     
     <meta charset="utf-8">
-    <title>IRanges - Documentation</title>
+    <title>SummarizedExperiment - Documentation</title>
     
     
     <script src="scripts/prettify/prettify.js"></script>
@@ -34,7 +34,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">IRanges</h1>
+    <h1 class="page-title">SummarizedExperiment</h1>
     
 
     
@@ -47,16 +47,27 @@
 <header>
     
         <h2>
-        IRanges
+        SummarizedExperiment
         </h2>
         
-            <div class="class-description usertext"><p>An IRanges object is a collection of integer ranges, inspired by the class of the same name from the Bioconductor ecosystem.
-Each range consists of a start position and a width, and may be associated with arbitrary range-level metadata in a <a href="DataFrame.html">DataFrame</a>.
-The IRanges defines methods for the following generics:</p>
+            <div class="class-description usertext"><p>A SummarizedExperiment contains zero or more assays, consisting of multi-dimensional arrays (usually matrices) of experimental data,
+as well as <a href="DataFrame.html">DataFrame</a>s containing further annotations on the rows or columns of those arrays.
+The SummarizedExperiment class defines methods for the following generics:</p>
 <ul>
-<li><a href="global.html#LENGTH"><code>LENGTH</code></a></li>
-<li><a href="global.html#SLICE"><code>SLICE</code></a></li>
-<li><a href="global.html#COMBINE"><code>COMBINE</code></a></li>
+<li><a href="global.html#NUMBER_OF_ROWS"><code>NUMBER_OF_ROWS</code></a></li>
+<li><a href="global.html#NUMBER_OF_COLUMNS"><code>NUMBER_OF_COLUMNS</code></a></li>
+<li><a href="global.html#SLICE_2D"><code>SLICE_2D</code></a></li>
+<li><a href="global.html#COMBINE_ROWS"><code>COMBINE_ROWS</code></a></li>
+<li><a href="global.html#COMBINE_COLUMNS"><code>COMBINE_COLUMNS</code></a></li>
+<li><a href="global.html#CLONE"><code>CLONE</code></a></li>
+</ul>
+<p>Assays are expected to provide methods for the following generics:</p>
+<ul>
+<li><a href="global.html#NUMBER_OF_ROWS"><code>NUMBER_OF_ROWS</code></a></li>
+<li><a href="global.html#NUMBER_OF_COLUMNS"><code>NUMBER_OF_COLUMNS</code></a></li>
+<li><a href="global.html#SLICE_2D"><code>SLICE_2D</code></a></li>
+<li><a href="global.html#COMBINE_ROWS"><code>COMBINE_ROWS</code></a></li>
+<li><a href="global.html#COMBINE_COLUMNS"><code>COMBINE_COLUMNS</code></a></li>
 <li><a href="global.html#CLONE"><code>CLONE</code></a></li>
 </ul></div>
         
@@ -73,7 +84,7 @@ The IRanges defines methods for the following generics:</p>
     <h2>Constructor</h2>
     
 
-    <h4 class="name" id="IRanges"><span class="type-signature"></span>new IRanges<span class="signature">(start, width, options<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="SummarizedExperiment"><span class="type-signature"></span>new SummarizedExperiment<span class="signature">(assays, options<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
 
     
 
@@ -85,7 +96,7 @@ The IRanges defines methods for the following generics:</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="IRanges.js.html">IRanges.js</a>, <a href="IRanges.js.html#line19">line 19</a>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line29">line 29</a>
     </li></ul></dd>
     
 
@@ -163,16 +174,13 @@ The IRanges defines methods for the following generics:</p>
 
         <tr>
             
-                <td class="name"><code>start</code></td>
+                <td class="name"><code>assays</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Array</span>
-|
-
-<span class="param-type">TypedArray</span>
+<span class="param-type">Object</span>
 
 
             
@@ -194,47 +202,8 @@ The IRanges defines methods for the following generics:</p>
                 </td>
             
 
-            <td class="description last"><p>Array of start positions for each range.
-This should be coercible into an Int32Array.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>width</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Array</span>
-|
-
-<span class="param-type">TypedArray</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                </td>
-            
-
-            <td class="description last"><p>Array of widths for each range.
-This should be coercible into an Int32Array.</p></td>
+            <td class="description last"><p>Object where keys are the assay names and values are multi-dimensional arrays of experimental data.
+All arrays should have the same number of rows and columns.</p></td>
         </tr>
 
     
@@ -303,7 +272,7 @@ This should be coercible into an Int32Array.</p></td>
 
         <tr>
             
-                <td class="name"><code>names</code></td>
+                <td class="name"><code>assayOrder</code></td>
             
 
             <td class="type">
@@ -337,15 +306,16 @@ This should be coercible into an Int32Array.</p></td>
                 </td>
             
 
-            <td class="description last"><p>Array of strings of length equal to <code>start</code>, containing names for each range.
-Alternatively <code>null</code>, in which case the ranges are assumed to be unnamed.</p></td>
+            <td class="description last"><p>Array of strings specifying the ordering of the assays.
+If non-<code>null</code>, this should have the same values as the keys of <code>assays</code>.
+If <code>null</code>, an arbitrary ordering is obtained from <code>assays</code>.</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>elementMetadata</code></td>
+                <td class="name"><code>rowData</code></td>
             
 
             <td class="type">
@@ -379,8 +349,136 @@ Alternatively <code>null</code>, in which case the ranges are assumed to be unna
                 </td>
             
 
-            <td class="description last"><p>A <a href="DataFrame.html">DataFrame</a> with number of rows equal to the length of <code>start</code>, containing arbitrary per-range annotations.
-Alternatively <code>null</code>, in which case a zero-column DataFrame is automatically constructed.</p></td>
+            <td class="description last"><p>Data frame of row annotations.
+If non-<code>null</code>, this should have a number of rows equal to the number of rows in each entry of <code>assays</code>.
+If <code>null</code>, an empty <a href="DataFrame.html">DataFrame</a> is automatically created.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>columnData</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="DataFrame.html">DataFrame</a></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>null</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>Data frame of column annotations.
+If non-<code>null</code>, this should have a number of columns equal to the number of columns in each entry of <code>assays</code>.
+If <code>null</code>, an empty <a href="DataFrame.html">DataFrame</a> is automatically created.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>rowNames</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>null</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>Array of strings of length equal to the number of rows in the <code>assays</code>, containing row names.
+Alternatively <code>null</code>, if no row names are present.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>columnNames</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>null</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>Array of strings of length equal to the number of columns in the <code>assays</code>, containing column names.
+Alternatively <code>null</code>, if no column names are present.</p></td>
         </tr>
 
     
@@ -462,7 +560,7 @@ Alternatively <code>null</code>, in which case a zero-column DataFrame is automa
 
 
     <ul>
-        <li><a href="Vector.html">Vector</a></li>
+        <li><a href="Annotated.html">Annotated</a></li>
     </ul>
 
 
@@ -474,7 +572,7 @@ Alternatively <code>null</code>, in which case a zero-column DataFrame is automa
         <h3 class="subsection-title">Classes</h3>
 
         <dl>
-            <dt><a href="IRanges.html">IRanges</a></dt>
+            <dt><a href="SummarizedExperiment.html">SummarizedExperiment</a></dt>
             <dd></dd>
         </dl>
     
@@ -495,7 +593,7 @@ Alternatively <code>null</code>, in which case a zero-column DataFrame is automa
 
     
 
-    <h4 class="name" id="$setElementMetadata"><span class="type-signature"></span>$setElementMetadata<span class="signature">(elementMetadata<span class="signature-attributes">nullable</span>)</span><span class="type-signature"> &rarr; {<a href="Vector.html">Vector</a>}</span></h4>
+    <h4 class="name" id="$removeAssay"><span class="type-signature"></span>$removeAssay<span class="signature">(i)</span><span class="type-signature"> &rarr; {<a href="SummarizedExperiment.html">SummarizedExperiment</a>}</span></h4>
 
     
 
@@ -507,7 +605,7 @@ Alternatively <code>null</code>, in which case a zero-column DataFrame is automa
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Vector.js.html">Vector.js</a>, <a href="Vector.js.html#line74">line 74</a>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line216">line 216</a>
     </li></ul></dd>
     
 
@@ -517,11 +615,6 @@ Alternatively <code>null</code>, in which case a zero-column DataFrame is automa
 
     
 
-    
-    <dt class="tag-overrides">Overrides:</dt>
-    <dd class="tag-overrides"><ul class="dummy"><li>
-        <a href="Vector.html#$setElementMetadata">Vector#$setElementMetadata</a>
-    </li></ul></dd>
     
 
     
@@ -574,8 +667,6 @@ Alternatively <code>null</code>, in which case a zero-column DataFrame is automa
         <th>Type</th>
 
         
-        <th>Attributes</th>
-        
 
         
 
@@ -588,35 +679,26 @@ Alternatively <code>null</code>, in which case a zero-column DataFrame is automa
 
         <tr>
             
-                <td class="name"><code>elementMetadata</code></td>
+                <td class="name"><code>i</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type"><a href="DataFrame.html">DataFrame</a></span>
+<span class="param-type">string</span>
+|
+
+<span class="param-type">number</span>
 
 
             
             </td>
 
             
-                <td class="attributes">
-                
-
-                
-                    &lt;nullable><br>
-                
-
-                
-                </td>
-            
 
             
 
-            <td class="description last"><p>Arbitrary metadata for each vector element.
-This should have number of rows equal to the vector length.
-Alternatively <code>null</code>, in which case all existing per-element metadata is removed.</p></td>
+            <td class="description last"><p>Identity of the assay to add, either by name or index.</p></td>
         </tr>
 
     
@@ -642,7 +724,7 @@ Alternatively <code>null</code>, in which case all existing per-element metadata
 
         
 <div class="param-desc">
-    <p>A reference to this Vector object, after setting the element metadata to <code>value</code>.</p>
+    <p>Reference to this SummarizedExperiment after removing the specified assay.</p>
 </div>
 
 
@@ -653,7 +735,503 @@ Alternatively <code>null</code>, in which case all existing per-element metadata
     </dt>
     <dd>
         
-<span class="param-type"><a href="Vector.html">Vector</a></span>
+<span class="param-type"><a href="SummarizedExperiment.html">SummarizedExperiment</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="$setAssay"><span class="type-signature"></span>$setAssay<span class="signature">(i, value)</span><span class="type-signature"> &rarr; {<a href="SummarizedExperiment.html">SummarizedExperiment</a>}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line241">line 241</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>i</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+|
+
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Identity of the assay to add, either by name or index.
+Numeric <code>i</code> should be non-negative and less than the number of assays.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>value</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">*</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Multi-dimensional array-like object to set/add as the assay.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Reference to this SummarizedExperiment with modified assays.</p>
+<ul>
+<li>If <code>i</code> is a number, the assay at the specified index is replaced.</li>
+<li>If <code>i</code> is a string, any assay with the same name is replaced.
+If no such assay exists, a new assay is appended to the list of assays.</li>
+</ul>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="SummarizedExperiment.html">SummarizedExperiment</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="$setColumnData"><span class="type-signature"></span>$setColumnData<span class="signature">(value)</span><span class="type-signature"> &rarr; {<a href="SummarizedExperiment.html">SummarizedExperiment</a>}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line279">line 279</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>value</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="DataFrame.html">DataFrame</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Data frame containing the column annotations.
+This should have one row for each columns of this SummarizedExperiment.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Reference to this SummarizedExperiment with modified column data.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="SummarizedExperiment.html">SummarizedExperiment</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="$setColumnNames"><span class="type-signature"></span>$setColumnNames<span class="signature">(names)</span><span class="type-signature"> &rarr; {<a href="SummarizedExperiment.html">SummarizedExperiment</a>}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line308">line 308</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>names</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Array of strings of length equal to the number of columns in this SummarizedExperiment, containing column names.
+Alternatively <code>null</code>, to remove all column names.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Reference to this SummarizedExperiment with modified column names.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="SummarizedExperiment.html">SummarizedExperiment</a></span>
 
 
     </dd>
@@ -693,7 +1271,7 @@ Alternatively <code>null</code>, in which case all existing per-element metadata
     
     <dt class="tag-overrides">Overrides:</dt>
     <dd class="tag-overrides"><ul class="dummy"><li>
-        <a href="Vector.html#$setMetadata">Vector#$setMetadata</a>
+        <a href="Annotated.html#$setMetadata">Annotated#$setMetadata</a>
     </li></ul></dd>
     
 
@@ -827,7 +1405,7 @@ Alternatively <code>null</code>, in which case all existing per-element metadata
 
     
 
-    <h4 class="name" id="$setNames"><span class="type-signature"></span>$setNames<span class="signature">(names<span class="signature-attributes">nullable</span>)</span><span class="type-signature"> &rarr; {<a href="Vector.html">Vector</a>}</span></h4>
+    <h4 class="name" id="$setRowData"><span class="type-signature"></span>$setRowData<span class="signature">(value)</span><span class="type-signature"> &rarr; {<a href="SummarizedExperiment.html">SummarizedExperiment</a>}</span></h4>
 
     
 
@@ -839,7 +1417,7 @@ Alternatively <code>null</code>, in which case all existing per-element metadata
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Vector.js.html">Vector.js</a>, <a href="Vector.js.html#line85">line 85</a>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line263">line 263</a>
     </li></ul></dd>
     
 
@@ -849,11 +1427,6 @@ Alternatively <code>null</code>, in which case all existing per-element metadata
 
     
 
-    
-    <dt class="tag-overrides">Overrides:</dt>
-    <dd class="tag-overrides"><ul class="dummy"><li>
-        <a href="Vector.html#$setNames">Vector#$setNames</a>
-    </li></ul></dd>
     
 
     
@@ -906,7 +1479,160 @@ Alternatively <code>null</code>, in which case all existing per-element metadata
         <th>Type</th>
 
         
-        <th>Attributes</th>
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>value</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="DataFrame.html">DataFrame</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Data frame containing the row annotations.
+This should have one row for each row of this SummarizedExperiment.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Reference to this SummarizedExperiment with modified row data.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="SummarizedExperiment.html">SummarizedExperiment</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="$setRowNames"><span class="type-signature"></span>$setRowNames<span class="signature">(names)</span><span class="type-signature"> &rarr; {<a href="SummarizedExperiment.html">SummarizedExperiment</a>}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line295">line 295</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
         
 
         
@@ -933,22 +1659,11 @@ Alternatively <code>null</code>, in which case all existing per-element metadata
             </td>
 
             
-                <td class="attributes">
-                
-
-                
-                    &lt;nullable><br>
-                
-
-                
-                </td>
-            
 
             
 
-            <td class="description last"><p>Array of strings containing a name for each range.
-This should have length equal to the number of ranges.
-Alternatively <code>null</code>, if no names are present.</p></td>
+            <td class="description last"><p>Array of strings of length equal to the number of rows in this SummarizedExperiment, containing row names.
+Alternatively <code>null</code>, to remove all row names.</p></td>
         </tr>
 
     
@@ -974,7 +1689,7 @@ Alternatively <code>null</code>, if no names are present.</p></td>
 
         
 <div class="param-desc">
-    <p>A reference to this Vector object, after setting the names to <code>names</code>.</p>
+    <p>Reference to this SummarizedExperiment with modified row names.</p>
 </div>
 
 
@@ -985,7 +1700,7 @@ Alternatively <code>null</code>, if no names are present.</p></td>
     </dt>
     <dd>
         
-<span class="param-type"><a href="Vector.html">Vector</a></span>
+<span class="param-type"><a href="SummarizedExperiment.html">SummarizedExperiment</a></span>
 
 
     </dd>
@@ -1000,7 +1715,7 @@ Alternatively <code>null</code>, if no names are present.</p></td>
 
     
 
-    <h4 class="name" id="$setStart"><span class="type-signature"></span>$setStart<span class="signature">(value)</span><span class="type-signature"> &rarr; {<a href="IRanges.html">IRanges</a>}</span></h4>
+    <h4 class="name" id="assay"><span class="type-signature"></span>assay<span class="signature">(i)</span><span class="type-signature"> &rarr; {*}</span></h4>
 
     
 
@@ -1012,7 +1727,7 @@ Alternatively <code>null</code>, if no names are present.</p></td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="IRanges.js.html">IRanges.js</a>, <a href="IRanges.js.html#line103">line 103</a>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line154">line 154</a>
     </li></ul></dd>
     
 
@@ -1086,16 +1801,16 @@ Alternatively <code>null</code>, if no names are present.</p></td>
 
         <tr>
             
-                <td class="name"><code>value</code></td>
+                <td class="name"><code>i</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Array</span>
+<span class="param-type">string</span>
 |
 
-<span class="param-type">TypedArray</span>
+<span class="param-type">number</span>
 
 
             
@@ -1105,8 +1820,7 @@ Alternatively <code>null</code>, if no names are present.</p></td>
 
             
 
-            <td class="description last"><p>Array of start positions for each range.
-This should have length equal to the number of ranges and be coercible into an Int32Array.</p></td>
+            <td class="description last"><p>Assay to retrieve, either by name or index.</p></td>
         </tr>
 
     
@@ -1132,7 +1846,7 @@ This should have length equal to the number of ranges and be coercible into an I
 
         
 <div class="param-desc">
-    <p>A reference to this IRanges object, after setting the start positions to <code>value</code>.</p>
+    <p>The contents of assay <code>i</code> as an multi-dimensional array-like object.</p>
 </div>
 
 
@@ -1143,7 +1857,7 @@ This should have length equal to the number of ranges and be coercible into an I
     </dt>
     <dd>
         
-<span class="param-type"><a href="IRanges.html">IRanges</a></span>
+<span class="param-type">*</span>
 
 
     </dd>
@@ -1158,7 +1872,7 @@ This should have length equal to the number of ranges and be coercible into an I
 
     
 
-    <h4 class="name" id="$setWidth"><span class="type-signature"></span>$setWidth<span class="signature">(value)</span><span class="type-signature"> &rarr; {<a href="IRanges.html">IRanges</a>}</span></h4>
+    <h4 class="name" id="assayNames"><span class="type-signature"></span>assayNames<span class="signature">()</span><span class="type-signature"> &rarr; {Array}</span></h4>
 
     
 
@@ -1170,7 +1884,7 @@ This should have length equal to the number of ranges and be coercible into an I
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="IRanges.js.html">IRanges.js</a>, <a href="IRanges.js.html#line118">line 118</a>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line139">line 139</a>
     </li></ul></dd>
     
 
@@ -1219,89 +1933,36 @@ This should have length equal to the number of ranges and be coercible into an I
 
 
 
-    <h5>Parameters:</h5>
-    
 
-<table class="params">
-    <thead>
-    <tr>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
         
-        <th>Name</th>
+<div class="param-desc">
+    <p>Array of assay names.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
         
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>value</code></td>
-            
-
-            <td class="type">
-            
-                
 <span class="param-type">Array</span>
-|
-
-<span class="param-type">TypedArray</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Array of widths for each range.
-This should have length equal to the number of ranges and be coercible into an Int32Array.</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>A reference to this IRanges object, after setting the widths to <code>value</code>.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="IRanges.html">IRanges</a></span>
 
 
     </dd>
@@ -1316,7 +1977,7 @@ This should have length equal to the number of ranges and be coercible into an I
 
     
 
-    <h4 class="name" id="buildOverlapIndex"><span class="type-signature"></span>buildOverlapIndex<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="IRangesOverlapIndex.html">IRangesOverlapIndex</a>}</span></h4>
+    <h4 class="name" id="columnData"><span class="type-signature"></span>columnData<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="DataFrame.html">DataFrame</a>}</span></h4>
 
     
 
@@ -1328,7 +1989,7 @@ This should have length equal to the number of ranges and be coercible into an I
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="IRanges.js.html">IRanges.js</a>, <a href="IRanges.js.html#line135">line 135</a>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line190">line 190</a>
     </li></ul></dd>
     
 
@@ -1395,117 +2056,7 @@ This should have length equal to the number of ranges and be coercible into an I
 
         
 <div class="param-desc">
-    <p>A pre-built index for computing overlaps with other <a href="IRanges.html">IRanges</a> instances.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="IRangesOverlapIndex.html">IRangesOverlapIndex</a></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="elementMetadata"><span class="type-signature"></span>elementMetadata<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="DataFrame.html">DataFrame</a>}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Vector.js.html">Vector.js</a>, <a href="Vector.js.html#line53">line 53</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-overrides">Overrides:</dt>
-    <dd class="tag-overrides"><ul class="dummy"><li>
-        <a href="Vector.html#elementMetadata">Vector#elementMetadata</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>A <a href="DataFrame.html">DataFrame</a> with one row corresponding to each vector element, containing arbitrary per-element metadata.</p>
+    <p>Data frame of column data, with one row per column in this SummarizedExperiment.</p>
 </div>
 
 
@@ -1531,7 +2082,7 @@ This should have length equal to the number of ranges and be coercible into an I
 
     
 
-    <h4 class="name" id="end"><span class="type-signature"></span>end<span class="signature">()</span><span class="type-signature"> &rarr; {Int32Array}</span></h4>
+    <h4 class="name" id="columnNames"><span class="type-signature"></span>columnNames<span class="signature">()</span><span class="type-signature"> &rarr; (nullable) {Array}</span></h4>
 
     
 
@@ -1543,7 +2094,7 @@ This should have length equal to the number of ranges and be coercible into an I
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="IRanges.js.html">IRanges.js</a>, <a href="IRanges.js.html#line83">line 83</a>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line204">line 204</a>
     </li></ul></dd>
     
 
@@ -1610,7 +2161,7 @@ This should have length equal to the number of ranges and be coercible into an I
 
         
 <div class="param-desc">
-    <p>Array of integers containing the end position (specifically, one-past-the-end) for each range.</p>
+    <p>Array of strings containing column names, or <code>null</code> if no column names are available.</p>
 </div>
 
 
@@ -1621,7 +2172,7 @@ This should have length equal to the number of ranges and be coercible into an I
     </dt>
     <dd>
         
-<span class="param-type">Int32Array</span>
+<span class="param-type">Array</span>
 
 
     </dd>
@@ -1661,7 +2212,7 @@ This should have length equal to the number of ranges and be coercible into an I
     
     <dt class="tag-overrides">Overrides:</dt>
     <dd class="tag-overrides"><ul class="dummy"><li>
-        <a href="Vector.html#metadata">Vector#metadata</a>
+        <a href="Annotated.html#metadata">Annotated#metadata</a>
     </li></ul></dd>
     
 
@@ -1746,7 +2297,7 @@ This should have length equal to the number of ranges and be coercible into an I
 
     
 
-    <h4 class="name" id="names"><span class="type-signature"></span>names<span class="signature">()</span><span class="type-signature"> &rarr; (nullable) {Array}</span></h4>
+    <h4 class="name" id="numberOfAssays"><span class="type-signature"></span>numberOfAssays<span class="signature">()</span><span class="type-signature"> &rarr; {number}</span></h4>
 
     
 
@@ -1758,7 +2309,7 @@ This should have length equal to the number of ranges and be coercible into an I
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Vector.js.html">Vector.js</a>, <a href="Vector.js.html#line60">line 60</a>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line146">line 146</a>
     </li></ul></dd>
     
 
@@ -1768,11 +2319,6 @@ This should have length equal to the number of ranges and be coercible into an I
 
     
 
-    
-    <dt class="tag-overrides">Overrides:</dt>
-    <dd class="tag-overrides"><ul class="dummy"><li>
-        <a href="Vector.html#names">Vector#names</a>
-    </li></ul></dd>
     
 
     
@@ -1830,7 +2376,427 @@ This should have length equal to the number of ranges and be coercible into an I
 
         
 <div class="param-desc">
-    <p>Array of strings containing the name of each range, or <code>null</code> if no names are available.</p>
+    <p>Number of assays.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">number</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="numberOfColumns"><span class="type-signature"></span>numberOfColumns<span class="signature">()</span><span class="type-signature"> &rarr; {number}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line197">line 197</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Number of columns in this SummarizedExperiment.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">number</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="numberOfRows"><span class="type-signature"></span>numberOfRows<span class="signature">()</span><span class="type-signature"> &rarr; {number}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line176">line 176</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Number of rows in this SummarizedExperiment.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">number</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="rowData"><span class="type-signature"></span>rowData<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="DataFrame.html">DataFrame</a>}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line169">line 169</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Data frame of row data, with one row per row in this SummarizedExperiment.</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="DataFrame.html">DataFrame</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="rowNames"><span class="type-signature"></span>rowNames<span class="signature">()</span><span class="type-signature"> &rarr; (nullable) {Array}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line183">line 183</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Array of strings containing row names, or <code>null</code> if no row names are available.</p>
 </div>
 
 
@@ -1842,216 +2808,6 @@ This should have length equal to the number of ranges and be coercible into an I
     <dd>
         
 <span class="param-type">Array</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="start"><span class="type-signature"></span>start<span class="signature">()</span><span class="type-signature"> &rarr; {Int32Array}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="IRanges.js.html">IRanges.js</a>, <a href="IRanges.js.html#line76">line 76</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Array of integers containing the start position for each range.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Int32Array</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="width"><span class="type-signature"></span>width<span class="signature">()</span><span class="type-signature"> &rarr; {Int32Array}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="IRanges.js.html">IRanges.js</a>, <a href="IRanges.js.html#line90">line 90</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Array of integers containing the width of each range.</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Int32Array</span>
 
 
     </dd>

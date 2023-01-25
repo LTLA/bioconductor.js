@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>DenseMatrix.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    <input type="text" id="nav-search" placeholder="Search" />
+    
+    <h2><a href="index.html">Home</a></h2><h2><a href="https://github.com/LTLA/bioconductor.js" target="_blank" class="menu-item" id="repository" >Code Repo</a></h2><h3>Classes</h3><ul><li><a href="Annotated.html">Annotated</a><ul class='methods'><li data-type='method' style='display: none;'><a href="Annotated.html#$setMetadata">$setMetadata</a></li><li data-type='method' style='display: none;'><a href="Annotated.html#metadata">metadata</a></li></ul></li><li><a href="DataFrame.html">DataFrame</a><ul class='methods'><li data-type='method' style='display: none;'><a href="DataFrame.html#$removeColumn">$removeColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setColumn">$setColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setColumnNames">$setColumnNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setMetadata">$setMetadata</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$setRowNames">$setRowNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#$sliceColumns">$sliceColumns</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#column">column</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#columnNames">columnNames</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#hasColumn">hasColumn</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#metadata">metadata</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#numberOfColumns">numberOfColumns</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#numberOfRows">numberOfRows</a></li><li data-type='method' style='display: none;'><a href="DataFrame.html#rowNames">rowNames</a></li></ul></li><li><a href="DenseMatrix.html">DenseMatrix</a><ul class='methods'><li data-type='method' style='display: none;'><a href="DenseMatrix.html#$setColumn">$setColumn</a></li><li data-type='method' style='display: none;'><a href="DenseMatrix.html#$setRow">$setRow</a></li><li data-type='method' style='display: none;'><a href="DenseMatrix.html#$setValues">$setValues</a></li><li data-type='method' style='display: none;'><a href="DenseMatrix.html#column">column</a></li><li data-type='method' style='display: none;'><a href="DenseMatrix.html#isColumnMajor">isColumnMajor</a></li><li data-type='method' style='display: none;'><a href="DenseMatrix.html#numberOfColumns">numberOfColumns</a></li><li data-type='method' style='display: none;'><a href="DenseMatrix.html#numberOfRows">numberOfRows</a></li><li data-type='method' style='display: none;'><a href="DenseMatrix.html#row">row</a></li><li data-type='method' style='display: none;'><a href="DenseMatrix.html#values">values</a></li></ul></li><li><a href="GRanges.html">GRanges</a><ul class='methods'><li data-type='method' style='display: none;'><a href="GRanges.html#$setElementMetadata">$setElementMetadata</a></li><li data-type='method' style='display: none;'><a href="GRanges.html#$setMetadata">$setMetadata</a></li><li data-type='method' style='display: none;'><a href="GRanges.html#$setNames">$setNames</a></li><li data-type='method' style='display: none;'><a href="GRanges.html#$setRanges">$setRanges</a></li><li data-type='method' style='display: none;'><a href="GRanges.html#$setSeqnames">$setSeqnames</a></li><li data-type='method' style='display: none;'><a href="GRanges.html#$setStart">$setStart</a></li><li data-type='method' style='display: none;'><a href="GRanges.html#$setStrand">$setStrand</a></li><li data-type='method' style='display: none;'><a href="GRanges.html#$setWidth">$setWidth</a></li><li data-type='method' style='display: none;'><a href="GRanges.html#buildOverlapIndex">buildOverlapIndex</a></li><li data-type='method' style='display: none;'><a href="GRanges.html#elementMetadata">elementMetadata</a></li><li data-type='method' style='display: none;'><a href="GRanges.html#end">end</a></li><li data-type='method' style='display: none;'><a href="GRanges.html#metadata">metadata</a></li><li data-type='method' style='display: none;'><a href="GRanges.html#names">names</a></li><li data-type='method' style='display: none;'><a href="GRanges.html#ranges">ranges</a></li><li data-type='method' style='display: none;'><a href="GRanges.html#seqnames">seqnames</a></li><li data-type='method' style='display: none;'><a href="GRanges.html#start">start</a></li><li data-type='method' style='display: none;'><a href="GRanges.html#strand">strand</a></li><li data-type='method' style='display: none;'><a href="GRanges.html#width">width</a></li></ul></li><li><a href="GRangesOverlapIndex.html">GRangesOverlapIndex</a><ul class='methods'><li data-type='method' style='display: none;'><a href="GRangesOverlapIndex.html#overlap">overlap</a></li></ul></li><li><a href="IRanges.html">IRanges</a><ul class='methods'><li data-type='method' style='display: none;'><a href="IRanges.html#$setElementMetadata">$setElementMetadata</a></li><li data-type='method' style='display: none;'><a href="IRanges.html#$setMetadata">$setMetadata</a></li><li data-type='method' style='display: none;'><a href="IRanges.html#$setNames">$setNames</a></li><li data-type='method' style='display: none;'><a href="IRanges.html#$setStart">$setStart</a></li><li data-type='method' style='display: none;'><a href="IRanges.html#$setWidth">$setWidth</a></li><li data-type='method' style='display: none;'><a href="IRanges.html#buildOverlapIndex">buildOverlapIndex</a></li><li data-type='method' style='display: none;'><a href="IRanges.html#elementMetadata">elementMetadata</a></li><li data-type='method' style='display: none;'><a href="IRanges.html#end">end</a></li><li data-type='method' style='display: none;'><a href="IRanges.html#metadata">metadata</a></li><li data-type='method' style='display: none;'><a href="IRanges.html#names">names</a></li><li data-type='method' style='display: none;'><a href="IRanges.html#start">start</a></li><li data-type='method' style='display: none;'><a href="IRanges.html#width">width</a></li></ul></li><li><a href="IRangesOverlapIndex.html">IRangesOverlapIndex</a><ul class='methods'><li data-type='method' style='display: none;'><a href="IRangesOverlapIndex.html#overlap">overlap</a></li></ul></li><li><a href="SummarizedExperiment.html">SummarizedExperiment</a><ul class='methods'><li data-type='method' style='display: none;'><a href="SummarizedExperiment.html#$removeAssay">$removeAssay</a></li><li data-type='method' style='display: none;'><a href="SummarizedExperiment.html#$setAssay">$setAssay</a></li><li data-type='method' style='display: none;'><a href="SummarizedExperiment.html#$setColumnData">$setColumnData</a></li><li data-type='method' style='display: none;'><a href="SummarizedExperiment.html#$setColumnNames">$setColumnNames</a></li><li data-type='method' style='display: none;'><a href="SummarizedExperiment.html#$setMetadata">$setMetadata</a></li><li data-type='method' style='display: none;'><a href="SummarizedExperiment.html#$setRowData">$setRowData</a></li><li data-type='method' style='display: none;'><a href="SummarizedExperiment.html#$setRowNames">$setRowNames</a></li><li data-type='method' style='display: none;'><a href="SummarizedExperiment.html#assay">assay</a></li><li data-type='method' style='display: none;'><a href="SummarizedExperiment.html#assayNames">assayNames</a></li><li data-type='method' style='display: none;'><a href="SummarizedExperiment.html#columnData">columnData</a></li><li data-type='method' style='display: none;'><a href="SummarizedExperiment.html#columnNames">columnNames</a></li><li data-type='method' style='display: none;'><a href="SummarizedExperiment.html#metadata">metadata</a></li><li data-type='method' style='display: none;'><a href="SummarizedExperiment.html#numberOfAssays">numberOfAssays</a></li><li data-type='method' style='display: none;'><a href="SummarizedExperiment.html#numberOfColumns">numberOfColumns</a></li><li data-type='method' style='display: none;'><a href="SummarizedExperiment.html#numberOfRows">numberOfRows</a></li><li data-type='method' style='display: none;'><a href="SummarizedExperiment.html#rowData">rowData</a></li><li data-type='method' style='display: none;'><a href="SummarizedExperiment.html#rowNames">rowNames</a></li></ul></li><li><a href="Vector.html">Vector</a><ul class='methods'><li data-type='method' style='display: none;'><a href="Vector.html#$setElementMetadata">$setElementMetadata</a></li><li data-type='method' style='display: none;'><a href="Vector.html#$setMetadata">$setMetadata</a></li><li data-type='method' style='display: none;'><a href="Vector.html#$setNames">$setNames</a></li><li data-type='method' style='display: none;'><a href="Vector.html#elementMetadata">elementMetadata</a></li><li data-type='method' style='display: none;'><a href="Vector.html#metadata">metadata</a></li><li data-type='method' style='display: none;'><a href="Vector.html#names">names</a></li></ul></li></ul><h3>Global</h3><ul><li><a href="global.html#CLONE">CLONE</a></li><li><a href="global.html#COMBINE">COMBINE</a></li><li><a href="global.html#COMBINE_COLUMNS">COMBINE_COLUMNS</a></li><li><a href="global.html#COMBINE_ROWS">COMBINE_ROWS</a></li><li><a href="global.html#flexibleCombineRows">flexibleCombineRows</a></li><li><a href="global.html#LENGTH">LENGTH</a></li><li><a href="global.html#NUMBER_OF_COLUMNS">NUMBER_OF_COLUMNS</a></li><li><a href="global.html#NUMBER_OF_ROWS">NUMBER_OF_ROWS</a></li><li><a href="global.html#presplitFactor">presplitFactor</a></li><li><a href="global.html#SLICE">SLICE</a></li><li><a href="global.html#SLICE_2D">SLICE_2D</a></li><li><a href="global.html#SPLIT">SPLIT</a></li><li><a href="global.html#which">which</a></li></ul>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">DenseMatrix.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Dense matrix of numbers.
+ * Not really a Bioconductor-exclusive data structure, but we need this at a minimum for the {@linkplain SummarizedExperiment} to be useful.
+ *
+ * - {@linkcode NUMBER_OF_ROWS}
+ * - {@linkcode NUMBER_OF_COLUMNS}
+ * - {@linkcode SLICE_2D}
+ * - {@linkcode COMBINE_ROWS}
+ * - {@linkcode COMBINE_COLUMNS}
+ * - {@linkcode CLONE}
+ */
+export class DenseMatrix {
+    /**
+     * @param {number} numberOfRows - Number of rows, duh.
+     * @param {number} numberOfColumns - Number of columns.
+     * @param {TypedArray} values - 1-dimensional array of the matrix contents.
+     * This should have length equal to the product of `numberOfRows` and `numberOfColumns`.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.columnMajor=true] - Whether `values` represents a column-major layout.
+     */
+    constructor(numberOfRows, numberOfColumns, values, { columnMajor = true } = {}) {
+        this._numberOfRows = numberOfRows;
+        this._numberOfColumns = numberOfColumns;
+        this._values = values;
+        this._columnMajor = columnMajor;
+        if (numberOfRows * numberOfColumns != values.length) {
+            throw new Error("length of 'values' should be equal to the product of 'dimensions'");
+        }
+    }
+
+    static name = "DenseMatrix";
+
+    /**************************************************************************
+     **************************************************************************
+     **************************************************************************/
+
+    /**
+     * @return {number} Number of rows.
+     */
+    numberOfRows() {
+        return this._numberOfRows;
+    }
+
+    /**
+     * @return {number} Number of columns.
+     */
+    numberOfColumns() {
+        return this._numberOfColumns;
+    }
+
+    /**
+     * @return {boolean} Whether the matrix is column-major.
+     */
+    isColumnMajor() {
+        return this._columnMajor;
+    }
+
+    /**
+     * @return {TypedArray} Matrix contents as a 1-dimensional array.
+     */
+    values() {
+        return this._values;
+    }
+
+    #extractor(i, nprimary, nsecondary, allowView, primaryMajor) {
+        if (!primaryMajor) {
+            let output = new this._values.constructor(nsecondary);
+            let offset = i;
+            for (var s = 0; s &lt; nsecondary; s++) {
+                output[s] = this._values[offset];
+                offset += nprimary;
+            }
+            return output;
+
+        } else {
+            let start = i * nsecondary;
+            let end = start + nsecondary;
+            if (allowView) {
+                return this._values.subarray(start, end);
+            } else {
+                return this._values.slice(start, end);
+            }
+        }
+    }
+
+    /**
+     * Retrieve the contents of a particular row.
+     *
+     * @param {number} i - Index of the row of interest.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.allowView=false] - Whether to allow a view to be returned, if possible.
+     *
+     * @return {TypedArray} Contents of the row `i`.
+     * This may be a view on the array returned by {@linkcode DenseMatrix#values values}, if permitted by the layout.
+     */
+    row(i, { allowView = false } = {}) {
+        return this.#extractor(i, this._numberOfRows, this._numberOfColumns, allowView, !this._columnMajor);
+    }
+
+    /**
+     * Retrieve the contents of a particular column.
+     *
+     * @param {number} i - Index of the column of interest.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.allowView=false] - Whether to allow a view to be returned, if possible.
+     *
+     * @return {TypedArray} Contents of the column `i`.
+     * This may be a view on the array returned by {@linkcode DenseMatrix#values values}, if permitted by the layout.
+     */
+    column(i, { allowView = false } = {}) {
+        return this.#extractor(i, this._numberOfColumns, this._numberOfRows, allowView, this._columnMajor);
+    }
+
+    /**************************************************************************
+     **************************************************************************
+     **************************************************************************/
+
+    /**
+     * @param {TypedArray} values - 1-dimensional array of matrix contents,
+     * of the same length as the array returned by {@linkcode DenseMatrix#values values}.
+     * @return {DenseMatrix} A reference to this DenseMatrix after modifying the matrix contents.
+     */
+    $setValues(values) {
+        if (values.length !== this._values.length) {
+            throw new Error("replacement 'values' should have length equal to 'values()'");
+        }
+        this._values = values;
+        return this;
+    }
+
+    #inserter(i, nprimary, nsecondary, primaryMajor, replacement) {
+        if (!primaryMajor) {
+            let output = new this._values.constructor(nsecondary);
+            let offset = i;
+            for (var s = 0; s &lt; nsecondary; s++) {
+                this._values[offset] = replacement[s];
+                offset += nprimary;
+            }
+        } else {
+            let start = i * nsecondary;
+            this._values.set(replacement, start);
+        }
+    }
+
+    /**
+     * @param {number} i - Row index to set.
+     * @param {TypedArray} values - Row contents, of length equal to the number of columns in this DenseMatrix.
+     * @return {DenseMatrix} A reference to this DenseMatrix after modifying the matrix contents.
+     */
+    $setRow(i, values) {
+        if (values.length !== this._numberOfColumns) {
+            throw new Error("replacement row should have length equal to 'numberOfColumns()'");
+        }
+        this.#inserter(i, this._numberOfRows, this._numberOfColumns, !this._columnMajor, values);
+        return this;
+    }
+
+    /**
+     * @param {number} i - Column index to set.
+     * @param {TypedArray} values - Row contents, of length equal to the number of rows in this DenseMatrix.
+     * @return {DenseMatrix} A reference to this DenseMatrix after modifying the matrix contents.
+     */
+    $setColumn(i, values) {
+        if (values.length !== this._numberOfRows) {
+            throw new Error("replacement column should have length equal to 'numberOfRows()'");
+        }
+        this.#inserter(i, this._numberOfColumns, this._numberOfRows, this._columnMajor, values);
+        return this;
+    }
+
+    /**************************************************************************
+     **************************************************************************
+     **************************************************************************/
+
+    _bioconductor_NUMBER_OF_ROWS() {
+        return this.numberOfRows();
+    }
+
+    _bioconductor_NUMBER_OF_COLUMNS() {
+        return this.numberOfColumns();
+    }
+
+    _bioconductor_SLICE_2D(output, rows, columns, {}) {
+        let full_rows = (rows === null);
+        let is_row_range = (!full_rows &amp;&amp; rows.constructor == Object);
+        let new_rows = full_rows ? this._numberOfRows : (is_row_range ? rows.end - rows.start : rows.length);
+        output._numberOfRows = new_rows;
+
+        let full_columns = (columns === null);
+        let is_column_range = (!full_columns &amp;&amp; columns.constructor == Object);
+        let new_columns = full_columns ? this._numberOfColumns : (is_column_range ? columns.end - columns.start : columns.length);
+        output._numberOfColumns = new_columns;
+
+        let new_values = new this._values.constructor(new_rows * new_columns);
+        output._values = new_values;
+
+        if (this._columnMajor) {
+            this.#primarySlicer(columns, full_columns, is_column_range, this._numberOfColumns, rows, full_rows, is_row_range, this._numberOfRows, new_rows, new_values);
+        } else {
+            this.#primarySlicer(rows, full_rows, is_row_range, this._numberOfRows, columns, full_columns, is_column_range, this._numberOfColumns, new_columns, new_values);
+        }
+        output._columnMajor = this._columnMajor;
+        return;
+    }
+
+    #primarySlicer(primarySlice, fullPrimary, isPrimaryRange, primaryDim, secondarySlice, fullSecondary, isSecondaryRange, inSecondaryDim, outSecondaryDim, outputValues) {
+        if (fullPrimary) {
+            for (var p = 0; p &lt; primaryDim; p++) {
+                this.#secondarySlicer(secondarySlice, fullSecondary, isSecondaryRange, inSecondaryDim, outSecondaryDim, outputValues, p, p);
+            }
+        } else if (isPrimaryRange) {
+            for (var p = primarySlice.start; p &lt; primarySlice.end; p++) {
+                this.#secondarySlicer(secondarySlice, fullSecondary, isSecondaryRange, inSecondaryDim, outSecondaryDim, outputValues, p, p - primarySlice.start);
+            }
+        } else {
+            for (var pi = 0; pi &lt; primarySlice.length; pi++) {
+                this.#secondarySlicer(secondarySlice, fullSecondary, isSecondaryRange, inSecondaryDim, outSecondaryDim, outputValues, primarySlice[pi], pi);
+            }
+        }
+    }
+
+    #secondarySlicer(secondarySlice, fullSecondary, isSecondaryRange, inSecondaryDim, outSecondaryDim, outputValues, inPrimary, outPrimary) {
+        let in_offset = inPrimary * inSecondaryDim;
+        let out_offset = outPrimary * outSecondaryDim;
+
+        if (fullSecondary) {
+            let view = this._values.subarray(in_offset, in_offset + inSecondaryDim);
+            outputValues.set(view, out_offset);
+        } else if (isSecondaryRange) {
+            for (var s = secondarySlice.start; s &lt; secondarySlice.end; s++) {
+                outputValues[out_offset + s - secondarySlice.start] = this._values[in_offset + s];
+            }
+        } else {
+            for (var si = 0; si &lt; secondarySlice.length; si++) {
+                outputValues[out_offset + si] = this._values[in_offset + secondarySlice[si]];
+            }
+        }
+    }
+
+    #combiner(objects, primaryFun, secondaryFun, isPrimaryMajor, secondaryName) {
+        let num_primary = primaryFun(objects[0]);
+        let num_secondary = secondaryFun(objects[0]);
+        for (var i = 1; i &lt; objects.length; i++) {
+            if (secondaryFun(objects[i]) !== num_secondary) {
+                throw new Error("all objects must have the same number of " + secondaryName);
+            }
+            num_primary += primaryFun(objects[i]);
+        }
+
+        let primary_major = isPrimaryMajor(objects[0]);
+        let values = new objects[0]._values.constructor(num_primary * num_secondary);
+
+        if (primary_major) {
+            let used_primary = 0;
+            for (var i = 0; i &lt; objects.length; i++) {
+                let current = objects[i];
+                let cur_primary = primaryFun(current);
+                let out_offset = used_primary * num_secondary;
+
+                if (isPrimaryMajor(current)) {
+                    values.set(current._values, out_offset);
+                } else {
+                    for (var s = 0; s &lt; num_secondary; s++) {
+                        let in_offset = s * cur_primary;
+                        let out_offset2 = out_offset + s;
+                        for (var p = 0; p &lt; cur_primary; p++) {
+                            values[out_offset2 + p * num_secondary] = current._values[in_offset + p];
+                        }
+                    }
+                }
+
+                used_primary += cur_primary;
+            }
+        } else {
+            let used_primary = 0;
+            for (var i = 0; i &lt; objects.length; i++) {
+                let current = objects[i];
+                let cur_primary = primaryFun(current);
+
+                if (!isPrimaryMajor(current)) {
+                    for (var s = 0; s &lt; num_secondary; s++) {
+                        let view_offset = s * cur_primary;
+                        let view = current._values.subarray(view_offset, view_offset + cur_primary);
+                        values.set(view, used_primary + s * num_primary);
+                    }
+                } else {
+                    for (var p = 0; p &lt; cur_primary; p++) {
+                        let in_offset = p * num_secondary;
+                        let out_offset = used_primary + p;
+                        for (var s = 0; s &lt; num_secondary; s++) {
+                            values[out_offset + s * num_primary] = current._values[in_offset + s];
+                        }
+                    }
+                }
+
+                used_primary += cur_primary;
+            }
+        }
+
+        return { num_primary, num_secondary, values, primary_major };
+    }
+
+    _bioconductor_COMBINE_ROWS(output, objects) {
+        let combined = this.#combiner(objects,
+            x => x._numberOfRows,
+            x => x._numberOfColumns,
+            x => !(x._columnMajor),
+            "columns"
+        );
+
+        output._numberOfRows = combined.num_primary;
+        output._numberOfColumns = combined.num_secondary;
+        output._values = combined.values;
+        output._columnMajor = !(combined.primary_major);
+        return;
+    }
+
+    _bioconductor_COMBINE_COLUMNS(output, objects) {
+        let combined = this.#combiner(objects,
+            x => x._numberOfColumns,
+            x => x._numberOfRows,
+            x => x._columnMajor,
+            "rows"
+        );
+
+        output._numberOfColumns = combined.num_primary;
+        output._numberOfRows = combined.num_secondary;
+        output._values = combined.values;
+        output._columnMajor = combined.primary_major;
+        return;
+    }
+
+    _bioconductor_CLONE(output, { deepCopy = true } = {}) {
+        output._values = (deepCopy ? this._values.slice() : this._values);
+        output._numberOfRows = this._numberOfRows;
+        output._numberOfColumns = this._numberOfColumns;
+        output._columnMajor = this._columnMajor;
+        return;
+    }
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Wed Jan 25 2023 01:02:09 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+<script src="scripts/search.js" defer></script>
+
+
+<script src="scripts/collapse.js" defer></script>
+
+
+</body>
+</html>
