@@ -1,6 +1,7 @@
 export * from "./DataFrame.js";
 export * from "./IRanges.js";
 export * from "./GRanges.js";
+export * from "./GroupedGRanges.js";
 export * from "./DenseMatrix.js";
 export * from "./SummarizedExperiment.js";
 export * from "./RangedSummarizedExperiment.js";
