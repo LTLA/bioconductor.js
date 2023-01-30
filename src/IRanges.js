@@ -157,6 +157,17 @@ export class IRanges extends vec.Vector {
         output._width = generics.CLONE(this._width, { deepCopy });
         return;
     }
+
+    /**************************************************************************
+     **************************************************************************
+     **************************************************************************/
+
+    /**
+     * @return {IRanges} A zero-length IRanges object.
+     */
+    static empty() {
+        return new IRanges(new Int32Array, new Int32Array);
+    }
 }
 
 /**

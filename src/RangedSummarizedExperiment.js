@@ -1,5 +1,6 @@
 import * as generics from "./AllGenerics.js";
 import * as gr from "./GRanges.js";
+import * as ggr from "./GroupedGRanges.js";
 import * as se from "./SummarizedExperiment.js";
 import * as utils from "./utils.js";
 
@@ -13,8 +14,8 @@ import * as utils from "./utils.js";
  */
 export class RangedSummarizedExperiment extends se.SummarizedExperiment {
     #check_rowRanges(x) {
-        if (!(x instanceof gr.GRanges)) {
-            throw new Error("'rowRanges' should be a 'GRanges' instance");
+        if (!(x instanceof gr.GRanges) && !(x instanceof ggr.GroupedGRanges)) {
+            throw new Error("'rowRanges' should be a 'GRanges' or 'GroupedGRanges' instance");
         }
         if (generics.LENGTH(x) !== this._rowData.numberOfRows()) {
             throw utils.formatLengthError("'rowRanges'", "the number of rows");
@@ -24,7 +25,11 @@ export class RangedSummarizedExperiment extends se.SummarizedExperiment {
     /**
      * @param {Object} assays - Object where keys are the assay names and values are multi-dimensional arrays of experimental data.
      * All arrays should have the same number of rows and columns.
-     * @param {GRanges} rowRanges - Genomic ranges corresponding to each row.
+     * @param {?(GRanges|GroupedGRanges)} rowRanges - Genomic ranges corresponding to each row.
+     *
+     * Alternatively, each row may correspond to a group of genomic ranges.
+     *
+     * If `null`, a {@linkplain GroupedGRanges} is constructed where each row corresponds to one group of ranges of zero length.
      * @param {Object} [options={}] - Optional parameters.
      * @param {?Array} [options.assayOrder=null] - Array of strings specifying the ordering of the assays.
      * If non-`null`, this should have the same values as the keys of `assays`.
@@ -44,7 +49,11 @@ export class RangedSummarizedExperiment extends se.SummarizedExperiment {
     constructor(assays, rowRanges, { assayOrder = null, rowData = null, columnData = null, rowNames = null, columnNames = null, metadata = {} } = {}) {
         super(assays, { assayOrder, rowData, columnData, rowNames, columnNames, metadata });
 
-        this.#check_rowRanges(rowRanges);
+        if (rowRanges === null) {
+            rowRanges = ggr.GroupedGRanges.empty(this.numberOfRows());
+        } else {
+            this.#check_rowRanges(rowRanges);
+        }
         this._rowRanges = rowRanges;
 
         return;

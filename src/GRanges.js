@@ -276,6 +276,17 @@ export class GRanges extends vec.Vector {
         output._strand = generics.CLONE(this._strand, options);
         return;
     }
+
+    /**************************************************************************
+     **************************************************************************
+     **************************************************************************/
+
+    /**
+     * @return {GRanges} A zero-length GRanges object.
+     */
+    static empty() {
+        return new GRanges([], ir.IRanges.empty());
+    }
 }
 
 /**

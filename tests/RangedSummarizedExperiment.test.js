@@ -45,6 +45,16 @@ test("Construction of a RangedSummarizedExperiment works with all bits and piece
     expect(rse.metadata().bob).toBe(1);
 })
 
+test("Construction of a RangedSummarizedExperiment works with null rowRanges", () => {
+    let mat = utils.spawn_random_matrix(10, 20);
+    let rse = new bioc.RangedSummarizedExperiment({ counts: mat }, null);
+
+    expect(rse.rowRanges() instanceof bioc.GroupedGRanges).toBe(true);
+    expect(bioc.LENGTH(rse.rowRanges())).toEqual(10);
+    expect(rse.rowRanges().rangeStarts()[0]).toBe(0);
+    expect(rse.rowRanges().rangeStarts()[9]).toBe(0);
+})
+
 test("setting/removing of the rowRanges works as expected", () => {
     let mat = utils.spawn_random_matrix(10, 20);
     let gr = utils.spawn_random_GRanges(10);
@@ -54,6 +64,10 @@ test("setting/removing of the rowRanges works as expected", () => {
     rse.$setRowRanges(gr2);
     expect(rse.rowRanges().start()).toEqual(gr2.start());
     expect(rse.rowRanges().start()).not.toEqual(gr.start());
+
+    // Works with a GroupedGRanges.
+    rse.$setRowRanges(bioc.GroupedGRanges.empty(10));
+    expect(rse.rowRanges() instanceof bioc.GroupedGRanges).toBe(true);
 
     // Errors.
     expect(() => rse.$setRowRanges(bioc.SLICE(gr2, [1,2,3]))).toThrow("number of rows");

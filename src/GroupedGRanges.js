@@ -220,6 +220,21 @@ export class GroupedGRanges extends vec.Vector {
         output._ranges = generics.CLONE(this._ranges, { deepCopy });
         return;
     }
+
+    /**************************************************************************
+     **************************************************************************
+     **************************************************************************/
+
+    /**
+     * @param {number} [numberOfGroups=0] - Numbe of empty groups to create.
+     * @return {GroupedGRanges} A GroupedGRanges object of length equal to `numberOfGroups`,
+     * where each group is of zero length.
+     */
+    static empty(numberOfGroups) {
+        let runs = new Int32Array(numberOfGroups);
+        runs.fill(0);
+        return new GroupedGRanges(gr.GRanges.empty(), { rangeLengths: runs });
+    }
 }
 
 /**
