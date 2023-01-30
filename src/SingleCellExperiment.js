@@ -153,6 +153,9 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
      * @return {SingleCellExperiment} Reference to this SingleCellExperiment with modified reduced dimensions.
      */
     $setReducedDimension(i, value) {
+        if (generics.NUMBER_OF_ROWS(value) != this.numberOfColumns()) {
+            throw new Error("number of rows of 'value' should be the same as the number of columns of this SingleCellExperiment");
+        }
         utils.setSingleEntry(this._reducedDimensions.entries, this._reducedDimensions.order, i, value, "reduced dimension", "SingleCellExperiment");
         return this;
     }
@@ -176,6 +179,9 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
      * @return {SingleCellExperiment} Reference to this SingleCellExperiment with modified alternative experiments.
      */
     $setAlternativeExperiment(i, value) {
+        if (!(value instanceof se.SummarizedExperiment) || generics.NUMBER_OF_COLUMNS(value) != this.numberOfColumns()) {
+            throw new Error("'value' should be a SummarizedExperiment with the same number of columns as this SingleCellExperiment");
+        }
         utils.setSingleEntry(this._alternativeExperiments.entries, this._alternativeExperiments.order, i, value, "alternative experiment", "SingleCellExperiment");
         return this;
     }
