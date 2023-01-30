@@ -19,6 +19,10 @@ export class DenseMatrix {
      * @param {boolean} [options.columnMajor=true] - Whether `values` represents a column-major layout.
      */
     constructor(numberOfRows, numberOfColumns, values, { columnMajor = true } = {}) {
+        if (arguments.length == 0) {
+            return;
+        }
+
         this._numberOfRows = numberOfRows;
         this._numberOfColumns = numberOfColumns;
         this._values = values;
@@ -62,7 +66,7 @@ export class DenseMatrix {
         return this._values;
     }
 
-    _extractor(i, nprimary, nsecondary, allowView, primaryMajor) {
+    #extractor(i, nprimary, nsecondary, allowView, primaryMajor) {
         if (!primaryMajor) {
             let output = new this._values.constructor(nsecondary);
             let offset = i;
@@ -94,7 +98,7 @@ export class DenseMatrix {
      * This may be a view on the array returned by {@linkcode DenseMatrix#values values}, if permitted by the layout.
      */
     row(i, { allowView = false } = {}) {
-        return this._extractor(i, this._numberOfRows, this._numberOfColumns, allowView, !this._columnMajor);
+        return this.#extractor(i, this._numberOfRows, this._numberOfColumns, allowView, !this._columnMajor);
     }
 
     /**
@@ -108,7 +112,7 @@ export class DenseMatrix {
      * This may be a view on the array returned by {@linkcode DenseMatrix#values values}, if permitted by the layout.
      */
     column(i, { allowView = false } = {}) {
-        return this._extractor(i, this._numberOfColumns, this._numberOfRows, allowView, this._columnMajor);
+        return this.#extractor(i, this._numberOfColumns, this._numberOfRows, allowView, this._columnMajor);
     }
 
     /**************************************************************************
@@ -128,7 +132,7 @@ export class DenseMatrix {
         return this;
     }
 
-    _inserter(i, nprimary, nsecondary, primaryMajor, replacement) {
+    #inserter(i, nprimary, nsecondary, primaryMajor, replacement) {
         if (!primaryMajor) {
             let output = new this._values.constructor(nsecondary);
             let offset = i;
@@ -151,7 +155,7 @@ export class DenseMatrix {
         if (values.length !== this._numberOfColumns) {
             throw new Error("replacement row should have length equal to 'numberOfColumns()'");
         }
-        this._inserter(i, this._numberOfRows, this._numberOfColumns, !this._columnMajor, values);
+        this.#inserter(i, this._numberOfRows, this._numberOfColumns, !this._columnMajor, values);
         return this;
     }
 
@@ -164,7 +168,7 @@ export class DenseMatrix {
         if (values.length !== this._numberOfRows) {
             throw new Error("replacement column should have length equal to 'numberOfRows()'");
         }
-        this._inserter(i, this._numberOfColumns, this._numberOfRows, this._columnMajor, values);
+        this.#inserter(i, this._numberOfColumns, this._numberOfRows, this._columnMajor, values);
         return this;
     }
 
@@ -195,31 +199,31 @@ export class DenseMatrix {
         output._values = new_values;
 
         if (this._columnMajor) {
-            this._primarySlicer(columns, full_columns, is_column_range, this._numberOfColumns, rows, full_rows, is_row_range, this._numberOfRows, new_rows, new_values);
+            this.#primarySlicer(columns, full_columns, is_column_range, this._numberOfColumns, rows, full_rows, is_row_range, this._numberOfRows, new_rows, new_values);
         } else {
-            this._primarySlicer(rows, full_rows, is_row_range, this._numberOfRows, columns, full_columns, is_column_range, this._numberOfColumns, new_columns, new_values);
+            this.#primarySlicer(rows, full_rows, is_row_range, this._numberOfRows, columns, full_columns, is_column_range, this._numberOfColumns, new_columns, new_values);
         }
         output._columnMajor = this._columnMajor;
         return;
     }
 
-    _primarySlicer(primarySlice, fullPrimary, isPrimaryRange, primaryDim, secondarySlice, fullSecondary, isSecondaryRange, inSecondaryDim, outSecondaryDim, outputValues) {
+    #primarySlicer(primarySlice, fullPrimary, isPrimaryRange, primaryDim, secondarySlice, fullSecondary, isSecondaryRange, inSecondaryDim, outSecondaryDim, outputValues) {
         if (fullPrimary) {
             for (var p = 0; p < primaryDim; p++) {
-                this._secondarySlicer(secondarySlice, fullSecondary, isSecondaryRange, inSecondaryDim, outSecondaryDim, outputValues, p, p);
+                this.#secondarySlicer(secondarySlice, fullSecondary, isSecondaryRange, inSecondaryDim, outSecondaryDim, outputValues, p, p);
             }
         } else if (isPrimaryRange) {
             for (var p = primarySlice.start; p < primarySlice.end; p++) {
-                this._secondarySlicer(secondarySlice, fullSecondary, isSecondaryRange, inSecondaryDim, outSecondaryDim, outputValues, p, p - primarySlice.start);
+                this.#secondarySlicer(secondarySlice, fullSecondary, isSecondaryRange, inSecondaryDim, outSecondaryDim, outputValues, p, p - primarySlice.start);
             }
         } else {
             for (var pi = 0; pi < primarySlice.length; pi++) {
-                this._secondarySlicer(secondarySlice, fullSecondary, isSecondaryRange, inSecondaryDim, outSecondaryDim, outputValues, primarySlice[pi], pi);
+                this.#secondarySlicer(secondarySlice, fullSecondary, isSecondaryRange, inSecondaryDim, outSecondaryDim, outputValues, primarySlice[pi], pi);
             }
         }
     }
 
-    _secondarySlicer(secondarySlice, fullSecondary, isSecondaryRange, inSecondaryDim, outSecondaryDim, outputValues, inPrimary, outPrimary) {
+    #secondarySlicer(secondarySlice, fullSecondary, isSecondaryRange, inSecondaryDim, outSecondaryDim, outputValues, inPrimary, outPrimary) {
         let in_offset = inPrimary * inSecondaryDim;
         let out_offset = outPrimary * outSecondaryDim;
 

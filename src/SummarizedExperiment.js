@@ -47,7 +47,12 @@ export class SummarizedExperiment extends ann.Annotated {
      * @param {Object} [options.metadata={}] - Object containing arbitrary metadata as key-value pairs.
      */
     constructor(assays, { assayOrder = null, rowData = null, columnData = null, rowNames = null, columnNames = null, metadata = {} } = {}) {
-        super({ metadata });
+        if (arguments.length == 0) {
+            super();
+            return;
+        }
+
+        super(metadata);
 
         // Check the assays.
         let vals = Object.values(assays);

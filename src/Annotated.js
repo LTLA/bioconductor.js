@@ -6,10 +6,13 @@ import * as generics from "./AllGenerics.js";
  */
 export class Annotated {
     /**
-     * @param {Object} [options={}] - Optional parameters.
-     * @param {Object} [options.metadata={}] - Object containing arbitrary metadata as key-value pairs.
+     * @param {Object} metadata - Object containing arbitrary metadata as key-value pairs.
      */
-    constructor({ metadata = {} } = {}) {
+    constructor(metadata) {
+        if (arguments.length == 0) {
+            return;
+        }
+
         this._metadata = metadata;
     }
 

@@ -46,7 +46,7 @@ export function LENGTH(x) {
  */
 export function SLICE(x, i, { allowView = false } = {}) {
     if ("_bioconductor_SLICE" in x) {
-        let output = Object.create(x.constructor.prototype);
+        let output = new x.constructor;
         x._bioconductor_SLICE(output, i, { allowView });
         return output;
     }
@@ -92,7 +92,7 @@ export function SLICE(x, i, { allowView = false } = {}) {
 export function COMBINE(objects) {
     let x = objects[0];
     if ("_bioconductor_COMBINE" in x) {
-        let output = Object.create(x.constructor.prototype);
+        let output = new x.constructor;
         x._bioconductor_COMBINE(output, objects);
         return output;
     }
@@ -149,7 +149,7 @@ export function CLONE(x, { deepCopy = true } = {}) {
     if (x instanceof Object) {
         let options = { deepCopy };
         if ("_bioconductor_CLONE" in x) {
-            let output = Object.create(x.constructor.prototype); // avoid validity checks.
+            let output = new x.constructor;
             x._bioconductor_CLONE(output, options);
             return output;
         }
@@ -267,7 +267,7 @@ export function SLICE_2D(x, rows, columns, { allowView = false } = {}) {
     if (!("_bioconductor_SLICE_2D" in x)) {
         throw new Error("no 'SLICE_2D' method available for '" + x.constructor.name + "' instance");
     }
-    let output = Object.create(x.constructor.prototype);
+    let output = new x.constructor;
     x._bioconductor_SLICE_2D(output, rows, columns, { allowView });
     return output;
 }
@@ -290,7 +290,7 @@ export function COMBINE_ROWS(objects) {
     if (!("_bioconductor_COMBINE_ROWS" in x)) {
         throw new Error("no 'COMBINE_ROWS' method available for '" + x.constructor.name + "' instance");
     }
-    let output = Object.create(x.constructor.prototype);
+    let output = new x.constructor;
     x._bioconductor_COMBINE_ROWS(output, objects);
     return output;
 }
@@ -313,7 +313,7 @@ export function COMBINE_COLUMNS(objects) {
     if (!("_bioconductor_COMBINE_COLUMNS" in x)) {
         throw new Error("no 'COMBINE_COLUMNS' method available for '" + x.constructor.name + "' instance");
     }
-    let output = Object.create(x.constructor.prototype);
+    let output = new x.constructor;
     x._bioconductor_COMBINE_COLUMNS(output, objects);
     return output;
 }

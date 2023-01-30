@@ -49,6 +49,11 @@ export class GRanges extends vec.Vector {
      * @param {Object} [options.metadata={}] - Object containing arbitrary metadata as key-value pairs.
      */
     constructor(seqnames, ranges, { strand = null, names = null, elementMetadata = null, metadata = {} } = {}) {
+        if (arguments.length == 0) {
+            super();
+            return;
+        }
+
         super(seqnames.length, { names, elementMetadata, metadata });
 
         utils.checkStringArray(seqnames, "seqnames");

@@ -33,7 +33,12 @@ export class Vector extends ann.Annotated {
      * @param {Object} [options.metadata={}] - Object containing arbitrary metadata as key-value pairs.
      */
     constructor(length, { names = null, elementMetadata = null, metadata = {} } = {}) {
-        super({ metadata });
+        if (arguments.length == 0) {
+            super();
+            return;
+        }
+
+        super(metadata);
 
         this._elementMetadata = verifyElementMetadata(elementMetadata, length, this.constructor.className);
 

@@ -79,6 +79,11 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
         columnNames = null, 
         metadata = {} 
     } = {}) {
+        if (arguments.length == 0) {
+            super();
+            return;
+        }
+
         super(assays, rowRanges, { assayOrder, rowData, columnData, rowNames, columnNames, metadata });
 
         SingleCellExperiment.#check_reduced_dimensions(reducedDimensions, this.numberOfColumns());

@@ -34,6 +34,11 @@ export class IRanges extends vec.Vector {
      * @param {Object} [options.metadata={}] - Object containing arbitrary metadata as key-value pairs.
      */
     constructor(start, width, { names = null, elementMetadata = null, metadata = {} } = {}) {
+        if (arguments.length == 0) {
+            super();
+            return;
+        }
+
         super(start.length, { names, elementMetadata, metadata });
 
         this._start = utils.convertToInt32Array(start);

@@ -47,6 +47,11 @@ export class RangedSummarizedExperiment extends se.SummarizedExperiment {
      * @param {Object} [options.metadata={}] - Object containing arbitrary metadata as key-value pairs.
      */
     constructor(assays, rowRanges, { assayOrder = null, rowData = null, columnData = null, rowNames = null, columnNames = null, metadata = {} } = {}) {
+        if (arguments.length == 0) {
+            super();
+            return;
+        }
+
         super(assays, { assayOrder, rowData, columnData, rowNames, columnNames, metadata });
 
         if (rowRanges === null) {
