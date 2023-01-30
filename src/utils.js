@@ -123,3 +123,87 @@ export function checkNonNegative(x, msg) {
         }
     }
 }
+
+export function checkEntryOrder(entries, order, name) {
+    if (order == null) {
+        return Object.keys(reducedDimensions);
+    }
+
+    let expected = Object.keys(reducedDimensions);
+    checkNamesArray(order, "'" + name + "Order'", expected.length, "the number of entries in '" + name + "s'");
+    let observed = reducedDimensionOrder.slice().sort();
+    expected.sort();
+
+    if (!utils.areArraysEqual(observed, expected)) {
+        throw new Error("values of '" + name + "Order' should be the same as the keys of '" + name + "s'");
+    }
+
+    return order;
+}
+
+function check_entry_index(order, i, fieldName, className) {
+    if (i < 0 || i >= order.length) {
+        throw new Error(fieldName + " index '" + String(i) + "' out of range for this " + className);
+    }
+}
+
+export function retrieveSingleEntry(entries, order, i, fieldName, className) {
+    if (typeof i == "string") {
+        if (!(i in entries)) {
+            throw new Error("no " + fieldName + "'" + i + "' present in this " + className);
+        }
+        return entries[i];
+    } else {
+        check_entry_index(order, i, fieldName, className);
+        return entries[order[i]];
+    }
+}
+
+export function removeSingleEntry(entries, order, i, fieldName, className) {
+    if (typeof i == "string") {
+        let ii = order.indexOf(i);
+        if (ii < 0) {
+            throw new Error("no " + fieldName + " '" + i + "' present in this " + className);
+        }
+        order.splice(ii, 1); // modified by reference.
+        delete entries[i];
+    } else {
+        check_entry_index(order, i, fieldName, className);
+        let n = order[i];
+        order.splice(i, 1);
+        delete entries[n];
+    }
+}
+
+export function setSingleEntry(entries, order, i, value, fieldName, className) {
+    if (typeof i == "string") {
+        if (!(i in entries)) {
+            order.push(i);
+        }
+        entries[i] = value;
+    } else {
+        check_entry_index(order, i, fieldName, className);
+        entries[order[i]] = value;
+    }
+}
+
+export function shallowCloneEntries(dump) {
+    return { entries: { ...(dump.entries) }, order: dump.order.slice() };
+}
+
+export function combineEntries(dumps, combiner, orderName, className) {
+    let first_order = dumps[0].order;
+    for (var i = 1; i < dumps.length; i++) {
+        if (!utils.areArraysEqual(first_order, dumps[i].order)) {
+            throw new Error("mismatching '" + orderName "' for " + className + " " + String(i) + " to be combined");
+        }
+    }
+
+    let new_entries = {};
+    for (const k of first_order) {
+        let found = objects.map(x => entries[k]);
+        new_entries[k] = combiner(found);
+    }
+
+    return { entries: new_entries, order: first_order };
+}
