@@ -22,10 +22,10 @@ test("constructing a GroupedGRanges works", () => {
     expect(ggr.group(9).start()).toEqual(grl_raw[9].start());
 
     // Passes along arguments to the Vector constructor.
-    let ggr2 = new bioc.GroupedGRanges(grl_raw, { 
-        metadata: { foo: 1 }, 
+    let ggr2 = new bioc.GroupedGRanges(grl_raw, {
+        metadata: { foo: 1 },
         names: [ "A", "B", "C", "D", "E", "F", "G", "H", "I", "J" ],
-        elementMetadata: new bioc.DataFrame({ foo: utils.spawn_random_vector(10) }) 
+        elementMetadata: new bioc.DataFrame({ foo: utils.spawn_random_vector(10) })
     });
 
     expect(ggr2.metadata().foo).toBe(1);
@@ -73,6 +73,81 @@ test("setting the inner ranges works as expected", () => {
     // Errors
     expect(() => ggr.$setRanges(1)).toThrow("GRanges");
     expect(() => ggr.$setRanges(bioc.SLICE(rr, [0,1,2,3]))).toThrow("length");
+})
+
+test("setting an individual group works as expected", () => {
+    let grl_raw = spawn_GRanges_list(10);
+    let ggr = new bioc.GroupedGRanges(grl_raw);
+
+    let current = ggr.group(5);
+    let before = ggr.group(4);
+    let after = ggr.group(6);
+
+    let replacement = utils.spawn_random_GRanges(bioc.LENGTH(current) + 5);
+    ggr.$setGroup(5, replacement);
+    expect(ggr.group(5).start()).toEqual(replacement.start());
+    expect(ggr.group(5).start()).not.toEqual(current.start());
+
+    // Groups before and after are preserved.
+    expect(ggr.group(4).start()).toEqual(before.start());
+    expect(ggr.group(6).start()).toEqual(after.start());
+})
+
+test("setting multiple different groups works as expected", () => {
+    let grl_raw = spawn_GRanges_list(10);
+
+    { 
+        let ggr = new bioc.GroupedGRanges(grl_raw);
+        let grl_raw2 = spawn_GRanges_list(10);
+        for (var i = 9; i >= 0; i--) { // setting it in reverse, to check the sorting.
+            ggr.$setGroup(i, grl_raw2[i]);
+        }
+
+        let ggr2 = new bioc.GroupedGRanges(grl_raw2);
+        expect(ggr2.ranges().start()).toEqual(ggr.ranges().start());
+        expect(ggr2.rangeStarts()).toEqual(ggr.rangeStarts());
+        expect(ggr2.rangeLengths()).toEqual(ggr.rangeLengths());
+    }
+
+    // Trying again, only replacing even indices.
+    {
+        let ggr = new bioc.GroupedGRanges(grl_raw);
+        let updated = [...grl_raw];
+        let grl_raw2 = spawn_GRanges_list(5);
+        for (var i = 0; i < 5; i++) {
+            ggr.$setGroup(i * 2, grl_raw2[i]);
+            updated[i * 2] = grl_raw2[i];
+        }
+
+        let ggr2 = new bioc.GroupedGRanges(updated);
+        expect(ggr2.ranges().start()).toEqual(ggr.ranges().start());
+        expect(ggr2.rangeStarts()).toEqual(ggr.rangeStarts());
+        expect(ggr2.rangeLengths()).toEqual(ggr.rangeLengths());
+    }
+})
+
+test("setting an individual group multiple times works as expected", () => {
+    let grl_raw = spawn_GRanges_list(10);
+    let ggr = new bioc.GroupedGRanges(grl_raw);
+
+    let current = ggr.group(3);
+    let before = ggr.group(0);
+    let after = ggr.group(9);
+
+    // Second $setGroup clobbers the first, as it should.
+    let replacement1 = utils.spawn_random_GRanges(bioc.LENGTH(current) + 5);
+    ggr.$setGroup(3, replacement1);
+
+    let replacement2 = utils.spawn_random_GRanges(bioc.LENGTH(current) + 3);
+    ggr.$setGroup(3, replacement2);
+
+    expect(ggr.group(3).start()).toEqual(replacement2.start());
+    expect(ggr.group(3).start()).not.toEqual(current.start());
+    expect(ggr.group(3).start()).not.toEqual(replacement1.start());
+
+    // Groups before and after are preserved.
+    expect(ggr.group(0).start()).toEqual(before.start());
+    expect(ggr.group(9).start()).toEqual(after.start());
 })
 
 test("LENGTH generic works as expected", () => {

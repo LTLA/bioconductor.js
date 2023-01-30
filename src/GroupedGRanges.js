@@ -29,6 +29,8 @@ export class GroupedGRanges extends vec.Vector {
         return { starts: starts, total: last };
     }
 
+    _staged_set_groups;
+
     /**
      * @param {Array|GRanges} ranges - An array of {@linkplain GRanges} objects, where each element represents a group of genomic ranges.
      * All objects should have compatible columns in their {@linkplain Vector#elementMetadata elementMetadata}.
@@ -78,6 +80,8 @@ export class GroupedGRanges extends vec.Vector {
         if (accumulated.total !== generics.LENGTH(ranges)) {
             throw new Error("sum of 'rangeLengths' must be equal to the length of 'ranges'");
         }
+
+        this._staged_setGroup = null;
     }
 
     /**************************************************************************
@@ -88,6 +92,7 @@ export class GroupedGRanges extends vec.Vector {
      * @return {GRanges} The concatenated set of ranges across all groups. 
      */
     ranges() {
+        this._flush_staged_setGroup();
         return this._ranges;
     }
 
@@ -95,6 +100,7 @@ export class GroupedGRanges extends vec.Vector {
      * @return {Int32Array} The start indices for each group's ranges along the concatenated set of ranges returned by {@linkcode GroupedGRanges#ranges ranges}.
      */
     rangeStarts() {
+        this._flush_staged_setGroup();
         return this._rangeStarts;
     }
 
@@ -102,6 +108,7 @@ export class GroupedGRanges extends vec.Vector {
      * @return {Int32Array} The length of each group's ranges along the concatenated set of ranges returned by {@linkcode GroupedGRanges#ranges ranges}.
      */
     rangeLengths() {
+        this._flush_staged_setGroup();
         return this._rangeLengths;
     }
 
@@ -113,6 +120,7 @@ export class GroupedGRanges extends vec.Vector {
      * @return {GRanges} The genomic ranges for group `i`.
      */
     group(i, { allowView = false } = {}) {
+        this._flush_staged_setGroup();
         let s = this._rangeStarts[i];
         return generics.SLICE(this._ranges, { start: s, end: s + this._rangeLengths[i] }, { allowView });
     }
@@ -133,6 +141,7 @@ export class GroupedGRanges extends vec.Vector {
      * @return {GroupedGRanges} A reference to this GroupedGRanges object after modifying the internal ranges.
      */
     $setRanges(ranges) {
+        this._flush_staged_setGroup();
         if (!(ranges instanceof gr.GRanges)) {
             throw new Error("'ranges' must be a 'GRanges'");
         }
@@ -140,6 +149,75 @@ export class GroupedGRanges extends vec.Vector {
             throw utils.formatLengthError("'ranges'", "number of ranges");
         }
         this._ranges = ranges;
+        return this;
+    }
+
+    _flush_staged_setGroup() {
+        let staged = this._staged_setGroup;
+        if (staged === null) {
+            return;
+        }
+        staged.sort((a, b) => {
+            let diff = a[0] - b[0];
+            return (diff === 0 ? a[1] - b[1] : diff);
+        });
+
+        let counter = 0;
+        let accumulated = 0;
+        let last_start = 0;
+        let more_ranges = [];
+
+        let ngroups = this.numberOfGroups();
+        for (var g = 0; g < ngroups; g++) {
+            if (counter < staged.length && g == staged[counter][0]) { 
+                let current_start = this._rangeStarts[g];
+                if (last_start < current_start) {
+                    more_ranges.push(generics.SLICE(this._ranges, { start: last_start, end: current_start }));
+                }
+                last_start = current_start + this._rangeLengths[g];
+
+                let replacement;
+                do {
+                    replacement = staged[counter][2];
+                    counter++;
+                } while (counter < staged.length && g == staged[counter][0]);
+
+                more_ranges.push(replacement);
+                this._rangeLengths[g] = generics.LENGTH(replacement);
+            }
+
+            this._rangeStarts[g] = accumulated;
+            accumulated += this._rangeLengths[g];
+        }
+
+        let nranges = generics.LENGTH(this._ranges);
+        if (last_start < nranges) {
+            more_ranges.push(generics.SLICE(this._ranges, { start: last_start, end: nranges }));
+        }
+
+        try {
+            this._ranges = generics.COMBINE(more_ranges);
+        } catch (e) {
+            throw new Error("failed to combine staged '$setGroup' operations; " + e.message);
+        }
+        return;
+    }
+
+    /**
+     * Multiple consecutive calls to `$setGroup` are not executed immediately.
+     * Rather, the operations are staged and executed in batch once the modified GroupedGRanges is used in other methods.
+     * This enables efficient setting of individual groups inside a single concatenated {@linkplain GRanges}. 
+     *
+     * @param {number} i - Index of the group of interest.
+     * @param {GRanges} ranges - Genomic ranges for group `i`.
+     * @return {GroupedGRanges} A reference to this GroupedGRanges object after setting group `i`.
+     */
+    $setGroup(i, ranges) {
+       if (this._staged_setGroup === null) {
+            this._staged_setGroup = [];
+        }
+        let nops = this._staged_setGroup.length;
+        this._staged_setGroup.push([i, nops, ranges]);
         return this;
     }
 
@@ -157,6 +235,7 @@ export class GroupedGRanges extends vec.Vector {
      * @return {GroupedGRangesOverlapIndex} A pre-built index for computing overlaps with other {@linkplain GRanges} instances.
      */
     buildOverlapIndex({ restrictToSeqnames = null, restrictToStrand = null } = {}) {
+        this._flush_staged_setGroup();
         return new GroupedGRangesOverlapIndex(
             this._ranges.buildOverlapIndex({ restrictToSeqnames, restrictToStrand }),
             generics.LENGTH(this._ranges),
@@ -175,6 +254,7 @@ export class GroupedGRanges extends vec.Vector {
 
     _bioconductor_SLICE(output, i, { allowView = false } = {}) {
         super._bioconductor_SLICE(output, i, { allowView });
+        this._flush_staged_setGroup();
 
         output._rangeLengths = generics.SLICE(this._rangeLengths, i, { allowView });
         let accumulated = GroupedGRanges.#computeStarts(output._rangeLengths);
@@ -199,25 +279,37 @@ export class GroupedGRanges extends vec.Vector {
 
             output._ranges = generics.SLICE(this._ranges, keep, { allowView });
         }
+
+        output._staged_setGroup = null;
         return;
     }
 
     _bioconductor_COMBINE(output, objects) {
         super._bioconductor_COMBINE(output, objects);
 
+        // We need to flush the staged operations in each object.
+        for (const o of objects) {
+            o._flush_staged_setGroup();
+        }
+
         output._rangeLengths = generics.COMBINE(objects.map(x => x._rangeLengths));
         let accumulated = GroupedGRanges.#computeStarts(output._rangeLengths);
         output._rangeStarts = accumulated.starts;
         output._ranges = generics.COMBINE(objects.map(x => x._ranges));
 
+        output._staged_setGroup = null;
         return;
     }
 
     _bioconductor_CLONE(output, { deepCopy = true }) {
         super._bioconductor_CLONE(output, { deepCopy });
+        this._flush_staged_setGroup();
+
         output._rangeLengths = generics.CLONE(this._rangeLengths, { deepCopy });
         output._rangeStarts = generics.CLONE(this._rangeStarts, { deepCopy });
         output._ranges = generics.CLONE(this._ranges, { deepCopy });
+
+        output._staged_setGroup = null;
         return;
     }
 
