@@ -169,6 +169,7 @@ For classes:
 | [`GroupedGRanges`](https://ltla.github.io/bioconductor.js/GroupedGRanges.html) | `GenomicRanges::GRangesList` |
 | [`SummarizedExperiment`](https://ltla.github.io/bioconductor.js/SummarizedExperiment.html) | `SummarizedExperiment::SummarizedExperiment` |
 | [`RangedSummarizedExperiment`](https://ltla.github.io/bioconductor.js/RangedSummarizedExperiment.html) | `SummarizedExperiment::RangedSummarizedExperiment` |
+| [`SingleCellExperiment`](https://ltla.github.io/bioconductor.js/SingleCellExperiment.html) | `SingleCellExperiment::SingleCellExperiment` |
 
 For generics:
 

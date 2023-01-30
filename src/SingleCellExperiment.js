@@ -193,15 +193,15 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
     _bioconductor_SLICE_2D(output, rows, columns, { allowView = false }) {
         super._bioconductor_SLICE_2D(output, rows, columns, { allowView });
 
-        output.reducedDimensions = utils.shallowCloneEntries(this._reducedDimensions);
-        output.alternativeExperiments = utils.shallowCloneEntries(this.alternativeExperiments);
+        output._reducedDimensions = utils.shallowCloneEntries(this._reducedDimensions);
+        output._alternativeExperiments = utils.shallowCloneEntries(this._alternativeExperiments);
 
         if (columns !== null) {
-            for (const [k, v] of Object.entries(output.reducedDimensions.entries)) {
-                output.reducedDimensions.entries[k] = generics.SLICE_2D(v, columns, null, { allowView });
+            for (const [k, v] of Object.entries(output._reducedDimensions.entries)) {
+                output._reducedDimensions.entries[k] = generics.SLICE_2D(v, columns, null, { allowView });
             }
-            for (const [k, v] of Object.entries(output.alternativeExperiments.entries)) {
-                output.alternativeExperiments.entries[k] = generics.SLICE_2D(v, null, columns, { allowView });
+            for (const [k, v] of Object.entries(output._alternativeExperiments.entries)) {
+                output._alternativeExperiments.entries[k] = generics.SLICE_2D(v, null, columns, { allowView });
             }
         }
     }
@@ -209,8 +209,8 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
     _bioconductor_COMBINE_ROWS(output, objects) {
         super._bioconductor_COMBINE_ROWS(output, objects);
 
-        output.reducedDimensions = utils.shallowCloneEntries(this._reducedDimensions);
-        output.alternativeExperiments = utils.shallowCloneEntries(this.alternativeExperiments);
+        output._reducedDimensions = utils.shallowCloneEntries(this._reducedDimensions);
+        output._alternativeExperiments = utils.shallowCloneEntries(this._alternativeExperiments);
 
         return;
     }
@@ -218,7 +218,7 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
     _bioconductor_COMBINE_COLUMNS(output, objects) {
         super._bioconductor_COMBINE_COLUMNS(output, objects);
 
-        output._reducedDimensions = utils.combineEntries(objects.map(x => x._reducedDimensions), generics.COMBINE_ROWS, "reducedDimNames" , "SingleCellExperiment"); 
+        output._reducedDimensions = utils.combineEntries(objects.map(x => x._reducedDimensions), generics.COMBINE_ROWS, "reducedDimensionNames" , "SingleCellExperiment"); 
         output._alternativeExperiments = utils.combineEntries(objects.map(x => x._alternativeExperiments), generics.COMBINE_COLUMNS, "alternativeExperimentNames" , "SingleCellExperiment"); 
 
         return;
@@ -228,8 +228,8 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
         super._bioconductor_CLONE(output, { deepCopy });
 
         let FUN = (deepCopy ? generics.CLONE : utils.shallowCloneEntries);
-        output.reducedDimensions = FUN(this._reducedDimensions);
-        output.alternativeExperiments = FUN(this.alternativeExperiments);
+        output._reducedDimensions = FUN(this._reducedDimensions);
+        output._alternativeExperiments = FUN(this._alternativeExperiments);
 
         return;
     }

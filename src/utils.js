@@ -194,14 +194,14 @@ export function shallowCloneEntries(dump) {
 export function combineEntries(dumps, combiner, orderName, className) {
     let first_order = dumps[0].order;
     for (var i = 1; i < dumps.length; i++) {
-        if (!utils.areArraysEqual(first_order, dumps[i].order)) {
+        if (!areArraysEqual(first_order, dumps[i].order)) {
             throw new Error("mismatching '" + orderName + "' for " + className + " " + String(i) + " to be combined");
         }
     }
 
     let new_entries = {};
     for (const k of first_order) {
-        let found = objects.map(x => entries[k]);
+        let found = dumps.map(x => x.entries[k]);
         new_entries[k] = combiner(found);
     }
 
