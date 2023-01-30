@@ -64,20 +64,10 @@ export class SummarizedExperiment extends ann.Annotated {
                 }
             }
         }
-        this._assays = assays;
-
-        if (assayOrder == null) {
-            assayOrder = Object.keys(assays);
-        } else {
-            utils.checkNamesArray(assayOrder, "'assayOrder'", vals.length, "the number of entries in 'assays'");
-            let observed = assayOrder.slice().sort();
-            let expected = Object.keys(assays);
-            expected.sort();
-            if (!utils.areArraysEqual(observed, expected)) {
-                throw new Error("values of 'assayOrder' should be the same as the keys of 'assays'");
-            }
-        }
-        this._assayOrder = assayOrder;
+        this._assays = {
+            entries: assays,
+            order: utils.checkEntryOrder(assays, assayOrder, "assay")
+        };
 
         // Check the rowData.
         if (rowData === null) {
@@ -123,28 +113,18 @@ export class SummarizedExperiment extends ann.Annotated {
      **************************************************************************
      **************************************************************************/
 
-    _check_index(i) {
-        if (i < 0 || i >= this._assayOrder.length) {
-            throw new Error("assay index '" + String(i) + "' out of range for this SummarizedExperiment");
-        }
-    }
-
-    /**************************************************************************
-     **************************************************************************
-     **************************************************************************/
-
     /**
      * @return {Array} Array of assay names.
      */
     assayNames() {
-        return this._assayOrder;
+        return this._assays.order;
     }
 
     /**
      * @return {number} Number of assays.
      */
     numberOfAssays() {
-        return this._assayOrder.length;
+        return this._assays.order.length;
     }
 
     /**
@@ -152,15 +132,7 @@ export class SummarizedExperiment extends ann.Annotated {
      * @return {*} The contents of assay `i` as an multi-dimensional array-like object.
      */
     assay(i) {
-        if (typeof i == "string") {
-            if (!(i in this._assays)) {
-                throw new Error("no assay '" + i + "' present in this SummarizedExperiment");
-            }
-            return this._assays[i];
-        } 
-
-        this._check_index(i);
-        return this._assays[this._assayOrder[i]];
+        return utils.retrieveSingleEntry(this._assays.entries, this._assays.order, i, "assay", "SummarizedExperiment");
     }
 
     /**
@@ -214,19 +186,8 @@ export class SummarizedExperiment extends ann.Annotated {
      * @return {SummarizedExperiment} Reference to this SummarizedExperiment after removing the specified assay.
      */
     $removeAssay(i) {
-        if (typeof i == "string") {
-            let ii = this._assayOrder.indexOf(i);
-            if (ii < 0) {
-                throw new Error("no assay '" + i + "' in this SummarizedExperiment");
-            }
-            this._assayOrder.splice(ii, 1);
-            delete this._assays[i];
-        } else {
-            this._check_index(i);
-            let n = this._assayOrder[i];
-            this._assayOrder.splice(i, 1);
-            delete this._assays[n];
-        }
+        utils.removeSingleEntry(this._assays.entries, this._assays.order, i, "assay", "SummarizedExperiment");
+        return this;
     }
 
     /**
@@ -242,16 +203,7 @@ export class SummarizedExperiment extends ann.Annotated {
         if (generics.NUMBER_OF_ROWS(value) !== this.numberOfRows() || generics.NUMBER_OF_COLUMNS(value) !== this.numberOfColumns()) {
             throw new Error("expected 'value' to have the same dimensions as this 'SummarizedExperiment'");
         }
-
-        if (typeof i == "string") {
-            if (!(i in this._assays)) {
-                this._assayOrder.push(i);
-            }
-            this._assays[i] = value;
-        } else {
-            this._check_index(i);
-            this._assays[this._assayOrder[i]] = value;
-        }
+        utils.setSingleEntry(this._assays.entries, this._assays.order, i, value, "assay", "SummarizedExperiment");
         return this;
     }
 
@@ -326,11 +278,10 @@ export class SummarizedExperiment extends ann.Annotated {
     }
 
     _bioconductor_SLICE_2D(output, rows, columns, { allowView = false }) {
-        let assays = {};
-        for (const [k, v] of Object.entries(this._assays)) {
-            assays[k] = generics.SLICE_2D(v, rows, columns, { allowView });
+        output._assays = utils.shallowCloneEntries(this._assays);
+        for (const [k, v] of Object.entries(output._assays.entries)) {
+            output._assays.entries[k] = generics.SLICE_2D(v, rows, columns, { allowView });
         }
-        output._assays = assays;
 
         if (rows !== null) {
             output._rowData = generics.SLICE(this._rowData, rows, { allowView });
@@ -348,25 +299,12 @@ export class SummarizedExperiment extends ann.Annotated {
             output._columnNames = this._columnNames;
         }
 
-        output._assayOrder = this._assayOrder;
         output._metadata = this._metadata;
         return;
     }
 
     _bioconductor_COMBINE_ROWS(output, objects) {
-        output._assayOrder = this._assayOrder;
-        for (const obj of objects) {
-            if (!utils.areArraysEqual(output._assayOrder, obj._assayOrder)) {
-                throw new Error("'assayNames' should be the same across SummarizedExperiments to be combined");
-            }
-        }
-
-        let assays = {};
-        for (const [k, v] of Object.entries(this._assays)) {
-            let found = objects.map(x => x._assays[k]);
-            assays[k] = generics.COMBINE_ROWS(found);
-        }
-        output._assays = assays;
+        output._assays = utils.combineEntries(objects.map(x => x._assays), generics.COMBINE_ROWS, "assayNames" , "SummarizedExperiment"); 
 
         let all_dfs = objects.map(x => x._rowData);
         output._rowData = generics.COMBINE(all_dfs);
@@ -381,19 +319,7 @@ export class SummarizedExperiment extends ann.Annotated {
     }
 
     _bioconductor_COMBINE_COLUMNS(output, objects) {
-        output._assayOrder = this._assayOrder;
-        for (const obj of objects) {
-            if (!utils.areArraysEqual(output._assayOrder, obj._assayOrder)) {
-                throw new Error("'assayNames' should be the same across SummarizedExperiments to be combined");
-            }
-        }
-
-        let assays = {};
-        for (const [k, v] of Object.entries(this._assays)) {
-            let found = objects.map(x => x._assays[k]);
-            assays[k] = generics.COMBINE_COLUMNS(found);
-        }
-        output._assays = assays;
+        output._assays = utils.combineEntries(objects.map(x => x._assays), generics.COMBINE_COLUMNS, "assayNames" , "SummarizedExperiment"); 
 
         let all_dfs = objects.map(x => x._columnData);
         output._columnData = generics.COMBINE(all_dfs);
@@ -413,7 +339,6 @@ export class SummarizedExperiment extends ann.Annotated {
         let copier = x => generics.CLONE(x, { deepCopy });
 
         output._assays = copier(this._assays);
-        output._assayOrder = copier(this._assayOrder);
 
         output._rowData = copier(this._rowData);
         output._rowNames = (this._rowNames === null ? null : copier(this._rowNames));

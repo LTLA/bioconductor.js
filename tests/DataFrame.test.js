@@ -35,7 +35,7 @@ test("constructing a DataFrame works (custom column order)", () => {
     let x = new bioc.DataFrame(obj, { columnOrder: [ "B", "A" ] });
     expect(x.columnNames()).toEqual(["B", "A"]);
 
-    expect(() => new bioc.DataFrame(obj, { columnOrder: [ "B" ] })).toThrow("'columnOrder' should have the same length");
+    expect(() => new bioc.DataFrame(obj, { columnOrder: [ "B" ] })).toThrow("'columnOrder' array should have length");
     expect(() => new bioc.DataFrame(obj, { columnOrder: [ "B", "C" ] })).toThrow("values of 'columnOrder' should be the same");
 })
 

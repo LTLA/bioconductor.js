@@ -47,7 +47,7 @@ export function checkStringArray(names, typeMessage) {
 export function checkNamesArray(names, typeMessage, numExpected, lengthMessage) {
     checkStringArray(names, typeMessage);
     if (names.length != numExpected) {
-        throw formatLengthError(typeMessage + " array ", lengthMessage);
+        throw formatLengthError(typeMessage + " array", lengthMessage);
     }
 }
 
@@ -141,7 +141,7 @@ export function checkEntryOrder(entries, order, name) {
     return order;
 }
 
-function check_entry_index(order, i, fieldName, className) {
+export function check_entry_index(order, i, fieldName, className) {
     if (i < 0 || i >= order.length) {
         throw new Error(fieldName + " index '" + String(i) + "' out of range for this " + className);
     }
