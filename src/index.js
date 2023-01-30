@@ -5,5 +5,6 @@ export * from "./GroupedGRanges.js";
 export * from "./DenseMatrix.js";
 export * from "./SummarizedExperiment.js";
 export * from "./RangedSummarizedExperiment.js";
+export * from "./SingleCellExperiment.js";
 export * from "./AllGenerics.js";
 export * from "./miscellaneous.js";

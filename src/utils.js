@@ -125,16 +125,16 @@ export function checkNonNegative(x, msg) {
 }
 
 export function checkEntryOrder(entries, order, name) {
+    let expected = Object.keys(entries);
     if (order == null) {
-        return Object.keys(reducedDimensions);
+        return expected;
     }
 
-    let expected = Object.keys(reducedDimensions);
     checkNamesArray(order, "'" + name + "Order'", expected.length, "the number of entries in '" + name + "s'");
-    let observed = reducedDimensionOrder.slice().sort();
+    let observed = order.slice().sort();
     expected.sort();
 
-    if (!utils.areArraysEqual(observed, expected)) {
+    if (!areArraysEqual(observed, expected)) {
         throw new Error("values of '" + name + "Order' should be the same as the keys of '" + name + "s'");
     }
 
@@ -195,7 +195,7 @@ export function combineEntries(dumps, combiner, orderName, className) {
     let first_order = dumps[0].order;
     for (var i = 1; i < dumps.length; i++) {
         if (!utils.areArraysEqual(first_order, dumps[i].order)) {
-            throw new Error("mismatching '" + orderName "' for " + className + " " + String(i) + " to be combined");
+            throw new Error("mismatching '" + orderName + "' for " + className + " " + String(i) + " to be combined");
         }
     }
 
