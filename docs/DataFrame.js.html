@@ -91,35 +91,20 @@ export class DataFrame extends ann.Annotated {
         super({ metadata });
         this._numberOfRows = numberOfRows;
         this._rowNames = rowNames;
-        this._columns = columns;
-        this._columnOrder = columnOrder;
 
         let vals = Object.values(columns);
-        if (vals.length) {
-            for (var i = 0; i &lt; vals.length; i++) {
-                let n = generics.LENGTH(vals[i]);
-                if (this._numberOfRows == null) {
-                    this._numberOfRows = n;
-                } else if (n != this._numberOfRows) {
-                    throw new Error("expected all arrays in 'columns' to have equal length");
-                }
+        for (var i = 0; i &lt; vals.length; i++) {
+            let n = generics.LENGTH(vals[i]);
+            if (this._numberOfRows == null) {
+                this._numberOfRows = n;
+            } else if (n != this._numberOfRows) {
+                throw new Error("expected all arrays in 'columns' to have equal length");
             }
         }
-
-        if (columnOrder == null) {
-            this._columnOrder = Object.keys(columns);
-        } else if (columnOrder.length != vals.length) {
-            throw new Error("'columnOrder' should have the same length as the number of entries in 'columns'");
-        } else {
-            utils.checkNamesArray(columnOrder, "'columnOrder'", vals.length, "the number of entries in 'columns'");
-            let uniq = Array.from(new Set(columnOrder));
-            uniq.sort();
-            let expected = Object.keys(columns);
-            expected.sort();
-            if (!utils.areArraysEqual(uniq, expected)) {
-                throw new Error("values of 'columnOrder' should be the same as the keys of 'columns'");
-            }
-        }
+        this._columns = {
+            entries: columns,
+            order: utils.checkEntryOrder(columns, columnOrder, "column")
+        };
 
         if (rowNames != null) {
             if (this._numberOfRows == null) {
@@ -130,16 +115,6 @@ export class DataFrame extends ann.Annotated {
 
         if (this._numberOfRows == null) {
             this._numberOfRows = 0;
-        }
-    }
-
-    /**************************************************************************
-     **************************************************************************
-     **************************************************************************/
-
-    _check_index(i) {
-        if (i &lt; 0 || i >= this._columnOrder.length) {
-            throw new Error("column index '" + String(i) + "' out of range for this DataFrame");
         }
     }
 
@@ -158,7 +133,7 @@ export class DataFrame extends ann.Annotated {
      * @return {Array} Array of strings containing the column names in the specified order.
      */
     columnNames() {
-        return this._columnOrder;
+        return this._columns.order;
     }
 
     /**
@@ -166,7 +141,7 @@ export class DataFrame extends ann.Annotated {
      * @return {boolean} Whether the column exists in this DataFrame.
      */
     hasColumn(name) {
-        return name in this._columns;
+        return name in this._columns.entries;
     }
 
     /**
@@ -180,7 +155,7 @@ export class DataFrame extends ann.Annotated {
      * @return {number} Number of columns in this DataFrame.
      */
     numberOfColumns() {
-        return this._columnOrder.length;
+        return this._columns.order.length;
     }
 
     /**
@@ -188,15 +163,7 @@ export class DataFrame extends ann.Annotated {
      * @return {*} The contents of column `i` as a vector-like object.
      */
     column(i) {
-        if (typeof i == "string") {
-            if (!(i in this._columns)) {
-                throw new Error("no column '" + i + "' present in this DataFrame");
-            }
-            return this._columns[i];
-        } 
-
-        this._check_index(i);
-        return this._columns[this._columnOrder[i]];
+        return utils.retrieveSingleEntry(this._columns.entries, this._columns.order, i, "column", "DataFrame");
     }
 
     /**************************************************************************
@@ -208,19 +175,7 @@ export class DataFrame extends ann.Annotated {
      * @return {DataFrame} Reference to this DataFrame after the column is removed.
      */
     $removeColumn(i) {
-        if (typeof i == "string") {
-            let ii = this._columnOrder.indexOf(i);
-            if (ii &lt; 0) {
-                throw new Error("no column '" + i + "' in this DataFrame");
-            }
-            this._columnOrder.splice(ii, 1);
-            delete this._columns[i];
-        } else {
-            this._check_index(i);
-            let n = this._columnOrder[i];
-            this._columnOrder.splice(i, 1);
-            delete this._columns[n];
-        }
+        utils.removeSingleEntry(this._columns.entries, this._columns.order, i, "column", "SummarizedExperiment");
         return this;
     }
 
@@ -237,16 +192,7 @@ export class DataFrame extends ann.Annotated {
         if (generics.LENGTH(value) != this._numberOfRows) {
             throw new Error("expected 'value' to have the same length as the number of rows in 'x'");
         }
-
-        if (typeof i == "string") {
-            if (!(i in this._columns)) {
-                this._columnOrder.push(i);
-            }
-            this._columns[i] = value;
-        } else {
-            this._check_index(i);
-            this._columns[this._columnOrder[i]] = value;
-        }
+        utils.setSingleEntry(this._columns.entries, this._columns.order, i, value, "column", "SummarizedExperiment");
         return this;
     }
 
@@ -256,18 +202,18 @@ export class DataFrame extends ann.Annotated {
      * @return {DataFrame} Reference to this DataFrame with modified column names.
      */
     $setColumnNames(names) {
-        utils.checkNamesArray(names, "replacement 'names'", this._columnOrder.length, "'numberOfColumns()'");
+        utils.checkNamesArray(names, "replacement 'names'", this._columns.order.length, "'numberOfColumns()'");
 
         let new_columns = {};
         for (var i = 0; i &lt; names.length; i++) {
             if (names[i] in new_columns) {
                 throw new Error("detected duplicates in replacement 'names'");
             }
-            new_columns[names[i]] = this._columns[this._columnOrder[i]];
+            new_columns[names[i]] = this._columns.entries[this._columns.order[i]];
         }
 
-        this._columns = new_columns;
-        this._columnOrder = names;
+        this._columns.entries = new_columns;
+        this._columns.order = names;
         return this;
     }
 
@@ -294,23 +240,23 @@ export class DataFrame extends ann.Annotated {
      */
     $sliceColumns(i) {
         let new_columns = {};
-        let new_columnOrder = [];
+        let new_order = [];
 
         for (var ii of i) {
             if (typeof ii != "string") {
-                this._check_index(ii);
-                ii = this._columnOrder[ii];
+                utils.check_entry_index(this._columns.order, ii, "column", "DataFrame");
+                ii = this._columns.order[ii];
             }
             if (ii in new_columns) {
                 throw new Error("duplicate columns detected in slice request");
             }
 
-            new_columns[ii] = this._columns[ii];
-            new_columnOrder.push(ii);
+            new_columns[ii] = this._columns.entries[ii];
+            new_order.push(ii);
         }
 
-        this._columns = new_columns;
-        this._columnOrder = new_columnOrder;
+        this._columns.entries = new_columns;
+        this._columns.order = new_order;
         return this;
     }
 
@@ -324,8 +270,9 @@ export class DataFrame extends ann.Annotated {
 
     _bioconductor_SLICE(output, i, { allowView = false }) {
         let options = { allowView };
+
         let new_columns = {};
-        for (const [k, v] of Object.entries(this._columns)) {
+        for (const [k, v] of Object.entries(this._columns.entries)) {
             new_columns[k] = generics.SLICE(v, i, options);
         }
 
@@ -338,33 +285,19 @@ export class DataFrame extends ann.Annotated {
             new_numberOfRows = i.length;
         }
 
-        output._columns = new_columns;
         output._rowNames = new_rowNames;
-        output._columnOrder = this._columnOrder;
+        output._columns = { entries: new_columns, order: this._columns.order };
         output._numberOfRows = new_numberOfRows;
         output._metadata = this._metadata;
         return; 
     }
 
     _bioconductor_COMBINE(output, objects) {
-        let new_columns = {};
-        for (const x of this._columnOrder) {
-            let yarr = [];
-            for (const yi of objects) {
-                if (!(x in yi._columns)) {
-                    throw new Error("missing column '" + x + "' across DataFrames to be combined");
-                }
-                yarr.push(yi._columns[x]);
-            }
-            new_columns[x] = generics.COMBINE(yarr);
-        }
+        let new_columns = utils.combineEntries(objects.map(x => x._columns), generics.COMBINE, "columnNames", "DataFrame");
 
         let all_n = [];
         let all_l = [];
         for (const yi of objects) {
-            if (yi.numberOfColumns() != this.numberOfColumns()) {
-                throw new Error("mismatching number of columns across DataFrames to be combined");
-            }
             all_n.push(yi.rowNames());
             all_l.push(yi.numberOfRows());
         }
@@ -372,9 +305,8 @@ export class DataFrame extends ann.Annotated {
         let new_numberOfRows = utils.sum(all_l);
         let new_rowNames = utils.combineNames(all_n, all_l, new_numberOfRows);
 
-        output._columns = new_columns;
         output._rowNames = new_rowNames;
-        output._columnOrder = this._columnOrder;
+        output._columns = new_columns;
         output._numberOfRows = new_numberOfRows;
         output._metadata = this._metadata;
         return;
@@ -382,9 +314,8 @@ export class DataFrame extends ann.Annotated {
 
     _bioconductor_CLONE(output, { deepCopy = true }) {
         super._bioconductor_CLONE(output, { deepCopy });
-        output._columns = generics.CLONE(this._columns, { deepCopy });
+        output._columns = (deepCopy ? generics.CLONE : utils.shallowCloneEntries)(this._columns);
         output._rowNames = (this._rowNames == null ? null : this._rowNames.slice());
-        output._columnOrder = this._columnOrder.slice();
         output._numberOfRows = this._numberOfRows;
         return;
     }
@@ -424,6 +355,7 @@ export function flexibleCombineRows(objects) {
             }
         }
 
+        copy._columns.order = corder;
         copies.push(copy);
     }
 
@@ -443,7 +375,7 @@ export function flexibleCombineRows(objects) {
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Mon Jan 30 2023 17:54:55 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Mon Jan 30 2023 18:40:47 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
