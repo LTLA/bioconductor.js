@@ -1,6 +1,7 @@
 import * as generics from "./AllGenerics.js";
 import * as utils from "./utils.js";
 import * as ann from "./Annotated.js";
+import * as il from "./InternalList.js";
 
 /**
  * A DataFrame is a collection of equilength vector-like objects as "columns".
@@ -50,10 +51,15 @@ export class DataFrame extends ann.Annotated {
         super(metadata);
         this._numberOfRows = numberOfRows;
         this._rowNames = rowNames;
-        this._columns = new il.InternalList(columns, columnOrder);
+        
+        try {
+            this._columns = new il.InternalList(columns, columnOrder);
+        } catch (e) {
+            throw new Error("failed to construct internal list of columns for this DataFrame; " + e.message, { cause: e });
+        }
 
         for (const k of this._columns.names()) {
-            let n = this._columns.entry(k);
+            let n = (this._columns.entry(k)).length;
             if (this._numberOfRows == null) {
                 this._numberOfRows = n;
             } else if (n != this._numberOfRows) {
@@ -130,7 +136,8 @@ export class DataFrame extends ann.Annotated {
      * @return {DataFrame} Reference to this DataFrame after the column is removed.
      */
     $removeColumn(i) {
-        return this._columns.removeEntry(i);
+        this._columns.$removeEntry(i);
+        return this;
     }
 
     /**
@@ -146,7 +153,8 @@ export class DataFrame extends ann.Annotated {
         if (generics.LENGTH(value) != this._numberOfRows) {
             throw new Error("expected 'value' to have the same length as the number of rows in 'x'");
         }
-        return this._columns.setEntry(i, value);
+        this._columns.$setEntry(i, value);
+        return this;
     }
 
     /**
@@ -155,18 +163,7 @@ export class DataFrame extends ann.Annotated {
      * @return {DataFrame} Reference to this DataFrame with modified column names.
      */
     $setColumnNames(names) {
-        utils.checkNamesArray(names, "replacement 'names'", this._columns.order.length, "'numberOfColumns()'");
-
-        let new_columns = {};
-        for (var i = 0; i < names.length; i++) {
-            if (names[i] in new_columns) {
-                throw new Error("detected duplicates in replacement 'names'");
-            }
-            new_columns[names[i]] = this._columns.entries[this._columns.order[i]];
-        }
-
-        this._columns.entries = new_columns;
-        this._columns.order = names;
+        this._columns.$setNames(names);
         return this;
     }
 
@@ -192,24 +189,7 @@ export class DataFrame extends ann.Annotated {
      * @return {DataFrame} Reference to this DataFrame after slicing to the specified columns.
      */
     $sliceColumns(i) {
-        let new_columns = {};
-        let new_order = [];
-
-        for (var ii of i) {
-            if (typeof ii != "string") {
-                utils.check_entry_index(this._columns.order, ii, "column", "DataFrame");
-                ii = this._columns.order[ii];
-            }
-            if (ii in new_columns) {
-                throw new Error("duplicate columns detected in slice request");
-            }
-
-            new_columns[ii] = this._columns.entries[ii];
-            new_order.push(ii);
-        }
-
-        this._columns.entries = new_columns;
-        this._columns.order = new_order;
+        this._columns.$sliceEntries(i);
         return this;
     }
 
@@ -224,9 +204,10 @@ export class DataFrame extends ann.Annotated {
     _bioconductor_SLICE(output, i, { allowView = false }) {
         let options = { allowView };
 
-        let new_columns = {};
-        for (const [k, v] of Object.entries(this._columns.entries)) {
-            new_columns[k] = generics.SLICE(v, i, options);
+        let new_columns = new Map;
+        for (const k of this._columns.names()) {
+            let sliced = generics.SLICE(this._columns.entry(k), i, options);
+            new_columns.set(k, sliced);
         }
 
         let new_rowNames = (this._rowNames == null ? null : generics.SLICE(this._rowNames, i, options));
@@ -239,14 +220,14 @@ export class DataFrame extends ann.Annotated {
         }
 
         output._rowNames = new_rowNames;
-        output._columns = { entries: new_columns, order: this._columns.order };
+        output._columns = new il.InternalList(new_columns, this._columns.names());
         output._numberOfRows = new_numberOfRows;
         output._metadata = this._metadata;
         return; 
     }
 
     _bioconductor_COMBINE(output, objects) {
-        let new_columns = utils.combineEntries(objects.map(x => x._columns), generics.COMBINE, "columnNames", "DataFrame");
+        let new_columns = il.InternalList.combineParallelEntries(objects.map(x => x._columns), generics.COMBINE);
 
         let all_n = [];
         let all_l = [];
@@ -267,7 +248,7 @@ export class DataFrame extends ann.Annotated {
 
     _bioconductor_CLONE(output, { deepCopy = true }) {
         super._bioconductor_CLONE(output, { deepCopy });
-        output._columns = (deepCopy ? generics.CLONE : utils.shallowCloneEntries)(this._columns);
+        output._columns = generics.CLONE(this._columns, { deepCopy });
         output._rowNames = (this._rowNames == null ? null : this._rowNames.slice());
         output._numberOfRows = this._numberOfRows;
         return;
@@ -308,7 +289,7 @@ export function flexibleCombineRows(objects) {
             }
         }
 
-        copy._columns.order = corder;
+        copy._columns.$reorderEntries(corder);
         copies.push(copy);
     }
 

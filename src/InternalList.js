@@ -1,4 +1,5 @@
-import * as cutils from "./clone-utils.js";
+import * as utils from "./utils.js";
+import * as generics from "./AllGenerics.js";
 
 export class InternalList {
     constructor(entries, order) {
@@ -14,7 +15,7 @@ export class InternalList {
             entries = replacement;
         }
 
-        let expected = entries.keys();
+        let expected = Array.from(entries.keys());
         if (order !== null) {
             utils.checkNamesArray(order, "'order'", expected.length, "the length of 'entries'");
             let observed = order.slice().sort();
@@ -23,6 +24,8 @@ export class InternalList {
             if (!utils.areArraysEqual(observed, expected)) {
                 throw new Error("values of 'order' should be the same as the keys of 'entries'");
             }
+        } else {
+            order = expected;
         }
 
         this._entries = entries;
@@ -51,7 +54,7 @@ export class InternalList {
 
     entry(i) {
         if (typeof i == "string") {
-            if (!(i in entries)) {
+            if (!this._entries.has(i)) {
                 throw new Error("no entry '" + i + "' present in this " + this.constructor.className);
             }
             return this._entries.get(i);
@@ -70,14 +73,15 @@ export class InternalList {
      **************************************************************************/
     
     removeEntry(i, { inPlace = false } = {}) {
-        let target = cutils.setterTarget(this, inPlace);
+        let target = this; //cutils.setterTarget(this, inPlace);
         if (!inPlace) {
+            // Shallow copies so that we can do our setting.
             target._order = target._order.slice();
-            target._entries = new Map(target._entries);
+            target._entries = new Map(target._entries); 
         }
 
         if (typeof i == "string") {
-            let ii = order.indexOf(i);
+            let ii = target._order.indexOf(i);
             if (ii < 0) {
                 throw new Error("no entry '" + i + "' present in this " + this.constructor.className);
             }
@@ -93,14 +97,19 @@ export class InternalList {
         return target;
     }
 
+    $removeEntry(i) {
+        return this.removeEntry(i, { inPlace: true });
+    }
+
     setEntry(i, value, { inPlace = false } = {}) {
-        let target = cutils.setterTarget(this, inPlace);
+        let target = this; // cutils.setterTarget(this, inPlace);
         if (!inPlace) {
+            // Shallow copy so that we can do our setting.
             target._entries = new Map(target._entries);
         }
 
         if (typeof i == "string") {
-            if (!(i in entries)) {
+            if (!target._entries.has(i)) {
                 if (!inPlace) {
                     target._order = target._order.slice();
                 }
@@ -115,13 +124,91 @@ export class InternalList {
         return target;
     }
 
+    $setEntry(i, value) {
+        return this.setEntry(i, value, { inPlace: true });
+    }
+
+    setNames(names, { inPlace = false } = {}) {
+        utils.checkNamesArray(names, "replacement 'names'", this._order.length, "length of 'names()'");
+
+        let new_entries = new Map;
+        for (var i = 0; i < names.length; i++) {
+            if (new_entries.has(names[i])) {
+                throw new Error("detected duplicate value '" + names[i] + "' in replacement 'names'");
+            }
+            new_entries.set(names[i], this._entries.get(this._order[i]));
+        }
+
+        let target = this;
+        target._entries = new_entries;
+        target._order = names;
+        return target;
+    }
+
+    $setNames(names) {
+        return this.setNames(names, { inPlace: true });
+    }
+
+    sliceEntries(indices, { inPlace = false } = {}) {
+        let new_entries = new Map;
+        let new_order = [];
+
+        for (var ii of indices) {
+            if (typeof ii != "string") {
+                this.#check_entry_index(ii);
+                ii = this._order[ii];
+            }
+            if (new_entries.has(ii)) {
+                throw new Error("duplicate entries detected in slice request");
+            }
+
+            new_entries.set(ii, this._entries.get(ii));
+            new_order.push(ii);
+        }
+
+        let target = this; //cutils.setterTarget(this, inPlace);
+        target._entries = new_entries;
+        target._order = new_order;
+        return target;
+    }
+
+    $sliceEntries(indices) {
+        return this.sliceEntries(indices, { inPlace: true });
+    }
+
+    reorderEntries(indices, { inPlace = false } = {}) {
+        if (indices.length !== this._order.length) {
+            throw utils.formatLengthError("reordered indices", "the number of existing entries");
+        }
+
+        let new_order = [];
+        for (var ii of indices) {
+            if (typeof ii != "string") {
+                this.#check_entry_index(ii);
+                ii = this._order[ii];
+            }
+            if (!this._entries.has(ii)) {
+                throw new Error("missing entry '" + ii + "' among the reordered indices");
+            }
+            new_order.push(ii);
+        }
+
+        let target = this; //cutils.setterTarget(this, inPlace);
+        target._order = new_order;
+        return target;
+    }
+
+    $reorderEntries(indices) {
+        return this.reorderEntries(indices, { inPlace: true });
+    }
+
     /**************************************************************************
      **************************************************************************
      **************************************************************************/
 
     _bioconductor_CLONE(output, { deepCopy = true } = {}) {
-        output._entries = (deepCopy : generics.CLONE(this._entries) : this._entries);
-        output._order = (deepCopy : generics.CLONE(this._order) : this._order);
+        output._entries = (deepCopy ? generics.CLONE(this._entries) : this._entries);
+        output._order = (deepCopy ? generics.CLONE(this._order) : this._order);
         return;
     }
 
@@ -130,19 +217,19 @@ export class InternalList {
      **************************************************************************/
 
     static combineParallelEntries(objects, combiner) {
-        let first_order = dumps[0]._order;
-        for (var i = 1; i < dumps.length; i++) {
-            if (!areArraysEqual(first_order, dumps[i]._order)) {
-                throw new Error("mismatching 'order' for " dumps[i].constructor.className + " " + String(i) + " to be combined");
+        let first_order = objects[0]._order;
+        for (var i = 1; i < objects.length; i++) {
+            if (!utils.areArraysEqual(first_order, objects[i]._order)) {
+                throw new Error("mismatching 'order' for " + objects[i].constructor.className + " " + String(i) + " to be combined");
             }
         }
 
         let new_entries = new Map;
         for (const k of first_order) {
-            let found = dumps.map(x => x.entries[k]);
+            let found = objects.map(x => x._entries.get(k));
             new_entries.set(k, combiner(found));
         }
 
-        return new InternalList(entries, order):
+        return new InternalList(new_entries, first_order);
     }
 }
