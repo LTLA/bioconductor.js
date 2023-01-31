@@ -175,6 +175,25 @@ export function CLONE(x, { deepCopy = true } = {}) {
                 return { ...x };
             }
         }
+
+        if (x.constructor == Map) {
+            let output = new Map;
+            for (const [k, v] of x) {
+                output.set(k, deepCopy ? CLONE(v) : v);
+            }
+            return output;
+        }
+
+        if (x.constructor == Set) {
+            let output = new Set;
+            for (const k of x) {
+                output.add(deepCopy ? CLONE(k) : k);
+            }
+            return output;
+        }
+
+
+        throw new Error("unknown CLONE operation for instance of class '" + x.constructor.name + "'");
     }
 
     // Immutable atomics should be all that's left.

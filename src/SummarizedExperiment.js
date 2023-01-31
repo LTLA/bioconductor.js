@@ -3,6 +3,7 @@ import * as ann from "./Annotated.js";
 import * as df from "./DataFrame.js";
 import * as utils from "./utils.js";
 import * as cutils from "./clone-utils.js";
+import * as il from "./InternalList.js";
 
 /**
  * A SummarizedExperiment contains zero or more assays, consisting of multi-dimensional arrays (usually matrices) of experimental data,
@@ -29,7 +30,7 @@ import * as cutils from "./clone-utils.js";
  */
 export class SummarizedExperiment extends ann.Annotated {
     /**
-     * @param {Object} assays - Object where keys are the assay names and values are multi-dimensional arrays of experimental data.
+     * @param {Object|Map} assays - Object or Map where keys are the assay names and values are multi-dimensional arrays of experimental data.
      * All arrays should have the same number of rows and columns.
      * @param {Object} [options={}] - Optional parameters.
      * @param {?Array} [options.assayOrder=null] - Array of strings specifying the ordering of the assays.
@@ -56,24 +57,25 @@ export class SummarizedExperiment extends ann.Annotated {
         super(metadata);
 
         // Check the assays.
-        let vals = Object.values(assays);
-        let nrows = null, ncols = null;
-        if (vals.length) {
-            for (var i = 0; i < vals.length; i++) {
-                let nr = generics.NUMBER_OF_ROWS(vals[i]);
-                let nc = generics.NUMBER_OF_COLUMNS(vals[i]);
-                if (i == 0) {
-                    nrows = nr;
-                    ncols = nc;
-                } else if (nrows !== nr || ncols !== nc) {
-                    throw new Error("expected all assays in 'assays' to have the same number of rows and columns");
-                }
+        try {
+            this._assays = new il.InternalList(assays, assayOrder);
+        } catch (e) {
+            throw new Error("failed to initialize assay list for this SummarizedExperiment; " + e.message, { cause: e });
+        }
+
+        let nrows = null;
+        let ncols = null;
+        for (const k of this._assays.names()) {
+            let current = this._assays.entry(k);
+            let nr = generics.NUMBER_OF_ROWS(current);
+            let nc = generics.NUMBER_OF_COLUMNS(current);
+            if (nrows == null) {
+                nrows = nr;
+                ncols = nc;
+            } else if (nrows !== nr || ncols !== nc) {
+                throw new Error("expected all assays in 'assays' to have the same number of rows and columns");
             }
         }
-        this._assays = {
-            entries: assays,
-            order: utils.checkEntryOrder(assays, assayOrder, "assay")
-        };
 
         // Check the rowData.
         if (rowData === null) {
@@ -113,7 +115,7 @@ export class SummarizedExperiment extends ann.Annotated {
         this._columnNames = columnNames;
     }
 
-    static name = "SummarizedExperiment";
+    static className = "SummarizedExperiment";
 
     /**************************************************************************
      **************************************************************************
@@ -123,14 +125,14 @@ export class SummarizedExperiment extends ann.Annotated {
      * @return {Array} Array of assay names.
      */
     assayNames() {
-        return this._assays.order;
+        return this._assays.names();
     }
 
     /**
      * @return {number} Number of assays.
      */
     numberOfAssays() {
-        return this._assays.order.length;
+        return this._assays.numberOfEntries();
     }
 
     /**
@@ -138,7 +140,13 @@ export class SummarizedExperiment extends ann.Annotated {
      * @return {*} The contents of assay `i` as an multi-dimensional array-like object.
      */
     assay(i) {
-        return utils.retrieveSingleEntry(this._assays.entries, this._assays.order, i, "assay", "SummarizedExperiment");
+        let output;
+        try {
+            output = this._assays.entry(i);
+        } catch (e) {
+            throw new Error("failed to retrieve the specified assay from this " + this.constructor.className + "; " + e.message, { cause: e });
+        }
+        return output;
     }
 
     /**
@@ -198,11 +206,11 @@ export class SummarizedExperiment extends ann.Annotated {
      */
     removeAssay(i, { inPlace = false } = {}) {
         let target = cutils.setterTarget(this, inPlace);
-        if (inPlace) {
-            target._assays = cutils.shallowCloneEntries(target._assays);
+        try {
+            target._assays = target._assays.removeEntry(i, { inPlace });
+        } catch (e) {
+            throw new Error("failed to remove assay " + (typeof i == "string" ? "'" + i + "'" : String(i)) + " from this " + this.constructor.className + "; " + e.message, { cause: e });
         }
-
-        utils.removeSingleEntry(this._assays.entries, this._assays.order, i, "assay", "SummarizedExperiment");
         return target;
     }
 
@@ -232,13 +240,8 @@ export class SummarizedExperiment extends ann.Annotated {
         if (generics.NUMBER_OF_ROWS(value) !== this.numberOfRows() || generics.NUMBER_OF_COLUMNS(value) !== this.numberOfColumns()) {
             throw new Error("expected 'value' to have the same dimensions as this 'SummarizedExperiment'");
         }
-
         let target = cutils.setterTarget(this, inPlace);
-        if (inPlace) {
-            target._assays = cutils.shallowCloneEntries(target._assays);
-        }
-
-        utils.setSingleEntry(target._assays.entries, target._assays.order, i, value, "assay", "SummarizedExperiment");
+        target._assays = target._assays.setEntry(i, value, { inPlace });
         return target;
     }
 
@@ -399,10 +402,7 @@ export class SummarizedExperiment extends ann.Annotated {
     }
 
     _bioconductor_SLICE_2D(output, rows, columns, { allowView = false }) {
-        output._assays = cutils.shallowCloneEntries(this._assays);
-        for (const [k, v] of Object.entries(output._assays.entries)) {
-            output._assays.entries[k] = generics.SLICE_2D(v, rows, columns, { allowView });
-        }
+        output._assays = this._assays.apply(v => generics.SLICE_2D(v, rows, columns, { allowView }));
 
         if (rows !== null) {
             output._rowData = generics.SLICE(this._rowData, rows, { allowView });
@@ -425,7 +425,7 @@ export class SummarizedExperiment extends ann.Annotated {
     }
 
     _bioconductor_COMBINE_ROWS(output, objects) {
-        output._assays = utils.combineEntries(objects.map(x => x._assays), generics.COMBINE_ROWS, "assayNames" , "SummarizedExperiment"); 
+        output._assays = il.InternalList.combineParallelEntries(objects.map(x => x._assays), generics.COMBINE_ROWS);
 
         let all_dfs = objects.map(x => x._rowData);
         output._rowData = generics.COMBINE(all_dfs);
@@ -440,7 +440,7 @@ export class SummarizedExperiment extends ann.Annotated {
     }
 
     _bioconductor_COMBINE_COLUMNS(output, objects) {
-        output._assays = utils.combineEntries(objects.map(x => x._assays), generics.COMBINE_COLUMNS, "assayNames" , "SummarizedExperiment"); 
+        output._assays = il.InternalList.combineParallelEntries(objects.map(x => x._assays), generics.COMBINE_COLUMNS);
 
         let all_dfs = objects.map(x => x._columnData);
         output._columnData = generics.COMBINE(all_dfs);
@@ -459,10 +459,10 @@ export class SummarizedExperiment extends ann.Annotated {
 
         output._assays = cutils.cloneField(this._assays, deepCopy);
         output._rowData = cutils.cloneField(this._rowData, deepCopy);
-        output._rowNames = (this._rowNames === null ? null : cutils.cloneField(this._rowNames, deepCopy));
+        output._rowNames = cutils.cloneField(this._rowNames, deepCopy);
 
         output._columnData = cutils.cloneField(this._columnData, deepCopy);
-        output._columnNames = (this._columnNames === null ? null : cutils.cloneField(this._columnNames, deepCopy));
+        output._columnNames = cutils.cloneField(this._columnNames, deepCopy);
         return;
     }
 }

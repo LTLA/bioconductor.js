@@ -7,7 +7,3 @@ export function setterTarget(object, inPlace) {
 export function cloneField(value, deepCopy) {
     return (deepCopy ? generics.CLONE(value) : value);
 }
-
-export function shallowCloneEntries(dump) {
-    return { entries: { ...(dump.entries) }, order: dump.order.slice() };
-}

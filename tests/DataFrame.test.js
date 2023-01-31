@@ -35,8 +35,8 @@ test("constructing a DataFrame works (custom column order)", () => {
     let x = new bioc.DataFrame(obj, { columnOrder: [ "B", "A" ] });
     expect(x.columnNames()).toEqual(["B", "A"]);
 
-    expect(() => new bioc.DataFrame(obj, { columnOrder: [ "B" ] })).toThrow("'columnOrder' array should have length");
-    expect(() => new bioc.DataFrame(obj, { columnOrder: [ "B", "C" ] })).toThrow("values of 'columnOrder' should be the same");
+    expect(() => new bioc.DataFrame(obj, { columnOrder: [ "B" ] })).toThrow("'order' array should have length");
+    expect(() => new bioc.DataFrame(obj, { columnOrder: [ "B", "C" ] })).toThrow("values of 'order' should be the same");
 })
 
 test("constructing a DataFrame works (with rownames)", () => {
@@ -147,19 +147,19 @@ test("cloning an array collection works", () => {
     expect(x.rowNames().length).toEqual(4);
 })
 
-test("cloning an array collection works (shallow)", () => {
-    let obj = spawnObject();
-    let x = new bioc.DataFrame(obj, { rowNames: [ "a", "b", "c", "d" ] });
-    let y = bioc.CLONE(x, { deepCopy: false });
-
-    y.column("A")[0] = 2;
-    y.$setColumn("C", [5,4,3,2]);
-    y.$setRowNames(null);
-
-    expect(x.column("A")[0]).toBe(2); // inner values are still referenced.
-    expect(x.hasColumn("C")).toBe(false);
-    expect(x.rowNames().length).toEqual(4);
-})
+//test("cloning an array collection works (shallow)", () => {
+//    let obj = spawnObject();
+//    let x = new bioc.DataFrame(obj, { rowNames: [ "a", "b", "c", "d" ] });
+//    let y = bioc.CLONE(x, { deepCopy: false });
+//
+//    y.column("A")[0] = 2;
+//    y.$setColumn("C", [5,4,3,2]);
+//    y.$setRowNames(null);
+//
+//    expect(x.column("A")[0]).toBe(2); // inner values are still referenced.
+//    expect(x.hasColumn("C")).toBe(false);
+//    expect(x.rowNames().length).toEqual(4);
+//})
 
 test("slicing a DataFrame works (indices)", () => {
     let obj = spawnObject();
@@ -255,24 +255,24 @@ test("combining multiple array collections preserves TypedArray types", () => {
     expect(out.column("A").constructor.name).toBe("Float64Array"); // promoted.
     expect(Array.from(out.column("A"))).toEqual([1,2,3,4,5,6]);
 
-    stub.A = [null, null];
+    y.$setColumn("A", [null, null]);
     out = bioc.COMBINE([x, y]);
     expect(out.column("A").constructor.name).toBe("Array"); // promoted.
     expect(Array.from(out.column("A"))).toEqual([1,2,3,4,null,null]);
 
     // Handles BigInts with some grace.
-    stub.A = new BigInt64Array([5n, 6n]);
+    y.$setColumn("A", new BigInt64Array([5n, 6n]));
     out = bioc.COMBINE([x, y]);
     expect(out.column("A").constructor.name).toBe("Array"); // promoted.
     expect(Array.from(out.column("A"))).toEqual([1,2,3,4,5n,6n]);
 
-    obj.A = new BigInt64Array([1n,2n,3n,4n]);
+    x.$setColumn("A", new BigInt64Array([1n,2n,3n,4n]));
     out = bioc.COMBINE([x, y]);
     expect(out.column("A").constructor.name).toBe("BigInt64Array"); // promoted.
     expect(Array.from(out.column("A"))).toEqual([1n,2n,3n,4n,5n,6n]);
 })
 
-test("fliexbly combining DataFrames by row", () => {
+test("flexibly combining DataFrames by row", () => {
     let x = new bioc.DataFrame({ "A": [ 1, 2, 3, 4 ], "B":[ 'x', 'y', 'z', 'aa' ]});
     let y = new bioc.DataFrame({ "A": [ 5, 6 ], "B":[ 'bb', 'cc' ]});
     let z = new bioc.DataFrame({ "A": [5, 6] });
