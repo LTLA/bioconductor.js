@@ -55,7 +55,7 @@ export class DataFrame extends ann.Annotated {
         try {
             this._columns = new il.InternalList(columns, columnOrder);
         } catch (e) {
-            throw new Error("failed to construct internal list of columns for this DataFrame; " + e.message, { cause: e });
+            throw new Error("failed to initialize columns for this " + this.constructor.className + "; " + e.message, { cause: e });
         }
 
         for (const k of this._columns.names()) {
@@ -78,6 +78,8 @@ export class DataFrame extends ann.Annotated {
             this._numberOfRows = 0;
         }
     }
+
+    static className = "DataFrame";
 
     /**************************************************************************
      **************************************************************************

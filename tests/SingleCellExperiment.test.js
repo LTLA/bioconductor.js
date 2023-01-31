@@ -21,7 +21,7 @@ test("Construction of a SingleCellExperiment works with reduced dimensions", () 
 
     // Errors.
     expect(() => new bioc.SingleCellExperiment({ counts: mat }, { reducedDimensions: { PCA: rd1, MDS: bioc.SLICE_2D(rd2, [1,2,3], null) } })).toThrow("number of rows");
-    expect(() => new bioc.SingleCellExperiment({ counts: mat }, { reducedDimensions: { PCA: rd1, MDS: rd2 }, reducedDimensionOrder: [] })).toThrow("reducedDimensionOrder");
+    expect(() => new bioc.SingleCellExperiment({ counts: mat }, { reducedDimensions: { PCA: rd1, MDS: rd2 }, reducedDimensionOrder: [] })).toThrow("reduced dimension list");
 })
 
 test("Construction of a SingleCellExperiment works with alternative experiments", () => {
@@ -45,7 +45,7 @@ test("Construction of a SingleCellExperiment works with alternative experiments"
     // Errors.
     expect(() => new bioc.SingleCellExperiment({ counts: mat }, { alternativeExperiments: { ADT: alt1, ERCC: 2 } })).toThrow("SummarizedExperiment");
     expect(() => new bioc.SingleCellExperiment({ counts: mat }, { alternativeExperiments: { ADT: alt1, ERCC: bioc.SLICE_2D(alt2, null, [1,2,3]) } })).toThrow("number of columns");
-    expect(() => new bioc.SingleCellExperiment({ counts: mat }, { alternativeExperiments: { ADT: alt1, ERCC: alt2 }, alternativeExperimentOrder: [] })).toThrow ("alternativeExperimentOrder");
+    expect(() => new bioc.SingleCellExperiment({ counts: mat }, { alternativeExperiments: { ADT: alt1, ERCC: alt2 }, alternativeExperimentOrder: [] })).toThrow ("alternative experiment list");
 })
 
 test("Reduced dimension setters work as expected", () => {
@@ -73,7 +73,7 @@ test("Reduced dimension setters work as expected", () => {
     // Errors.
     expect(() => sce.$setReducedDimension(0, rd1)).toThrow("out of range");
     expect(() => sce.$removeReducedDimension(0)).toThrow("out of range");
-    expect(() => sce.$removeReducedDimension("FOO")).toThrow("no reduced dimension");
+    expect(() => sce.$removeReducedDimension("FOO")).toThrow("failed to remove");
     expect(() => sce.$setReducedDimension("PCA", utils.spawn_random_matrix(10, 1))).toThrow("number of rows");
 })
 
@@ -101,7 +101,7 @@ test("Alternative experiment setters work as expected", () => {
     // Errors.
     expect(() => sce.$setAlternativeExperiment(0, alt1)).toThrow("out of range");
     expect(() => sce.$removeAlternativeExperiment(0)).toThrow("out of range");
-    expect(() => sce.$removeAlternativeExperiment("FOO")).toThrow("no alternative experiment");
+    expect(() => sce.$removeAlternativeExperiment("FOO")).toThrow("failed to remove");
     expect(() => sce.$setAlternativeExperiment("X", utils.spawn_random_matrix(10, 1))).toThrow("SummarizedExperiment");
     expect(() => sce.$setAlternativeExperiment("X", bioc.SLICE_2D(alt1, null, [1,2,3]))).toThrow("number of columns");
 })
@@ -164,8 +164,8 @@ test("COMBINE_COLUMNS generic works as expected", () => {
 
     // Errors.
     let sce3 = new bioc.SingleCellExperiment({ counts: mat1 }, { reducedDimensions: { PCA: rd1 } });
-    expect(() => bioc.COMBINE_COLUMNS([ sce1, sce3 ])).toThrow("mismatching 'alternativeExperimentNames'");
+    expect(() => bioc.COMBINE_COLUMNS([ sce1, sce3 ])).toThrow("failed to combine alternative experiments");
     sce3.$removeReducedDimension(0);
-    expect(() => bioc.COMBINE_COLUMNS([ sce1, sce3 ])).toThrow("mismatching 'reducedDimensionNames'");
+    expect(() => bioc.COMBINE_COLUMNS([ sce1, sce3 ])).toThrow("failed to combine reduced dimensions");
 })
 

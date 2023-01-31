@@ -29,7 +29,7 @@ import * as il from "./InternalList.js";
  */
 export class SummarizedExperiment extends ann.Annotated {
     /**
-     * @param {Object} assays - Object where keys are the assay names and values are multi-dimensional arrays of experimental data.
+     * @param {Object|Map} assays - Object or Map where keys are the assay names and values are multi-dimensional arrays of experimental data.
      * All arrays should have the same number of rows and columns.
      * @param {Object} [options={}] - Optional parameters.
      * @param {?Array} [options.assayOrder=null] - Array of strings specifying the ordering of the assays.
@@ -59,7 +59,7 @@ export class SummarizedExperiment extends ann.Annotated {
         try {
             this._assays = new il.InternalList(assays, assayOrder);
         } catch (e) {
-            throw new Error("failed to construct internal list of assays for this SummarizedExperiment; " + e.message, { cause: e });
+            throw new Error("failed to initialize assay list for this SummarizedExperiment; " + e.message, { cause: e });
         }
 
         let nrows = null;
@@ -143,7 +143,7 @@ export class SummarizedExperiment extends ann.Annotated {
         try {
             output = this._assays.entry(i);
         } catch (e) {
-            throw new Error("failed to retrieve assay " + (typeof i == "string" ? "'" + i + "'" : String(i)) + "; " + e.message, { cause: e });
+            throw new Error("failed to retrieve the specified assay from this " + this.constructor.className + "; " + e.message, { cause: e });
         }
         return output;
     }
@@ -295,14 +295,7 @@ export class SummarizedExperiment extends ann.Annotated {
     }
 
     _bioconductor_SLICE_2D(output, rows, columns, { allowView = false }) {
-        let new_assays = new Map;
-        let first_order = this._assays.names();
-        for (const k of first_order) {
-            let v = this._assays.entry(k);
-            let sliced = generics.SLICE_2D(v, rows, columns, { allowView });
-            new_assays.set(k, sliced);
-        }
-        output._assays = new il.InternalList(new_assays, first_order);
+        output._assays = this._assays.apply(v => generics.SLICE_2D(v, rows, columns, { allowView }));
 
         if (rows !== null) {
             output._rowData = generics.SLICE(this._rowData, rows, { allowView });

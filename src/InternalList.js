@@ -216,11 +216,23 @@ export class InternalList {
      **************************************************************************
      **************************************************************************/
 
+    apply(FUN, { inPlace = false } = {}) {
+        let new_entries = (inPlace ? this._entries : new Map);
+        for (const [k, v] of this._entries) {
+            new_entries.set(k, FUN(v));
+        }
+        return (inPlace ? this : new InternalList(new_entries, this._order));
+    }
+
+    $apply(FUN) {
+        return this.apply(FUN, { inPlace: true });
+    }
+
     static combineParallelEntries(objects, combiner) {
         let first_order = objects[0]._order;
         for (var i = 1; i < objects.length; i++) {
             if (!utils.areArraysEqual(first_order, objects[i]._order)) {
-                throw new Error("mismatching 'order' for " + objects[i].constructor.className + " " + String(i) + " to be combined");
+                throw new Error("detected differences in names between first object and object " + String(i) + " to be combined");
             }
         }
 
