@@ -139,7 +139,7 @@ export class RangedSummarizedExperiment extends se.SummarizedExperiment {
     _bioconductor_CLONE(output, { deepCopy }) {
         super._bioconductor_CLONE(output, { deepCopy });
 
-        output._rowRanges = generics.CLONE(this._rowRanges, { deepCopy });
+        output._rowRanges = cutils.cloneField(this._rowRanges, deepCopy);
 
         return;
     }

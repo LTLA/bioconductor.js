@@ -55,6 +55,18 @@ test("Reduced dimension setters work as expected", () => {
     expect(sce.reducedDimensionNames()).toEqual(["PCA"]);
 
     let rd2 = utils.spawn_random_matrix(20, 5);
+    
+    {
+        // Originals are unaffected.
+        let sce2 = sce.setReducedDimension("MDS", rd2);
+        expect(sce2.reducedDimensionNames()).toEqual(["PCA", "MDS"]);
+        expect(sce.reducedDimensionNames()).toEqual(["PCA"]); 
+
+        sce2 = sce.removeReducedDimension("PCA");
+        expect(sce2.reducedDimensionNames()).toEqual([]);
+        expect(sce.reducedDimensionNames()).toEqual(["PCA"]); 
+    }
+
     sce.$setReducedDimension("MDS", rd2);
     expect(sce.reducedDimensionNames()).toEqual(["PCA", "MDS"]);
     expect(sce.reducedDimension(1).numberOfColumns()).toEqual(5);
@@ -83,6 +95,18 @@ test("Alternative experiment setters work as expected", () => {
     let sce = new bioc.SingleCellExperiment({ counts: mat }, { alternativeExperiments: { ADT: alt1 } });
 
     let alt2 = new bioc.SummarizedExperiment({ counts: utils.spawn_random_matrix(3, 20) });
+
+    {
+        // Originals are unaffected.
+        let sce2 = sce.setAlternativeExperiment("XXXX", alt2);
+        expect(sce2.alternativeExperimentNames()).toEqual(["ADT", "XXXX"]);
+        expect(sce.alternativeExperimentNames()).toEqual(["ADT"]); 
+
+        sce2 = sce.removeAlternativeExperiment("ADT");
+        expect(sce2.alternativeExperimentNames()).toEqual([]);
+        expect(sce.alternativeExperimentNames()).toEqual(["ADT"]); 
+    }
+
     sce.$setAlternativeExperiment("SPIKE", alt2);
     expect(sce.alternativeExperimentNames()).toEqual(["ADT", "SPIKE"]);
     expect(sce.alternativeExperiment(1).numberOfRows()).toEqual(3);

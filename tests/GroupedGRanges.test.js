@@ -66,7 +66,10 @@ test("setting the inner ranges works as expected", () => {
     str.fill(-1);
     rr.$setStrand(str);
 
-    expect(ggr.ranges().strand()[0]).toEqual(0);
+    let ggr2 = ggr.setRanges(rr);
+    expect(ggr.ranges().strand()[0]).toEqual(0); // doesn't mutate the original.
+    expect(ggr2.ranges().strand()[0]).toEqual(-1);
+
     ggr.$setRanges(rr);
     expect(ggr.ranges().strand()[0]).toEqual(-1);
 
@@ -84,6 +87,10 @@ test("setting an individual group works as expected", () => {
     let after = ggr.group(6);
 
     let replacement = utils.spawn_random_GRanges(bioc.LENGTH(current) + 5);
+    let ggr2 = ggr.setGroup(5, replacement);
+    expect(ggr2.group(5).start()).toEqual(replacement.start());
+    expect(ggr.group(5).start()).toEqual(current.start()); // doesn't mutate the original.
+
     ggr.$setGroup(5, replacement);
     expect(ggr.group(5).start()).toEqual(replacement.start());
     expect(ggr.group(5).start()).not.toEqual(current.start());
@@ -123,6 +130,28 @@ test("setting multiple different groups works as expected", () => {
         expect(ggr2.ranges().start()).toEqual(ggr.ranges().start());
         expect(ggr2.rangeStarts()).toEqual(ggr.rangeStarts());
         expect(ggr2.rangeLengths()).toEqual(ggr.rangeLengths());
+    }
+
+    // Checking for immutability.
+    {
+        let ggr = new bioc.GroupedGRanges(grl_raw);
+        let copy = bioc.CLONE(ggr);
+        let updated = [...grl_raw];
+        let grl_raw2 = spawn_GRanges_list(5);
+
+        for (var i = 0; i < 4; i++) { 
+            let ggr2 = ggr.setGroup(i * 2 + 1, grl_raw2[i]);
+            updated[i * 2 + 1] = grl_raw2[i];
+
+            let ggr3 = new bioc.GroupedGRanges(updated);
+            expect(ggr2.ranges().start()).toEqual(ggr3.ranges().start());
+            expect(ggr2.rangeStarts()).toEqual(ggr3.rangeStarts());
+            expect(ggr2.rangeLengths()).toEqual(ggr3.rangeLengths());
+
+            expect(copy.ranges().start()).toEqual(ggr.ranges().start());
+            expect(copy.rangeStarts()).toEqual(ggr.rangeStarts());
+            expect(copy.rangeLengths()).toEqual(ggr.rangeLengths());
+        }
     }
 })
 

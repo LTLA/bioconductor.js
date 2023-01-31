@@ -97,6 +97,18 @@ test("setting/removing of the assays works as expected", () => {
     expect(out.assay(0).values()).toEqual(mat.values());
 
     let mat2 = utils.spawn_random_matrix(10, 20);
+
+    {
+        // Originals are always unaffected.
+        let se = out.setAssay("logcounts", mat2);
+        expect(se.assayNames()).toEqual(["counts", "logcounts"]);
+        expect(out.assayNames()).toEqual(["counts"]);
+
+        se = out.removeAssay("counts");
+        expect(se.assayNames()).toEqual([]);
+        expect(out.assayNames()).toEqual(["counts"]);
+    }
+
     out.$setAssay(0, mat2);
     expect(out.assayNames()).toEqual(["counts"]);
     expect(out.assay(0).values()).toEqual(mat2.values());
@@ -123,10 +135,22 @@ test("setting/removing of the DFs works as expected", () => {
     let out = new bioc.SummarizedExperiment({ counts: mat });
 
     let rdf = new bioc.DataFrame({ foo: utils.spawn_random_vector(10) });
+    {
+        // Originals are always unaffected.
+        let se = out.setRowData(rdf);
+        expect(se.rowData().numberOfColumns()).toEqual(1);
+        expect(out.rowData().numberOfColumns()).toEqual(0);
+    }
     out.$setRowData(rdf);
     expect(out.rowData().column("foo")).toEqual(rdf.column("foo"));
 
     let cdf = new bioc.DataFrame({ bar: utils.spawn_random_vector(20) });
+    {
+        // Originals are always unaffected.
+        let se = out.setColumnData(cdf);
+        expect(se.columnData().numberOfColumns()).toEqual(1);
+        expect(out.columnData().numberOfColumns()).toEqual(0);
+    }
     out.$setColumnData(cdf);
     expect(out.columnData().column("bar")).toEqual(cdf.column("bar"));
 
@@ -140,10 +164,20 @@ test("setting/removing of the names works as expected", () => {
     let out = new bioc.SummarizedExperiment({ counts: mat });
 
     let rnames = [ "A", "B", "C", "D", "E" ];
+    {
+        let se = out.setRowNames(rnames);
+        expect(se.rowNames().length).toEqual(5);
+        expect(out.rowNames()).toBeNull();
+    }
     out.$setRowNames(rnames);
     expect(out.rowNames()).toEqual(rnames);
 
     let cnames = [ "a", "b", "c", "d" ];
+    {
+        let se = out.setColumnNames(cnames);
+        expect(se.columnNames().length).toEqual(4);
+        expect(out.columnNames()).toBeNull();
+    }
     out.$setColumnNames(cnames);
     expect(out.columnNames()).toEqual(cnames);
 

@@ -197,7 +197,7 @@ export class GRanges extends vec.Vector {
      * @return {GRanges} The GRanges object after setting the strands to `strand`.
      * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
-    setStrand(strand, { inPlace = false }) {
+    setStrand(strand, { inPlace = false } = {}) {
         if (this._strand.length !== strand.length) {
             throw utils.formatLengthError("'strand'", "'seqnames'");
         }

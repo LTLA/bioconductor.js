@@ -63,6 +63,10 @@ test("values setters work as expected", () => {
     let mat = new bioc.DenseMatrix(NR, NC, v);
 
     let v2 = utils.spawn_random_vector(NR * NC);
+    let mat2 = mat.setValues(v2);
+    expect(mat.values()).not.toEqual(v2); // not modified in place.
+    expect(mat2.values()).toEqual(v2);
+
     mat.$setValues(v2);
     expect(mat.values()).toEqual(v2);
 
@@ -108,6 +112,29 @@ test("row and column setters work as expected", () => {
             mat.$setColumn(r, mat2.row(r));
         }
         expect(mat.values()).toEqual(v2);
+    }
+
+    // Immutable.
+    {
+        let mat = new bioc.DenseMatrix(NR, NC, v.slice());
+        for (var c = 0; c < NC; c++) {
+            let previous = mat.column(c);
+            let replace = mat2.column(c);
+            let remat = mat.setColumn(c, replace);
+            expect(mat.column(c)).toEqual(previous);
+            expect(remat.column(c)).toEqual(replace);
+        }
+    }
+
+    {
+        let mat = new bioc.DenseMatrix(NR, NC, v.slice());
+        for (var r = 0; r < NR; r++) {
+            let previous = mat.row(r);
+            let replace = mat2.row(r);
+            let remat = mat.setRow(r, replace);
+            expect(mat.row(r)).toEqual(previous);
+            expect(remat.row(r)).toEqual(replace);
+        }
     }
 
     // Errors

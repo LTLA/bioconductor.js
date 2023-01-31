@@ -180,6 +180,10 @@ export class DenseMatrix {
         }
 
         let target = cutils.setterTarget(this, inPlace);
+        if (!inPlace) {
+            target._values = target._values.slice();
+        }
+
         target.#inserter(i, target._numberOfRows, target._numberOfColumns, !target._columnMajor, values);
         return target;
     }
@@ -209,6 +213,10 @@ export class DenseMatrix {
         }
 
         let target = cutils.setterTarget(this, inPlace);
+        if (!inPlace) {
+            target._values = target._values.slice();
+        }
+
         target.#inserter(i, target._numberOfColumns, target._numberOfRows, target._columnMajor, values);
         return target;
     }

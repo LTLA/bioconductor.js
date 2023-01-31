@@ -150,10 +150,11 @@ export class GroupedGRanges extends vec.Vector {
      * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
     setRanges(ranges, { inPlace = false } = {}) {
-        this.#flush_staged_setGroup();
         if (!(ranges instanceof gr.GRanges)) {
             throw new Error("'ranges' must be a 'GRanges'");
         }
+
+        this.#flush_staged_setGroup();
         if (generics.LENGTH(ranges) !== generics.LENGTH(this._ranges)) {
             throw utils.formatLengthError("'ranges'", "number of ranges");
         }
@@ -176,6 +177,7 @@ export class GroupedGRanges extends vec.Vector {
         if (staged === null) {
             return;
         }
+
         staged.sort((a, b) => {
             let diff = a[0] - b[0];
             return (diff === 0 ? a[1] - b[1] : diff);
@@ -242,6 +244,11 @@ export class GroupedGRanges extends vec.Vector {
             target.#staged_setGroup = [];
         } else if (!inPlace) {
             target.#staged_setGroup = target.#staged_setGroup.slice();
+        }
+
+        if (!inPlace) {
+            target._rangeStarts = target._rangeStarts.slice();
+            target._rangeLengths = target._rangeLengths.slice();
         }
 
         let nops = target.#staged_setGroup.length;
@@ -342,7 +349,7 @@ export class GroupedGRanges extends vec.Vector {
     _bioconductor_CLONE(output, { deepCopy = true }) {
         super._bioconductor_CLONE(output, { deepCopy });
 
-        output.#staged_setGroup = (this.#staged_setGroup === null ? null : cutils.cloneField(this.#staged_setGroup, deepCopy));
+        output.#staged_setGroup = cutils.cloneField(this.#staged_setGroup, deepCopy);
         output._rangeLengths = cutils.cloneField(this._rangeLengths, deepCopy);
         output._rangeStarts = cutils.cloneField(this._rangeStarts, deepCopy);
         output._ranges = cutils.cloneField(this._ranges, deepCopy);
