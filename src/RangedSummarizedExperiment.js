@@ -31,29 +31,15 @@ export class RangedSummarizedExperiment extends se.SummarizedExperiment {
      * Alternatively, each row may correspond to a group of genomic ranges.
      *
      * If `null`, a {@linkplain GroupedGRanges} is constructed where each row corresponds to one group of ranges of zero length.
-     * @param {Object} [options={}] - Optional parameters.
-     * @param {?Array} [options.assayOrder=null] - Array of strings specifying the ordering of the assays.
-     * If non-`null`, this should have the same values as the keys of `assays`.
-     * If `null`, an arbitrary ordering is obtained from `assays`.
-     * @param {?DataFrame} [options.rowData=null] - Data frame of row annotations.
-     * If non-`null`, this should have a number of rows equal to the number of rows in each entry of `assays`.
-     * If `null`, an empty {@linkplain DataFrame} is automatically created.
-     * @param {?DataFrame} [options.columnData=null] - Data frame of column annotations.
-     * If non-`null`, this should have a number of columns equal to the number of columns in each entry of `assays`.
-     * If `null`, an empty {@linkplain DataFrame} is automatically created.
-     * @param {?Array} [options.rowNames=null] - Array of strings of length equal to the number of rows in the `assays`, containing row names.
-     * Alternatively `null`, if no row names are present.
-     * @param {?Array} [options.columnNames=null] - Array of strings of length equal to the number of columns in the `assays`, containing column names.
-     * Alternatively `null`, if no column names are present.
-     * @param {Object} [options.metadata={}] - Object containing arbitrary metadata as key-value pairs.
+     * @param {Object} [options={}] - Optional parameters, including those used in the {@linkplain SummarizedExperiment} constructor.
      */
-    constructor(assays, rowRanges, { assayOrder = null, rowData = null, columnData = null, rowNames = null, columnNames = null, metadata = {} } = {}) {
+    constructor(assays, rowRanges, options = {}) {
         if (arguments.length == 0) {
             super();
             return;
         }
 
-        super(assays, { assayOrder, rowData, columnData, rowNames, columnNames, metadata });
+        super(assays, options);
 
         if (rowRanges === null) {
             rowRanges = ggr.GroupedGRanges.empty(this.numberOfRows());

@@ -48,6 +48,36 @@ test("Construction of a SingleCellExperiment works with alternative experiments"
     expect(() => new bioc.SingleCellExperiment({ counts: mat }, { alternativeExperiments: { ADT: alt1, ERCC: alt2 }, alternativeExperimentOrder: [] })).toThrow ("alternative experiment list");
 })
 
+test("Construction of a SingleCellExperiment works with all bits and pieces", () => {
+    let mat = utils.spawn_random_matrix(5, 4);
+    let mat2 = utils.spawn_random_matrix(5, 4);
+    let gr = utils.spawn_random_GRanges(5);
+    let rdf = new bioc.DataFrame({ foo: utils.spawn_random_vector(5) });
+    let cdf = new bioc.DataFrame({ bar: utils.spawn_random_vector(4) });
+    let rnames = [ "A", "B", "C", "D", "E" ];
+    let cnames = [ "a", "b", "c", "d" ];
+
+    let sce = new bioc.SingleCellExperiment(
+        { counts: mat, logcounts: mat2 }, 
+        { 
+            assayOrder: [ "logcounts", "counts" ],
+            rowRanges: gr, 
+            rowData: rdf, 
+            columnData: cdf, 
+            rowNames: rnames, 
+            columnNames: cnames, 
+            metadata: { bob: 1 }
+        }
+    );
+
+    expect(sce.assayNames()).toEqual(["logcounts", "counts"]);
+    expect(sce.rowData().column("foo")).toEqual(rdf.column("foo"));
+    expect(sce.columnData().column("bar")).toEqual(cdf.column("bar"));
+    expect(sce.rowNames()).toEqual(rnames);
+    expect(sce.columnNames()).toEqual(cnames);
+    expect(sce.metadata().bob).toBe(1);
+})
+
 test("Reduced dimension setters work as expected", () => {
     let mat = utils.spawn_random_matrix(10, 20);
     let rd1 = utils.spawn_random_matrix(20, 5);
