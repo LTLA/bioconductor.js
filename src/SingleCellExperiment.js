@@ -139,7 +139,7 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
     removeReducedDimension(i, { inPlace = false } = {}) {
         let target = cutils.setterTarget(this, inPlace);
         try {
-            target._reducedDimensions = target._reducedDimensions.removeEntry(i, { inPlace });
+            target._reducedDimensions = target._reducedDimensions.delete(i, { inPlace });
         } catch (e) {
             throw new Error("failed to remove the specified reduced dimension from this " + this.constructor.className + "; " + e.message, { cause: e });
         }
@@ -173,7 +173,7 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
             throw new Error("number of rows of 'value' should be the same as the number of columns of this SingleCellExperiment");
         }
         let target = cutils.setterTarget(this, inPlace);
-        target._reducedDimensions = target._reducedDimensions.setEntry(i, value, { inPlace });
+        target._reducedDimensions = target._reducedDimensions.set(i, value, { inPlace });
         return target;
     }
 
@@ -203,7 +203,7 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
     removeAlternativeExperiment(i, { inPlace = false } = {}) {
         let target = cutils.setterTarget(this, inPlace);
         try {
-            target._alternativeExperiments = target._alternativeExperiments.removeEntry(i, { inPlace });
+            target._alternativeExperiments = target._alternativeExperiments.delete(i, { inPlace });
         } catch (e) {
             throw new Error("failed to remove the specified alternative experiment from this " + this.constructor.className + "; " + e.message, { cause: e });
         }
@@ -237,7 +237,7 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
             throw new Error("'value' should be a SummarizedExperiment with the same number of columns as this SingleCellExperiment");
         }
         let target = cutils.setterTarget(this, inPlace);
-        target._alternativeExperiments = target._alternativeExperiments.setEntry(i, value, { inPlace });
+        target._alternativeExperiments = target._alternativeExperiments.set(i, value, { inPlace });
         return target;
     }
 
@@ -284,13 +284,13 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
         super._bioconductor_COMBINE_COLUMNS(output, objects);
 
         try {
-            output._reducedDimensions = il.InternalList.combineParallelEntries(objects.map(x => x._reducedDimensions), generics.COMBINE_ROWS);
+            output._reducedDimensions = il.InternalList.parallelCombine(objects.map(x => x._reducedDimensions), generics.COMBINE_ROWS);
         } catch (e) {
             throw new Error("failed to combine reduced dimensions for " + this.constructor.className + " objects; " + e.message, { cause: e });
         }
 
         try {
-            output._alternativeExperiments = il.InternalList.combineParallelEntries(objects.map(x => x._alternativeExperiments), generics.COMBINE_COLUMNS);
+            output._alternativeExperiments = il.InternalList.parallelCombine(objects.map(x => x._alternativeExperiments), generics.COMBINE_COLUMNS);
         } catch (e) {
             throw new Error("failed to combine alternative experiments for " + this.constructor.className + " objects; " + e.message, { cause: e });
         }

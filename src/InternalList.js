@@ -59,7 +59,7 @@ export class InternalList {
         }
     }
 
-    hasEntry(name) {
+    has(name) {
         return this._entries.has(name);
     }
 
@@ -67,7 +67,7 @@ export class InternalList {
      **************************************************************************
      **************************************************************************/
     
-    removeEntry(i, { inPlace = false } = {}) {
+    delete(i, { inPlace = false } = {}) {
         let target = cutils.setterTarget(this, inPlace);
         if (!inPlace) {
             // Shallow copies so that we can do our setting.
@@ -92,7 +92,7 @@ export class InternalList {
         return target;
     }
 
-    setEntry(i, value, { inPlace = false } = {}) {
+    set(i, value, { inPlace = false } = {}) {
         let target = cutils.setterTarget(this, inPlace);
         if (!inPlace) {
             // Shallow copy so that we can do our setting.
@@ -132,7 +132,7 @@ export class InternalList {
         return target;
     }
 
-    sliceEntries(indices, { inPlace = false } = {}) {
+    slice(indices, { inPlace = false } = {}) {
         let new_entries = new Map;
         let new_order = [];
 
@@ -143,6 +143,8 @@ export class InternalList {
             }
             if (new_entries.has(ii)) {
                 throw new Error("duplicate entries detected in slice request");
+            } else if (!this._entries.has(ii)) {
+                throw new Error("slice contains missing entry '" + ii + "' ");
             }
 
             new_entries.set(ii, this._entries.get(ii));
@@ -155,7 +157,9 @@ export class InternalList {
         return target;
     }
 
-    reorderEntries(indices, { inPlace = false } = {}) {
+    reorder(indices, { inPlace = false } = {}) {
+        // Reorder can be slightly more efficient than slice because we just
+        // need to change the ordering vector rather than creating a new Map.
         if (indices.length !== this._order.length) {
             throw utils.formatLengthError("reordered indices", "the number of existing entries");
         }
@@ -199,7 +203,7 @@ export class InternalList {
         return (inPlace ? this : new InternalList(new_entries, this._order));
     }
 
-    static combineParallelEntries(objects, combiner) {
+    static parallelCombine(objects, combiner) {
         let first_order = objects[0]._order;
         for (var i = 1; i < objects.length; i++) {
             if (!utils.areArraysEqual(first_order, objects[i]._order)) {

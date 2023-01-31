@@ -207,7 +207,7 @@ export class SummarizedExperiment extends ann.Annotated {
     removeAssay(i, { inPlace = false } = {}) {
         let target = cutils.setterTarget(this, inPlace);
         try {
-            target._assays = target._assays.removeEntry(i, { inPlace });
+            target._assays = target._assays.delete(i, { inPlace });
         } catch (e) {
             throw new Error("failed to remove assay " + (typeof i == "string" ? "'" + i + "'" : String(i)) + " from this " + this.constructor.className + "; " + e.message, { cause: e });
         }
@@ -241,7 +241,7 @@ export class SummarizedExperiment extends ann.Annotated {
             throw new Error("expected 'value' to have the same dimensions as this 'SummarizedExperiment'");
         }
         let target = cutils.setterTarget(this, inPlace);
-        target._assays = target._assays.setEntry(i, value, { inPlace });
+        target._assays = target._assays.set(i, value, { inPlace });
         return target;
     }
 
@@ -425,7 +425,7 @@ export class SummarizedExperiment extends ann.Annotated {
     }
 
     _bioconductor_COMBINE_ROWS(output, objects) {
-        output._assays = il.InternalList.combineParallelEntries(objects.map(x => x._assays), generics.COMBINE_ROWS);
+        output._assays = il.InternalList.parallelCombine(objects.map(x => x._assays), generics.COMBINE_ROWS);
 
         let all_dfs = objects.map(x => x._rowData);
         output._rowData = generics.COMBINE(all_dfs);
@@ -440,7 +440,7 @@ export class SummarizedExperiment extends ann.Annotated {
     }
 
     _bioconductor_COMBINE_COLUMNS(output, objects) {
-        output._assays = il.InternalList.combineParallelEntries(objects.map(x => x._assays), generics.COMBINE_COLUMNS);
+        output._assays = il.InternalList.parallelCombine(objects.map(x => x._assays), generics.COMBINE_COLUMNS);
 
         let all_dfs = objects.map(x => x._columnData);
         output._columnData = generics.COMBINE(all_dfs);

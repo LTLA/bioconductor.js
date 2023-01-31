@@ -105,7 +105,7 @@ export class DataFrame extends ann.Annotated {
      * @return {boolean} Whether the column exists in this DataFrame.
      */
     hasColumn(name) {
-        return this._columns.hasEntry(name);
+        return this._columns.has(name);
     }
 
     /**
@@ -145,7 +145,7 @@ export class DataFrame extends ann.Annotated {
      */
     removeColumn(i, { inPlace = false } = {}) {
         let target = cutils.setterTarget(this, inPlace);
-        target._columns = this._columns.removeEntry(i, { inPlace });
+        target._columns = this._columns.delete(i, { inPlace });
         return target;
     }
 
@@ -177,7 +177,7 @@ export class DataFrame extends ann.Annotated {
         }
 
         let target = cutils.setterTarget(this, inPlace);
-        target._columns = this._columns.setEntry(i, value, { inPlace });
+        target._columns = this._columns.set(i, value, { inPlace });
         return target;
     }
 
@@ -265,7 +265,7 @@ export class DataFrame extends ann.Annotated {
      */
     sliceColumns(i, { inPlace = false } = {}) {
         let target = cutils.setterTarget(this, inPlace);
-        target._columns = this._columns.sliceEntries(i, { inPlace });
+        target._columns = this._columns.slice(i, { inPlace });
         return target;
     }
 
@@ -312,7 +312,7 @@ export class DataFrame extends ann.Annotated {
     }
 
     _bioconductor_COMBINE(output, objects) {
-        let new_columns = il.InternalList.combineParallelEntries(objects.map(x => x._columns), generics.COMBINE);
+        let new_columns = il.InternalList.parallelCombine(objects.map(x => x._columns), generics.COMBINE);
 
         let all_n = [];
         let all_l = [];
@@ -374,7 +374,7 @@ export function flexibleCombineRows(objects) {
             }
         }
 
-        copy._columns = copy._columns.reorderEntries(corder);
+        copy._columns = copy._columns.reorder(corder);
         copies.push(copy);
     }
 
