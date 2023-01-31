@@ -70,30 +70,16 @@ test("constructing a GRanges works with non-default strands", () => {
     expect(() => new bioc.GRanges(obj.seqnames, obj.ranges, { strand: [ 2, 3, 4, 5 ] })).toThrow("'strand' must be");
 })
 
-test("GRanges setters work for start positions", () => {
-    let obj = spawnObject();
-    let x = new bioc.GRanges(obj.seqnames, obj.ranges);
-
-    x.$setStart([ 4, 5, 6, 7 ]);
-    expect(x.start()).toEqual(new Int32Array([4, 5, 6, 7]));
-    expect(x.end()).toEqual(new Int32Array([ 14, 25, 36, 47 ]));
-})
-
-test("GRanges setters work for widths", () => {
-    let obj = spawnObject();
-    let x = new bioc.GRanges(obj.seqnames, obj.ranges);
-
-    x.$setWidth([ 4, 5, 6, 7 ]);
-    expect(x.width()).toEqual(new Int32Array([4, 5, 6, 7]));
-    expect(x.end()).toEqual(new Int32Array([ 6, 9, 12, 15 ]));
-})
-
 test("GRanges setters work for seqnames", () => {
     let obj = spawnObject();
     let x = new bioc.GRanges(obj.seqnames, obj.ranges);
 
     x.$setSeqnames([ "chrX", "chrX", "chrY", "chrY" ]);
     expect(x.seqnames()).toEqual([ "chrX", "chrX", "chrY", "chrY" ]);
+
+    let y = x.setSeqnames([ "1", "2", "3", "4" ]);
+    expect(x.seqnames()[0]).toEqual("chrX");
+    expect(y.seqnames()[0]).toEqual("1");
 
     // Fails if not of the right length.
     expect(() => x.$setSeqnames([ "A", "B" ])).toThrow("should have length")
@@ -124,6 +110,10 @@ test("GRanges setters work for the ranges", () => {
     let x = new bioc.GRanges(obj.seqnames, obj.ranges);
 
     let replacement = new bioc.IRanges([9,7,5,3], [100, 200, 300, 400]);
+    let y = x.setRanges(replacement);
+    expect(y.start()).toEqual(replacement.start());
+    expect(x.start()).not.toEqual(replacement.width()); // doesn't mutate the original object.
+
     x.$setRanges(replacement);
     expect(x.start()).toEqual(replacement.start());
     expect(x.width()).toEqual(replacement.width());
@@ -139,6 +129,10 @@ test("GRanges setters work for the strands", () => {
     let obj = spawnObject();
     let x = new bioc.GRanges(obj.seqnames, obj.ranges);
 
+    let y = x.setStrand([1, -1, 1, -1]);
+    expect(x.strand()[0]).toEqual(0);
+    expect(y.strand()[0]).toEqual(1); // doesn't mutate the original object.
+
     x.$setStrand([1, 0, 1, -1]);
     expect(x.strand()).toEqual(new Int8Array([1, 0, 1, -1]));
 
@@ -153,6 +147,11 @@ test("GRanges setters work for the elementMetadata", () => {
     let obj = spawnObject();
     let x = new bioc.GRanges(obj.seqnames, obj.ranges);
     let df = new bioc.DataFrame({ thing: ["A", "B", "C", "D"], foo: new Float64Array([1,2,3,4]) });
+
+    let y = x.setElementMetadata(df);
+    expect(y instanceof bioc.GRanges).toBe(true);
+    expect(y.elementMetadata().hasColumn("thing")).toBe(true);
+    expect(x.elementMetadata().hasColumn("thing")).toBe(false); // doesn't mutate the original.
 
     x.$setElementMetadata(df);
     expect(x.elementMetadata().numberOfRows()).toEqual(4);
@@ -174,6 +173,10 @@ test("GRanges setters work for the metadata", () => {
     let obj = spawnObject();
     let x = new bioc.GRanges(obj.seqnames, obj.ranges, { metadata: { thing: 2 } });
     expect(x.metadata()).toEqual({ thing: 2 });
+
+    let y = x.setMetadata({ boo: 5 });
+    expect(y.metadata()).toEqual({ boo: 5 });
+    expect(x.metadata()).not.toEqual({ boo: 5 }); // doesn't mutate the original.
 
     x.$setMetadata({ boo: 5 });
     expect(x.metadata()).toEqual({ boo: 5 });
@@ -226,7 +229,9 @@ test("CLONE generic works correctly for GRanges", () => {
     expect(x.elementMetadata().column("thing")).toEqual(y.elementMetadata().column("thing"));
 
     // Modifying one object doesn't affect the other.
-    x.$setStart([9,8,7,6]);
+    let ir = x.ranges();
+    ir.$setStart([9,8,7,6]);
+    x.$setRanges(ir);
     expect(x.start()).toEqual(new Int32Array([9,8,7,6]));
     expect(y.start()).toEqual(new Int32Array([2,4,6,8]));
 

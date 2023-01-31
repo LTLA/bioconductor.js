@@ -1,5 +1,6 @@
 import * as generics from "./AllGenerics.js";
 import * as utils from "./utils.js";
+import * as cutils from "./clone-utils.js";
 import * as ir from "./IRanges.js";
 import * as vec from "./Vector.js";
 import * as olap from "./overlap-utils.js";
@@ -130,64 +131,93 @@ export class GRanges extends vec.Vector {
 
     /**
      * @param {Array} seqnames - Array of strings containing the sequence names for each genomic range.
-     * @return {GRanges} A reference to this GRanges object, after setting the sequence names to `seqnames`.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this GRanges instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {GRanges} The GRanges object after setting the sequence names to `seqnames`.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
+     */
+    setSeqnames(seqnames, { inPlace = false } = {}) {
+        utils.checkNamesArray(seqnames, "replacement 'seqnames'", generics.LENGTH(this), "'LENGTH(<GRanges>)'");
+        let target = cutils.setterTarget(this, inPlace); 
+        target._seqnames = seqnames;
+        return target;
+    }
+
+    /**
+     * @param {Array} seqnames - Array of strings containing the sequence names for each genomic range.
+     * @return {GRanges} A reference to this GRanges object after setting the sequence names to `seqnames`.
      */
     $setSeqnames(seqnames) {
-        utils.checkNamesArray(seqnames, "replacement 'seqnames'", generics.LENGTH(this), "'LENGTH(<GRanges>)'");
-        this._seqnames = seqnames;
-        return this;
-    }
-
-    /**
-     * @param {Array|TypedArray} start - Array of start positions for each genomic range.
-     * This should have length equal to the number of ranges and be coercible into an Int32Array.
-     * @return {GRanges} A reference to this GRanges object, after setting the start positions to `start`.
-     */
-    $setStart(start) {
-        this._ranges.$setStart(start);
-        return this;
-    }
-
-    /**
-     * @param {Array|TypedArray} width - Array of widths for each genomic range.
-     * This should have length equal to the number of ranges and be coercible into an Int32Array.
-     * @return {GRanges} A reference to this GRanges object, after setting the widths to `width`.
-     */
-    $setWidth(width) {
-        this._ranges.$setWidth(width);
-        return this;
+        return this.setSeqnames(seqnames, { inPlace: true });
     }
 
     /**
      * @param {IRanges} ranges - Start positions and widths for each genomic range.
      * This should have length equal to the number of ranges. 
-     * @return {GRanges} A reference to this GRanges object, after setting the ranges to `ranges`.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this GRanges instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {GRanges} The GRanges object after setting the ranges to `ranges`.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
-    $setRanges(ranges) {
+    setRanges(ranges, { inPlace = false } = {}) {
         if (!(ranges instanceof ir.IRanges)) {
             throw new Error("'ranges' should be an IRanges object");
         }
+
         if (generics.LENGTH(ranges) !== generics.LENGTH(this._ranges)) {
             throw utils.formatLengthError("replacement 'ranges'", "'LENGTH(<GRanges>)'");
         }
-        this._ranges = ranges;
-        return this;
+
+        let target = cutils.setterTarget(this, inPlace); 
+        target._ranges = ranges;
+        return target;
+    }
+
+    /**
+     * @param {IRanges} ranges - Start positions and widths for each genomic range.
+     * This should have length equal to the number of ranges. 
+     * @return {GRanges} A reference to this GRanges object after setting the ranges to `ranges`.
+     */
+    $setRanges(ranges) {
+        return this.setRanges(ranges, { inPlace: true });
     }
 
     /**
      * @param {Array|TypedArray} strand - Array of strands for each genomic range.
      * This should have length equal to the number of ranges. 
      * Entries may be 0 (any strand), 1 (forward strand) or -1 (reverse strand).
-     * @return {GRanges} A reference to this GRanges object, after setting the strands to `strand`.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this GRanges instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {GRanges} The GRanges object after setting the strands to `strand`.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
-    $setStrand(strand) {
+    setStrand(strand, { inPlace = false } = {}) {
         if (this._strand.length !== strand.length) {
             throw utils.formatLengthError("'strand'", "'seqnames'");
         }
         strand = GRanges.#convertToInt8Array(strand);
         GRanges.#checkStrandedness(strand);
-        this._strand = strand;
-        return this;
+
+        let target = cutils.setterTarget(this, inPlace); 
+        target._strand = strand;
+        return target;
+    }
+
+    /**
+     * @param {Array|TypedArray} strand - Array of strands for each genomic range.
+     * This should have length equal to the number of ranges. 
+     * Entries may be 0 (any strand), 1 (forward strand) or -1 (reverse strand).
+     *
+     * @return {GRanges} A reference to this GRanges object after setting the strands to `strand`.
+     */
+    $setStrand(strand) {
+        return this.setStrand(strand, { inPlace: true });
     }
 
     /**************************************************************************
@@ -274,11 +304,10 @@ export class GRanges extends vec.Vector {
     }
 
     _bioconductor_CLONE(output, { deepCopy = true }) {
-        let options = { deepCopy };
-        super._bioconductor_CLONE(output, options);
-        output._seqnames = generics.CLONE(this._seqnames, options);
-        output._ranges = generics.CLONE(this._ranges, options);
-        output._strand = generics.CLONE(this._strand, options);
+        super._bioconductor_CLONE(output, { deepCopy });
+        output._seqnames = cutils.cloneField(this._seqnames, deepCopy);
+        output._ranges = cutils.cloneField(this._ranges, deepCopy);
+        output._strand = cutils.cloneField(this._strand, deepCopy);
         return;
     }
 

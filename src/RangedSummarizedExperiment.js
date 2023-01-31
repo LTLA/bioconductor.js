@@ -3,6 +3,7 @@ import * as gr from "./GRanges.js";
 import * as ggr from "./GroupedGRanges.js";
 import * as se from "./SummarizedExperiment.js";
 import * as utils from "./utils.js";
+import * as cutils from "./clone-utils.js";
 
 /**
  * A RangedSummarizedExperiment is a {@linkplain SummarizedExperiment} subclass where each row represents a genomic interval.
@@ -82,12 +83,27 @@ export class RangedSummarizedExperiment extends se.SummarizedExperiment {
     /**
      * @param {GRanges} value - Genomic ranges corresponding to each row.
      * This should have length equal to the number of rows in this RangedSummarizedExperiment.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this Annotated instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {RangedSummarizedExperiment} The RangedSummarizedExperiment after modifying its `rowRanges`.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
+     */
+    setRowRanges(value, { inPlace = false } = {}) {
+        this.#check_rowRanges(value);
+        let target = cutils.setterTarget(this, inPlace);
+        target._rowRanges = value;
+        return target;
+    }
+
+    /**
+     * @param {GRanges} value - Genomic ranges corresponding to each row.
+     * This should have length equal to the number of rows in this RangedSummarizedExperiment.
      * @return {RangedSummarizedExperiment} A reference to this RangedSummarizedExperiment after modifying its `rowRanges`.
      */
     $setRowRanges(value) {
-        this.#check_rowRanges(value);
-        this._rowRanges = value;
-        return this;
+        return this.setRowRanges(value, { inPlace: true });
     }
 
     /**************************************************************************
@@ -123,7 +139,7 @@ export class RangedSummarizedExperiment extends se.SummarizedExperiment {
     _bioconductor_CLONE(output, { deepCopy }) {
         super._bioconductor_CLONE(output, { deepCopy });
 
-        output._rowRanges = generics.CLONE(this._rowRanges, { deepCopy });
+        output._rowRanges = cutils.cloneField(this._rowRanges, deepCopy);
 
         return;
     }

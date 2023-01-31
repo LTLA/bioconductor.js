@@ -1,5 +1,6 @@
 import * as generics from "./AllGenerics.js";
 import * as utils from "./utils.js";
+import * as cutils from "./clone-utils.js";
 import * as ann from "./Annotated.js";
 import * as il from "./InternalList.js";
 
@@ -135,38 +136,88 @@ export class DataFrame extends ann.Annotated {
 
     /**
      * @param {string|number} i - Column to remove, either by name or index.
-     * @return {DataFrame} Reference to this DataFrame after the column is removed.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this DataFrame instance in place.
+     * If `false`, a new instance is returned.
+     * 
+     * @return {DataFrame} The DataFrame after removing the specified column.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
+     */
+    removeColumn(i, { inPlace = false } = {}) {
+        let target = cutils.setterTarget(this, inPlace);
+        target._columns = this._columns.removeEntry(i, { inPlace });
+        return target;
+    }
+
+    /**
+     * @param {string|number} i - Column to remove, either by name or index.
+     * @return {DataFrame} A reference to this DataFrame after removing the specified column.
      */
     $removeColumn(i) {
-        this._columns.$removeEntry(i);
-        return this;
+        return this.removeColumn(i, { inPlace: true });
     }
 
     /**
      * @param {string|number} i - Identity of the column to add, either by name or index.
-     * Numeric `i` should be non-negative and less than the number of columns.
-     * @param {*} value - Array-like column to set/add as the column.
-     * @return {DataFrame} Reference to this DataFrame with modified columns.
      * - If `i` is a number, the column at the specified index is replaced.
+     *   `i` should be non-negative and less than the number of columns.
      * - If `i` is a string, any column with the same name is replaced.
      *   If no such column exists, a new column is appended to the DataFrame.
+     * @param {*} value - Array-like column to set/add as the column.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this DataFrame instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {DataFrame} The DataFrame after adding/replacing the specified column.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
-    $setColumn(i, value) {
+    setColumn(i, value, { inPlace = false } = {}) {
         if (generics.LENGTH(value) != this._numberOfRows) {
             throw new Error("expected 'value' to have the same length as the number of rows in 'x'");
         }
-        this._columns.$setEntry(i, value);
-        return this;
+
+        let target = cutils.setterTarget(this, inPlace);
+        target._columns = this._columns.setEntry(i, value, { inPlace });
+        return target;
+    }
+
+    /**
+     * @param {string|number} i - Identity of the column to add, either by name or index.
+     * - If `i` is a number, the column at the specified index is replaced.
+     *   `i` should be non-negative and less than the number of columns.
+     * - If `i` is a string, any column with the same name is replaced.
+     *   If no such column exists, a new column is appended to the DataFrame.
+     * @param {*} value - Array-like column to set/add as the column.
+     *
+     * @return {DataFrame} A reference to this DataFrame after adding/replacing the specified column.
+     */
+    $setColumn(i, value) {
+        return this.setColumn(i, value, { inPlace: true });
     }
 
     /**
      * @param {Array} names - Array of unique strings containing the new name for each column.
      * This should have the same length as {@linkcode DataFrame#columnNames DataFrame.columnNames}.
-     * @return {DataFrame} Reference to this DataFrame with modified column names.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this DataFrame instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {DataFrame} The DataFrame with modified column names.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
+     */
+    setColumnNames(names, { inPlace = false } = {}) {
+        let target = cutils.setterTarget(this, inPlace);
+        target._columns = target._columns.setNames(names, { inPlace });
+        return target;
+    }
+
+    /**
+     * @param {Array} names - Array of unique strings containing the new name for each column.
+     * This should have the same length as {@linkcode DataFrame#columnNames DataFrame.columnNames}.
+     * @return {DataFrame} A reference to this DataFrame with modified column names.
      */
     $setColumnNames(names) {
-        this._columns.$setNames(names);
-        return this;
+        return this.setColumnNames(names, { inPlace: true });
     }
 
     /**
@@ -174,25 +225,62 @@ export class DataFrame extends ann.Annotated {
      * This should have the same length as {@linkcode DataFrame#numberOfRows DataFrame.numberOfRows}.
      *
      * Alternatively, this may be `null` to remove any existing column names.
-     * @return {DataFrame} Reference to this DataFrame with modified row names.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this DataFrame instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {DataFrame} The DataFrame with modified row names.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
-    $setRowNames(names) {
+    setRowNames(names, { inPlace = false } = {}) {
         if (names != null) {
             utils.checkNamesArray(names, "replacement 'names'", this._numberOfRows, "'numberOfRows()'");
         }
-        this._rowNames = names;
-        return this;
+
+        let target = cutils.setterTarget(this, inPlace);
+        target._rowNames = names;
+        return target;
+    }
+
+    /**
+     * @param {?Array} names - Array of unique strings containing the new name for each row.
+     * This should have the same length as {@linkcode DataFrame#numberOfRows DataFrame.numberOfRows}.
+     *
+     * Alternatively, this may be `null` to remove any existing column names.
+     * @return {DataFrame} A reference to this DataFrame with modified row names.
+     */
+    $setRowNames(names) {
+        return this.setRowNames(names, { inPlace: true });
     }
 
     /**
      * @param {Array} i - Array of strings or indices specifying the columns to retain in the slice.
      * This should refer to unique column names.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this DataFrame instance in place.
+     * If `false`, a new instance is returned.
      *
      * @return {DataFrame} Reference to this DataFrame after slicing to the specified columns.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
+     */
+    sliceColumns(i, { inPlace = false } = {}) {
+        let target = cutils.setterTarget(this, inPlace);
+        target._columns = this._columns.sliceEntries(i, { inPlace });
+        return target;
+    }
+
+    /**
+     * @param {Array} i - Array of strings or indices specifying the columns to retain in the slice.
+     * This should refer to unique column names.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this DataFrame instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {DataFrame} Reference to this DataFrame after slicing to the specified columns.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
     $sliceColumns(i) {
-        this._columns.$sliceEntries(i);
-        return this;
+        return this.sliceColumns(i, { inPlace: true });
     }
 
     /**************************************************************************
@@ -206,12 +294,7 @@ export class DataFrame extends ann.Annotated {
     _bioconductor_SLICE(output, i, { allowView = false }) {
         let options = { allowView };
 
-        let new_columns = new Map;
-        for (const k of this._columns.names()) {
-            let sliced = generics.SLICE(this._columns.entry(k), i, options);
-            new_columns.set(k, sliced);
-        }
-
+        let new_columns = this._columns.apply(v => generics.SLICE(v, i, options));
         let new_rowNames = (this._rowNames == null ? null : generics.SLICE(this._rowNames, i, options));
 
         let new_numberOfRows;
@@ -222,7 +305,7 @@ export class DataFrame extends ann.Annotated {
         }
 
         output._rowNames = new_rowNames;
-        output._columns = new il.InternalList(new_columns, this._columns.names());
+        output._columns = new_columns;
         output._numberOfRows = new_numberOfRows;
         output._metadata = this._metadata;
         return; 
@@ -250,8 +333,8 @@ export class DataFrame extends ann.Annotated {
 
     _bioconductor_CLONE(output, { deepCopy = true }) {
         super._bioconductor_CLONE(output, { deepCopy });
-        output._columns = generics.CLONE(this._columns, { deepCopy });
-        output._rowNames = (this._rowNames == null ? null : this._rowNames.slice());
+        output._columns = cutils.cloneField(this._columns, deepCopy);
+        output._rowNames = cutils.cloneField(this._rowNames, deepCopy);
         output._numberOfRows = this._numberOfRows;
         return;
     }
@@ -291,7 +374,7 @@ export function flexibleCombineRows(objects) {
             }
         }
 
-        copy._columns.$reorderEntries(corder);
+        copy._columns = copy._columns.reorderEntries(corder);
         copies.push(copy);
     }
 

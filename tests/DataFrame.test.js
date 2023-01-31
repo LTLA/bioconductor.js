@@ -79,6 +79,10 @@ test("setting a column works correctly", () => {
     x.$setColumn("B", [5,6,7,8]);
     expect(x.column("B")).toEqual([5,6,7,8]);
 
+    let y = x.setColumn("C", new Uint8Array([1,0,1,1]));
+    expect(y.hasColumn("C")).toBe(true);
+    expect(x.hasColumn("C")).toBe(false); // doesn't mutate the original.
+
     expect(() => x.$setColumn("C", [1])).toThrow("same length");
     expect(() => x.$setColumn(2, [1,2,3,4])).toThrow("out of range");
 });
@@ -90,9 +94,13 @@ test("removing a column works correctly", () => {
     expect(x.columnNames()).toEqual(["B"]);
     expect(() => x.column("A")).toThrow("A");
 
+    let y = x.removeColumn("B");
+    expect(y.hasColumn("B")).toBe(false);
+    expect(x.hasColumn("B")).toBe(true); // doesn't mutate the original.
+
     obj = spawnObject();
     x = new bioc.DataFrame(obj);
-    x.$removeColumn(1);
+    x.$removeColumn(1); // works with positions.
     expect(x.columnNames()).toEqual(["A"]);
     expect(() => x.column("B")).toThrow("B");
 })
@@ -105,6 +113,10 @@ test("setting column names works correctly", () => {
     expect(x.column("alpha")).toEqual(obj.A);
     expect(x.column("bravo")).toEqual(obj.B);
     expect(x.columnNames()).toEqual(["alpha", "bravo"]);
+
+    let y = x.setColumnNames(["A", "B"]);
+    expect(x.columnNames()).toEqual(["alpha", "bravo"]);
+    expect(y.columnNames()).toEqual(["A", "B"]);
 })
 
 test("slicing columns works correctly", () => {
@@ -146,20 +158,6 @@ test("cloning an array collection works", () => {
     expect(y.rowNames()).toBeNull();
     expect(x.rowNames().length).toEqual(4);
 })
-
-//test("cloning an array collection works (shallow)", () => {
-//    let obj = spawnObject();
-//    let x = new bioc.DataFrame(obj, { rowNames: [ "a", "b", "c", "d" ] });
-//    let y = bioc.CLONE(x, { deepCopy: false });
-//
-//    y.column("A")[0] = 2;
-//    y.$setColumn("C", [5,4,3,2]);
-//    y.$setRowNames(null);
-//
-//    expect(x.column("A")[0]).toBe(2); // inner values are still referenced.
-//    expect(x.hasColumn("C")).toBe(false);
-//    expect(x.rowNames().length).toEqual(4);
-//})
 
 test("slicing a DataFrame works (indices)", () => {
     let obj = spawnObject();

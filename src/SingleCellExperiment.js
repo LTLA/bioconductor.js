@@ -2,6 +2,7 @@ import * as generics from "./AllGenerics.js";
 import * as rse from "./RangedSummarizedExperiment.js";
 import * as se from "./SummarizedExperiment.js";
 import * as utils from "./utils.js";
+import * as cutils from "./clone-utils.js";
 import * as il from "./InternalList.js";
 
 /**
@@ -153,15 +154,29 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
 
     /**
      * @param {string|number} i - Identity of the reduced dimension to remove, either by name or index.
-     * @return {SingleCellExperiment} Reference to this SingleCellExperiment after removing the specified assay.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this SingleCellExperiment instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {SingleCellExperiment} The SingleCellExperiment after removing the specified assay.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
-    $removeReducedDimension(i) {
+    removeReducedDimension(i, { inPlace = false } = {}) {
+        let target = cutils.setterTarget(this, inPlace);
         try {
-            this._reducedDimensions.$removeEntry(i);
+            target._reducedDimensions = target._reducedDimensions.removeEntry(i, { inPlace });
         } catch (e) {
             throw new Error("failed to remove the specified reduced dimension from this " + this.constructor.className + "; " + e.message, { cause: e });
         }
-        return this;
+        return target;
+    }
+
+    /**
+     * @param {string|number} i - Identity of the reduced dimension to remove, either by name or index.
+     * @return {SingleCellExperiment} A reference to this SingleCellExperiment after removing the specified assay.
+     */
+    $removeReducedDimension(i) {
+        return this.removeReducedDimension(i, { inPlace: true });
     }
 
     /**
@@ -171,27 +186,61 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
      * - If `i` is a string, any reduced dimension with the same name is replaced.
      *   If no such reduced dimension exists, a new reduced dimension is appended to the list of reduced dimensions.
      * @param {*} value - Multi-dimensional array-like object to set/add as the reduced dimension.
-     * @return {SingleCellExperiment} Reference to this SingleCellExperiment with modified reduced dimensions.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this SingleCellExperiment instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {SingleCellExperiment} The SingleCellExperiment with modified reduced dimensions.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
-    $setReducedDimension(i, value) {
+    setReducedDimension(i, value, { inPlace = false } = {}) {
         if (generics.NUMBER_OF_ROWS(value) != this.numberOfColumns()) {
             throw new Error("number of rows of 'value' should be the same as the number of columns of this SingleCellExperiment");
         }
-        this._reducedDimensions.$setEntry(i, value);
-        return this;
+        let target = cutils.setterTarget(this, inPlace);
+        target._reducedDimensions = target._reducedDimensions.setEntry(i, value, { inPlace });
+        return target;
+    }
+
+    /**
+     * @param {string|number} i - Identity of the reduced dimension to add, either by name or index.
+     * - If `i` is a number, the reduced dimension at the specified index is replaced.
+     *   `i` should be non-negative and less than the number of reduced dimensions.
+     * - If `i` is a string, any reduced dimension with the same name is replaced.
+     *   If no such reduced dimension exists, a new reduced dimension is appended to the list of reduced dimensions.
+     * @param {*} value - Multi-dimensional array-like object to set/add as the reduced dimension.
+     *
+     * @return {SingleCellExperiment} A reference to this SingleCellExperiment with modified reduced dimensions.
+     */
+    $setReducedDimension(i, value) {
+        return this.setReducedDimension(i, value, { inPlace: true });
     }
 
     /**
      * @param {string|number} i - Identity of the reduced dimension to remove, either by name or index.
-     * @return {SingleCellExperiment} Reference to this SingleCellExperiment after removing the specified assay.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this SingleCellExperiment instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {SingleCellExperiment} The SingleCellExperiment after removing the specified assay.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
-    $removeAlternativeExperiment(i) {
+    removeAlternativeExperiment(i, { inPlace = false } = {}) {
+        let target = cutils.setterTarget(this, inPlace);
         try {
-            this._alternativeExperiments.$removeEntry(i);
+            target._alternativeExperiments = target._alternativeExperiments.removeEntry(i, { inPlace });
         } catch (e) {
             throw new Error("failed to remove the specified alternative experiment from this " + this.constructor.className + "; " + e.message, { cause: e });
         }
-        return this;
+        return target;
+    }
+
+    /**
+     * @param {string|number} i - Identity of the reduced dimension to remove, either by name or index.
+     * @return {SingleCellExperiment} A reference to this SingleCellExperiment after removing the specified assay.
+     */
+    $removeAlternativeExperiment(i) {
+        return this.removeAlternativeExperiment(i, { inPlace: true });;
     }
 
     /**
@@ -201,14 +250,34 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
      * - If `i` is a string, any alternative experiment with the same name is replaced.
      *   If no such alternative experiment exists, a new alternative experiment is appended to the list of alternative experiments.
      * @param {*} value - Multi-dimensional array-like object to set/add as the alternative experiment.
-     * @return {SingleCellExperiment} Reference to this SingleCellExperiment with modified alternative experiments.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this SingleCellExperiment instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {SingleCellExperiment} The SingleCellExperiment with modified alternative experiments.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
-    $setAlternativeExperiment(i, value) {
+    setAlternativeExperiment(i, value, { inPlace = false } = {}) {
         if (!(value instanceof se.SummarizedExperiment) || generics.NUMBER_OF_COLUMNS(value) != this.numberOfColumns()) {
             throw new Error("'value' should be a SummarizedExperiment with the same number of columns as this SingleCellExperiment");
         }
-        this._alternativeExperiments.$setEntry(i, value);
-        return this;
+        let target = cutils.setterTarget(this, inPlace);
+        target._alternativeExperiments = target._alternativeExperiments.setEntry(i, value, { inPlace });
+        return target;
+    }
+
+    /**
+     * @param {string|number} i - Identity of the alternative experiment to add, either by name or index.
+     * - If `i` is a number, the alternative experiment at the specified index is replaced.
+     *   `i` should be non-negative and less than the number of alternative experiments.
+     * - If `i` is a string, any alternative experiment with the same name is replaced.
+     *   If no such alternative experiment exists, a new alternative experiment is appended to the list of alternative experiments.
+     * @param {*} value - Multi-dimensional array-like object to set/add as the alternative experiment.
+     *
+     * @return {SingleCellExperiment} A reference to this SingleCellExperiment with modified alternative experiments.
+     */
+    $setAlternativeExperiment(i, value) {
+        return this.setAlternativeExperiment(i, value, { inPlace: true });
     }
 
     /**************************************************************************
@@ -257,8 +326,8 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
     _bioconductor_CLONE(output, { deepCopy }) {
         super._bioconductor_CLONE(output, { deepCopy });
 
-        output._reducedDimensions = generics.CLONE(this._reducedDimensions, { deepCopy });
-        output._alternativeExperiments = generics.CLONE(this._alternativeExperiments, { deepCopy });
+        output._reducedDimensions = cutils.cloneField(this._reducedDimensions, deepCopy);
+        output._alternativeExperiments = cutils.cloneField(this._alternativeExperiments, deepCopy);
 
         return;
     }

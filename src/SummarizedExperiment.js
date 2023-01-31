@@ -2,6 +2,7 @@ import * as generics from "./AllGenerics.js";
 import * as ann from "./Annotated.js";
 import * as df from "./DataFrame.js";
 import * as utils from "./utils.js";
+import * as cutils from "./clone-utils.js";
 import * as il from "./InternalList.js";
 
 /**
@@ -196,90 +197,196 @@ export class SummarizedExperiment extends ann.Annotated {
 
     /**
      * @param {string|number} i - Identity of the assay to add, either by name or index.
-     * @return {SummarizedExperiment} Reference to this SummarizedExperiment after removing the specified assay.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this SummarizedExperiment instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {SummarizedExperiment} The SummarizedExperiment after removing the specified assay.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
-    $removeAssay(i) {
+    removeAssay(i, { inPlace = false } = {}) {
+        let target = cutils.setterTarget(this, inPlace);
         try {
-            this._assays.$removeEntry(i);
+            target._assays = target._assays.removeEntry(i, { inPlace });
         } catch (e) {
             throw new Error("failed to remove assay " + (typeof i == "string" ? "'" + i + "'" : String(i)) + " from this " + this.constructor.className + "; " + e.message, { cause: e });
         }
-        return this;
+        return target;
     }
 
     /**
      * @param {string|number} i - Identity of the assay to add, either by name or index.
-     * Numeric `i` should be non-negative and less than the number of assays.
-     * @param {*} value - Multi-dimensional array-like object to set/add as the assay.
-     * @return {SummarizedExperiment} Reference to this SummarizedExperiment with modified assays.
+     * @return {SummarizedExperiment} A reference to this SummarizedExperiment after removing the specified assay.
+     */
+    $removeAssay(i) {
+        return this.removeAssay(i, { inPlace: true });
+    }
+
+    /**
+     * @param {string|number} i - Identity of the assay to add, either by name or index.
      * - If `i` is a number, the assay at the specified index is replaced.
+     *   `i` should be non-negative and less than the number of assays.
      * - If `i` is a string, any assay with the same name is replaced.
      *   If no such assay exists, a new assay is appended to the list of assays.
+     * @param {*} value - Multi-dimensional array-like object to set/add as the assay.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this SummarizedExperiment instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {SummarizedExperiment} A SummarizedExperiment with modified assays.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
-    $setAssay(i, value) {
+    setAssay(i, value, { inPlace = false } = {}) {
         if (generics.NUMBER_OF_ROWS(value) !== this.numberOfRows() || generics.NUMBER_OF_COLUMNS(value) !== this.numberOfColumns()) {
             throw new Error("expected 'value' to have the same dimensions as this 'SummarizedExperiment'");
         }
-        this._assays.$setEntry(i, value);
-        return this;
+        let target = cutils.setterTarget(this, inPlace);
+        target._assays = target._assays.setEntry(i, value, { inPlace });
+        return target;
+    }
+
+    /**
+     * @param {string|number} i - Identity of the assay to add, either by name or index.
+     * - If `i` is a number, the assay at the specified index is replaced.
+     *   `i` should be non-negative and less than the number of assays.
+     * - If `i` is a string, any assay with the same name is replaced.
+     *   If no such assay exists, a new assay is appended to the list of assays.
+     * @param {*} value - Multi-dimensional array-like object to set/add as the assay.
+     *
+     * @return {SummarizedExperiment} A reference to this SummarizedExperiment with modified assays.
+     */
+    $setAssay(i, value) {
+        return this.setAssay(i, value, { inPlace: true });
     }
 
     /**
      * @param {DataFrame} value - Data frame containing the row annotations.
      * This should have one row for each row of this SummarizedExperiment.
-     * @return {SummarizedExperiment} Reference to this SummarizedExperiment with modified row data.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this SummarizedExperiment instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {SummarizedExperiment} The SummarizedExperiment with modified row data.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
-    $setRowData(value) {
+    setRowData(value, { inPlace = false } = {}) {
         if (!(value instanceof df.DataFrame)) {
             throw new Error("'value' should be a DataFrame");
         }
+
         if (value.numberOfRows() !== this.numberOfRows()) {
             throw new Error("expected 'value' to have the same number of rows as this 'SummarizedExperiment'");
         }
-        this._rowData = value;
-        return this;
+
+        let target = cutils.setterTarget(this, inPlace);
+        target._rowData = value;
+        return target;
+    }
+
+    /**
+     * @param {DataFrame} value - Data frame containing the row annotations.
+     * This should have one row for each row of this SummarizedExperiment.
+     * @return {SummarizedExperiment} A reference to this SummarizedExperiment with modified row data.
+     */
+    $setRowData(value) {
+        return this.setRowData(value, { inPlace: true });
     }
 
     /**
      * @param {DataFrame} value - Data frame containing the column annotations.
      * This should have one row for each columns of this SummarizedExperiment.
-     * @return {SummarizedExperiment} Reference to this SummarizedExperiment with modified column data.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this SummarizedExperiment instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {SummarizedExperiment} The SummarizedExperiment with modified column data.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
-    $setColumnData(value) {
+    setColumnData(value, { inPlace = false } = {}) {
         if (!(value instanceof df.DataFrame)) {
             throw new Error("'value' should be a DataFrame");
         }
+
         if (value.numberOfRows() !== this.numberOfColumns()) {
             throw new Error("expected 'value' to have the same number of rows as the number of columns of this 'SummarizedExperiment'");
         }
-        this._columnData = value;
-        return this;
+
+        let target = cutils.setterTarget(this, inPlace);
+        target._columnData = value;
+        return target;
+    }
+
+    /**
+     * @param {DataFrame} value - Data frame containing the column annotations.
+     * This should have one row for each columns of this SummarizedExperiment.
+     * @return {SummarizedExperiment} A reference to this SummarizedExperiment with modified column data.
+     */
+    $setColumnData(value) {
+        return this.setColumnData(value, { inPlace: true });
     }
 
     /**
      * @param {Array} names - Array of strings of length equal to the number of rows in this SummarizedExperiment, containing row names.
      * Alternatively `null`, to remove all row names.
-     * @return {SummarizedExperiment} Reference to this SummarizedExperiment with modified row names.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this SummarizedExperiment instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {SummarizedExperiment} The SummarizedExperiment with modified row names.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
-    $setRowNames(names) {
+    setRowNames(names, { inPlace = false } = {}) {
         if (names !== null) {
             utils.checkNamesArray(names, "replacement 'names'", this.numberOfRows(), "'numberOfRows()'");
         }
-        this._rowNames = names;
-        return this;
+
+        let target = cutils.setterTarget(this, inPlace);
+        target._rowNames = names;
+        return target;
+    }
+
+    /**
+     * @param {Array} names - Array of strings of length equal to the number of rows in this SummarizedExperiment, containing row names.
+     * Alternatively `null`, to remove all row names.
+     *
+     * @return {SummarizedExperiment} A reference to this SummarizedExperiment with modified row names.
+     */
+    $setRowNames(names) {
+        return this.setRowNames(names, { inPlace: true });
     }
 
     /**
      * @param {Array} names - Array of strings of length equal to the number of columns in this SummarizedExperiment, containing column names.
      * Alternatively `null`, to remove all column names.
-     * @return {SummarizedExperiment} Reference to this SummarizedExperiment with modified column names.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this SummarizedExperiment instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {SummarizedExperiment} The SummarizedExperiment with modified column names.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
-    $setColumnNames(names) {
+    setColumnNames(names, { inPlace = false } = {}) {
         if (names !== null) {
             utils.checkNamesArray(names, "replacement 'names'", this.numberOfColumns(), "'numberOfColumns()'");
         }
-        this._columnNames = names;
-        return this;
+
+        let target = cutils.setterTarget(this, inPlace);
+        target._columnNames = names;
+        return target;
+    }
+
+    /**
+     * @param {Array} names - Array of strings of length equal to the number of columns in this SummarizedExperiment, containing column names.
+     * Alternatively `null`, to remove all column names.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this SummarizedExperiment instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {SummarizedExperiment} The SummarizedExperiment with modified column names.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
+     */
+    $setColumnNames(names) {
+        return this.setColumnNames(names, { inPlace: true });
     }
 
     /**************************************************************************
@@ -350,15 +457,12 @@ export class SummarizedExperiment extends ann.Annotated {
     _bioconductor_CLONE(output, { deepCopy = true }) {
         super._bioconductor_CLONE(output, { deepCopy });
 
-        let copier = x => generics.CLONE(x, { deepCopy });
+        output._assays = cutils.cloneField(this._assays, deepCopy);
+        output._rowData = cutils.cloneField(this._rowData, deepCopy);
+        output._rowNames = cutils.cloneField(this._rowNames, deepCopy);
 
-        output._assays = copier(this._assays);
-
-        output._rowData = copier(this._rowData);
-        output._rowNames = (this._rowNames === null ? null : copier(this._rowNames));
-
-        output._columnData = copier(this._columnData);
-        output._columnNames = (this._columnNames === null ? null : copier(this._columnNames));
+        output._columnData = cutils.cloneField(this._columnData, deepCopy);
+        output._columnNames = cutils.cloneField(this._columnNames, deepCopy);
         return;
     }
 }

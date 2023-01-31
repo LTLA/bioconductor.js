@@ -61,6 +61,10 @@ test("setting/removing of the rowRanges works as expected", () => {
     let rse = new bioc.RangedSummarizedExperiment({ counts: mat }, gr);
 
     let gr2 = utils.spawn_random_GRanges(10);
+    let rse2 = rse.setRowRanges(gr2);
+    expect(rse2.rowRanges().start()).toEqual(gr2.start());
+    expect(rse.rowRanges().start()).toEqual(gr.start()); // original is still preserved.
+
     rse.$setRowRanges(gr2);
     expect(rse.rowRanges().start()).toEqual(gr2.start());
     expect(rse.rowRanges().start()).not.toEqual(gr.start());

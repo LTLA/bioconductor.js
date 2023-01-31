@@ -1,5 +1,6 @@
 import * as generics from "./AllGenerics.js";
 import * as utils from "./utils.js";
+import * as cutils from "./clone-utils.js";
 import * as df from "./DataFrame.js";
 import * as vec from "./Vector.js";
 import * as olap from "./overlap-utils.js";
@@ -87,31 +88,63 @@ export class IRanges extends vec.Vector {
     /**
      * @param {Array|TypedArray} value - Array of start positions for each range.
      * This should have length equal to the number of ranges and be coercible into an Int32Array.
-     * @return {IRanges} A reference to this IRanges object, after setting the start positions to `value`.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this IRanges instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {IRanges} The IRanges object after setting the start positions to `value`.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
-    $setStart(value) {
+    setStart(value, { inPlace = false } = {}) {
         let candidate = utils.convertToInt32Array(value);
         if (candidate.length !== generics.LENGTH(this)) {
             throw new Error("'start' should be replaced by array of the same length");
         }
         utils.checkNonNegative(candidate, "start");
-        this._start = candidate;
-        return this;
+
+        let target = cutils.setterTarget(this, inPlace);
+        target._start = candidate;
+        return target;
+    }
+
+    /**
+     * @param {Array|TypedArray} value - Array of start positions for each range.
+     * This should have length equal to the number of ranges and be coercible into an Int32Array.
+     * @return {IRanges} A reference to this IRanges object after setting the start positions to `value`.
+     */
+    $setStart(value) {
+        return this.setStart(value, { inPlace: true });
     }
 
     /**
      * @param {Array|TypedArray} value - Array of widths for each range.
      * This should have length equal to the number of ranges and be coercible into an Int32Array.
-     * @return {IRanges} A reference to this IRanges object, after setting the widths to `value`.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this IRanges instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {IRanges} The IRanges object after setting the widths to `value`.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
-    $setWidth(value) {
+    setWidth(value, { inPlace = false } = {}) {
         let candidate = utils.convertToInt32Array(value);
         if (candidate.length !== generics.LENGTH(this)) {
             throw new Error("'width' should be replaced by array of the same length");
         }
         utils.checkNonNegative(candidate, "width");
-        this._width = candidate;
-        return this;
+
+        let target = cutils.setterTarget(this, inPlace);
+        target._width = candidate;
+        return target;
+    }
+
+    /**
+     * @param {Array|TypedArray} value - Array of widths for each range.
+     * This should have length equal to the number of ranges and be coercible into an Int32Array.
+     * @return {IRanges} A reference to this IRanges object after setting the widths to `value`.
+     */
+    $setWidth(value) {
+        return this.setWidth(value, { inPlace: true });
     }
 
     /**************************************************************************
@@ -158,8 +191,8 @@ export class IRanges extends vec.Vector {
 
     _bioconductor_CLONE(output, { deepCopy = true }) {
         super._bioconductor_CLONE(output, { deepCopy });
-        output._start = generics.CLONE(this._start, { deepCopy });
-        output._width = generics.CLONE(this._width, { deepCopy });
+        output._start = cutils.cloneField(this._start, deepCopy);
+        output._width = cutils.cloneField(this._width, deepCopy);
         return;
     }
 

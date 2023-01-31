@@ -63,6 +63,10 @@ test("IRanges setters work for start positions", () => {
     let obj = spawnObject();
     let x = new bioc.IRanges(obj.start, obj.width);
 
+    let y = x.setStart([9,8,7,5]);
+    expect(y.start()[0]).toBe(9);
+    expect(x.start()[0]).toBe(1); // same as before.
+
     x.$setStart([ 4, 5, 6, 7 ]);
     expect(x.start()).toEqual(new Int32Array([4, 5, 6, 7]));
     expect(x.end()).toEqual(new Int32Array([ 14, 17, 11, 13 ]));
@@ -77,6 +81,10 @@ test("IRanges setters work for start positions", () => {
 test("IRanges setters work for widths", () => {
     let obj = spawnObject();
     let x = new bioc.IRanges(obj.start, obj.width);
+
+    let y = x.setWidth([100, 200, 300, 400]);
+    expect(y.width()[0]).toBe(100);
+    expect(x.width()[0]).toBe(10); // same as before.
 
     x.$setWidth([ 4, 5, 6, 7 ]);
     expect(x.width()).toEqual(new Int32Array([4, 5, 6, 7]));
@@ -112,6 +120,10 @@ test("IRanges setters work for the elementMetadata", () => {
     let x = new bioc.IRanges(obj.start, obj.width);
     let df = new bioc.DataFrame({ thing: ["A", "B", "C", "D"], foo: new Float64Array([1,2,3,4]) });
 
+    let y = x.setElementMetadata(df);
+    expect(x.elementMetadata().numberOfColumns()).toEqual(0);
+    expect(y.elementMetadata().numberOfColumns()).toEqual(2);
+
     x.$setElementMetadata(df);
     expect(x.elementMetadata().numberOfRows()).toEqual(4);
     expect(x.elementMetadata().numberOfColumns()).toEqual(2);
@@ -132,6 +144,10 @@ test("IRanges setters work for the metadata", () => {
     let obj = spawnObject();
     let x = new bioc.IRanges(obj.start, obj.width, { metadata: { thing: 2 } });
     expect(x.metadata()).toEqual({ thing: 2 });
+
+    let y = x.setMetadata({ boo: 5 });
+    expect(y.metadata()).toEqual({ boo: 5 });
+    expect(x.metadata()).not.toEqual({ boo: 5 }); // doesn't mutate the original.
 
     x.$setMetadata({ boo: 5 });
     expect(x.metadata()).toEqual({ boo: 5 });

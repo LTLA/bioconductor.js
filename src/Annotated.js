@@ -1,4 +1,5 @@
 import * as generics from "./AllGenerics.js";
+import * as cutils from "./clone-utils.js";
 
 /**
  * The Annotated class provides a store for arbitrary object-wide metadata.
@@ -16,6 +17,10 @@ export class Annotated {
         this._metadata = metadata;
     }
 
+    /**************************************************************************
+     **************************************************************************
+     **************************************************************************/
+
     /**
      * @return {Object} Object containing arbitrary metadata.
      */
@@ -23,18 +28,39 @@ export class Annotated {
         return this._metadata;
     }
 
+    /**************************************************************************
+     **************************************************************************
+     **************************************************************************/
+
     /**
      * @param {Object} value - Object containing the metadata.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this Annotated instance in place.
+     * If `false`, a new instance is returned.
      *
-     * @return {Annotated} Reference to this Annotated object after replacing the metadata.
+     * @return {Annotated} The Annotated object after replacing the metadata.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
-    $setMetadata(value) {
-        this._metadata = value;
-        return this;
+    setMetadata(value, { inPlace = false } = {}) {
+        let target = cutils.setterTarget(this, inPlace);
+        target._metadata = value;
+        return target;
     }
 
+    /**
+     * @param {Object} value - Object containing the metadata.
+     * @return {Annotated} A reference to this Annotated object.
+     */
+    $setMetadata(value) {
+        return this.setMetadata(value, { inPlace: true });
+    }
+
+    /**************************************************************************
+     **************************************************************************
+     **************************************************************************/
+
     _bioconductor_CLONE(output, { deepCopy = true }) {
-        output._metadata = generics.CLONE(this._metadata, { deepCopy });
+        output._metadata = cutils.cloneField(this._metadata, deepCopy);
         return;
     }
 }
