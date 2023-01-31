@@ -28,7 +28,7 @@ import * as ann from "./Annotated.js";
  */
 export class DataFrame extends ann.Annotated {
     /**
-     * @param {Object} columns - Object where keys are the column names and the values are equilength vector-like objects.
+     * @param {Object|Map} columns - Object or Map where keys are the column names and the values are equilength vector-like objects.
      * @param {Object} [options={}] - Optional parameters.
      * @param {?number} [options.numberOfRows=null] - Non-negative value specifying the number of rows in the DataFrame.
      * If `null`, this is automatically determined from the length of the vectors in `columns`, or from the length of `rowNames`.
@@ -50,20 +50,16 @@ export class DataFrame extends ann.Annotated {
         super(metadata);
         this._numberOfRows = numberOfRows;
         this._rowNames = rowNames;
+        this._columns = new il.InternalList(columns, columnOrder);
 
-        let vals = Object.values(columns);
-        for (var i = 0; i < vals.length; i++) {
-            let n = generics.LENGTH(vals[i]);
+        for (const k of this._columns.names()) {
+            let n = this._columns.entry(k);
             if (this._numberOfRows == null) {
                 this._numberOfRows = n;
             } else if (n != this._numberOfRows) {
                 throw new Error("expected all arrays in 'columns' to have equal length");
             }
         }
-        this._columns = {
-            entries: columns,
-            order: utils.checkEntryOrder(columns, columnOrder, "column")
-        };
 
         if (rowNames != null) {
             if (this._numberOfRows == null) {
@@ -92,7 +88,7 @@ export class DataFrame extends ann.Annotated {
      * @return {Array} Array of strings containing the column names in the specified order.
      */
     columnNames() {
-        return this._columns.order;
+        return this._columns.names();
     }
 
     /**
@@ -100,7 +96,7 @@ export class DataFrame extends ann.Annotated {
      * @return {boolean} Whether the column exists in this DataFrame.
      */
     hasColumn(name) {
-        return name in this._columns.entries;
+        return this._columns.hasEntry(name);
     }
 
     /**
@@ -114,7 +110,7 @@ export class DataFrame extends ann.Annotated {
      * @return {number} Number of columns in this DataFrame.
      */
     numberOfColumns() {
-        return this._columns.order.length;
+        return this._columns.numberOfEntries();
     }
 
     /**
@@ -122,7 +118,7 @@ export class DataFrame extends ann.Annotated {
      * @return {*} The contents of column `i` as a vector-like object.
      */
     column(i) {
-        return utils.retrieveSingleEntry(this._columns.entries, this._columns.order, i, "column", "DataFrame");
+        return this._columns.entry(i);
     }
 
     /**************************************************************************
@@ -134,8 +130,7 @@ export class DataFrame extends ann.Annotated {
      * @return {DataFrame} Reference to this DataFrame after the column is removed.
      */
     $removeColumn(i) {
-        utils.removeSingleEntry(this._columns.entries, this._columns.order, i, "column", "SummarizedExperiment");
-        return this;
+        return this._columns.removeEntry(i);
     }
 
     /**
@@ -151,8 +146,7 @@ export class DataFrame extends ann.Annotated {
         if (generics.LENGTH(value) != this._numberOfRows) {
             throw new Error("expected 'value' to have the same length as the number of rows in 'x'");
         }
-        utils.setSingleEntry(this._columns.entries, this._columns.order, i, value, "column", "SummarizedExperiment");
-        return this;
+        return this._columns.setEntry(i, value);
     }
 
     /**
