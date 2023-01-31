@@ -1,5 +1,6 @@
 import * as generics from "./AllGenerics.js";
 import * as utils from "./utils.js";
+import * as cutils from "./clone-utils.js";
 import * as df from "./DataFrame.js";
 import * as ann from "./Annotated.js";
 
@@ -74,25 +75,59 @@ export class Vector extends ann.Annotated {
      * @param {?DataFrame} elementMetadata - Arbitrary metadata for each vector element.
      * This should have number of rows equal to the vector length.
      * Alternatively `null`, in which case all existing per-element metadata is removed.
-     * @return {Vector} A reference to this Vector object, after setting the element metadata to `value`.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this Vector instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {Vector} The Vector object after setting the element metadata to `value`.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
+     */
+    setElementMetadata(elementMetadata, { inPlace = false } = {}) {
+        let target = cutils.setterTarget(this, inPlace);
+        target._elementMetadata = verifyElementMetadata(elementMetadata, generics.LENGTH(target), target.constructor.className);
+        return target;
+    }
+
+    /**
+     * @param {?DataFrame} elementMetadata - Arbitrary metadata for each vector element.
+     * This should have number of rows equal to the vector length.
+     * Alternatively `null`, in which case all existing per-element metadata is removed.
+     *
+     * @return {Vector} A reference to this Vector object after setting the element metadata to `value`.
      */
     $setElementMetadata(elementMetadata) {
-        this._elementMetadata = verifyElementMetadata(elementMetadata, generics.LENGTH(this), this.constructor.className);
-        return this;
+        return this.setElementMetadata(elementMetadata, { inPlace: true });
     }
 
     /**
      * @param {?Array} names - Array of strings containing a name for each range.
      * This should have length equal to the number of ranges.
      * Alternatively `null`, if no names are present.
-     * @return {Vector} A reference to this Vector object, after setting the names to `names`.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this Vector instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {Vector} The Vector object after setting the names to `value`.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
-    $setNames(names) {
+    setNames(names, { inPlace = false } = {}) {
         if (names !== null) {
             utils.checkNamesArray(names, "replacement 'names'", generics.LENGTH(this), "'LENGTH(<" + this.constructor.className + ">)'");
         } 
-        this._names = names;
-        return this;
+        let target = cutils.setterTarget(this, inPlace);
+        target._names = names;
+        return target;
+    }
+
+    /**
+     * @param {?Array} names - Array of strings containing a name for each range.
+     * This should have length equal to the number of ranges.
+     * Alternatively `null`, if no names are present.
+     *
+     * @return {Vector} A reference to this Vector object after setting the element metadata to `value`.
+     */
+    $setNames(names) {
+        return this.setNames(names, { inPlace: true });
     }
 
     /**************************************************************************
@@ -123,10 +158,9 @@ export class Vector extends ann.Annotated {
     }
 
     _bioconductor_CLONE(output, { deepCopy = true }) {
-        let options = { deepCopy };
-        super._bioconductor_CLONE(output, options);
-        output._elementMetadata = generics.CLONE(this._elementMetadata, options);
-        output._names = generics.CLONE(this._names, options);
+        super._bioconductor_CLONE(output, { deepCopy });
+        output._elementMetadata = cutils.cloneField(this._elementMetadata, deepCopy);
+        output._names = cutils.cloneField(this._names, deepCopy);
         return;
     }
 }

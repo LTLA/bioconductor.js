@@ -187,10 +187,6 @@ export function setSingleEntry(entries, order, i, value, fieldName, className) {
     }
 }
 
-export function shallowCloneEntries(dump) {
-    return { entries: { ...(dump.entries) }, order: dump.order.slice() };
-}
-
 export function combineEntries(dumps, combiner, orderName, className) {
     let first_order = dumps[0].order;
     for (var i = 1; i < dumps.length; i++) {

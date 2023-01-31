@@ -122,14 +122,30 @@ export class DenseMatrix {
     /**
      * @param {TypedArray} values - 1-dimensional array of matrix contents,
      * of the same length as the array returned by {@linkcode DenseMatrix#values values}.
-     * @return {DenseMatrix} A reference to this DenseMatrix after modifying the matrix contents.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this DenseMatrix instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {DenseMatrix} The DenseMatrix after modifying the matrix contents.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
-    $setValues(values) {
+    setValues(values, { inPlace = false } = {}) {
         if (values.length !== this._values.length) {
             throw new Error("replacement 'values' should have length equal to 'values()'");
         }
-        this._values = values;
-        return this;
+
+        let target = cutils.setterTarget(this, inPlace);
+        target._values = values;
+        return target;
+    }
+
+    /**
+     * @param {TypedArray} values - 1-dimensional array of matrix contents,
+     * of the same length as the array returned by {@linkcode DenseMatrix#values values}.
+     * @return {DenseMatrix} A reference to this DenseMatrix after modifying the matrix contents.
+     */
+    $setValues(values) {
+        return this.setValues(values, { inPlace: true });
     }
 
     #inserter(i, nprimary, nsecondary, primaryMajor, replacement) {
@@ -149,27 +165,59 @@ export class DenseMatrix {
     /**
      * @param {number} i - Row index to set.
      * @param {TypedArray} values - Row contents, of length equal to the number of columns in this DenseMatrix.
-     * @return {DenseMatrix} A reference to this DenseMatrix after modifying the matrix contents.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this DenseMatrix instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {DenseMatrix} The DenseMatrix after modifying the matrix contents.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
-    $setRow(i, values) {
+    setRow(i, values, { inPlace = false } = {}) {
         if (values.length !== this._numberOfColumns) {
             throw new Error("replacement row should have length equal to 'numberOfColumns()'");
         }
-        this.#inserter(i, this._numberOfRows, this._numberOfColumns, !this._columnMajor, values);
-        return this;
+
+        let target = cutils.setterTarget(this, inPlace);
+        target.#inserter(i, target._numberOfRows, target._numberOfColumns, !target._columnMajor, values);
+        return target;
+    }
+
+    /**
+     * @param {number} i - Row index to set.
+     * @param {TypedArray} values - Row contents, of length equal to the number of columns in this DenseMatrix.
+     * @return {DenseMatrix} A reference to this DenseMatrix after modifying the matrix contents.
+     */
+    $setRow(i, value) {
+        return this.setRow(i, value, { inPlace: true });
     }
 
     /**
      * @param {number} i - Column index to set.
-     * @param {TypedArray} values - Row contents, of length equal to the number of rows in this DenseMatrix.
-     * @return {DenseMatrix} A reference to this DenseMatrix after modifying the matrix contents.
+     * @param {TypedArray} values - Column contents, of length equal to the number of rows in this DenseMatrix.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this DenseMatrix instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {DenseMatrix} The DenseMatrix after modifying the matrix contents.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
-    $setColumn(i, values) {
+    setColumn(i, values, { inPlace = false } = {}) {
         if (values.length !== this._numberOfRows) {
             throw new Error("replacement column should have length equal to 'numberOfRows()'");
         }
-        this.#inserter(i, this._numberOfColumns, this._numberOfRows, this._columnMajor, values);
-        return this;
+
+        let target = cutils.setterTarget(this, inPlace);
+        target.#inserter(i, target._numberOfColumns, target._numberOfRows, target._columnMajor, values);
+        return target;
+    }
+
+    /**
+     * @param {number} i - Column index to set.
+     * @param {TypedArray} values - Column contents, of length equal to the number of columns in this DenseMatrix.
+     * @return {DenseMatrix} A reference to this DenseMatrix after modifying the matrix contents.
+     */
+    $setColumn(i, value) {
+        return this.setColumn(i, value, { inPlace: true });
     }
 
     /**************************************************************************

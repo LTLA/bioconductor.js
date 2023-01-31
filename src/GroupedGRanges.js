@@ -1,6 +1,7 @@
 import * as vec from "./Vector.js";
 import * as gr from "./GRanges.js";
 import * as utils from "./utils.js";
+import * as cutils from "./clone-utils.js";
 import * as generics from "./AllGenerics.js";
 
 /**
@@ -141,9 +142,14 @@ export class GroupedGRanges extends vec.Vector {
 
     /**
      * @param {GRanges} ranges - Genomic ranges of length equal to the concatenated set of ranges returned by {@linkcode GroupedGRanges#ranges ranges}.
-     * @return {GroupedGRanges} A reference to this GroupedGRanges object after modifying the internal ranges.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this GroupedGRanges instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {GroupedGRanges} The GroupedGRanges object after modifying the internal ranges.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
-    $setRanges(ranges) {
+    setRanges(ranges, { inPlace = false } = {}) {
         this.#flush_staged_setGroup();
         if (!(ranges instanceof gr.GRanges)) {
             throw new Error("'ranges' must be a 'GRanges'");
@@ -151,8 +157,18 @@ export class GroupedGRanges extends vec.Vector {
         if (generics.LENGTH(ranges) !== generics.LENGTH(this._ranges)) {
             throw utils.formatLengthError("'ranges'", "number of ranges");
         }
-        this._ranges = ranges;
-        return this;
+
+        let target = cutils.setterTarget(this, inPlace);
+        target._ranges = ranges;
+        return target;
+    }
+
+    /**
+     * @param {GRanges} ranges - Genomic ranges of length equal to the concatenated set of ranges returned by {@linkcode GroupedGRanges#ranges ranges}.
+     * @return {GroupedGRanges} A reference to this GroupedGRanges object after modifying the internal ranges.
+     */
+    $setRanges(ranges) {
+        return this.setRanges(ranges, { inPlace: true });
     }
 
     #flush_staged_setGroup() {
@@ -213,15 +229,36 @@ export class GroupedGRanges extends vec.Vector {
      *
      * @param {number} i - Index of the group of interest.
      * @param {GRanges} ranges - Genomic ranges for group `i`.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this GroupedGRanges instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {GroupedGRanges} The GroupedGRanges object after setting group `i`.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
+     */
+    setGroup(i, ranges, { inPlace = false } = {}) {
+        let target = cutils.setterTarget(this, inPlace);
+        if (target.#staged_setGroup === null) {
+            target.#staged_setGroup = [];
+        } else if (!inPlace) {
+            target.#staged_setGroup = target.#staged_setGroup.slice();
+        }
+
+        let nops = target.#staged_setGroup.length;
+        target.#staged_setGroup.push([i, nops, ranges]);
+        return target;
+    }
+
+    /**
+     * See comments for {@linkcode GroupedGRanges#$setGroup $setGroup}.
+     *
+     * @param {number} i - Index of the group of interest.
+     * @param {GRanges} ranges - Genomic ranges for group `i`.
+     *
      * @return {GroupedGRanges} A reference to this GroupedGRanges object after setting group `i`.
      */
     $setGroup(i, ranges) {
-       if (this.#staged_setGroup === null) {
-            this.#staged_setGroup = [];
-        }
-        let nops = this.#staged_setGroup.length;
-        this.#staged_setGroup.push([i, nops, ranges]);
-        return this;
+        return this.setGroup(i, ranges, { inPlace: true });
     }
 
     /**************************************************************************
@@ -304,11 +341,11 @@ export class GroupedGRanges extends vec.Vector {
 
     _bioconductor_CLONE(output, { deepCopy = true }) {
         super._bioconductor_CLONE(output, { deepCopy });
-        this.#flush_staged_setGroup();
 
-        output._rangeLengths = generics.CLONE(this._rangeLengths, { deepCopy });
-        output._rangeStarts = generics.CLONE(this._rangeStarts, { deepCopy });
-        output._ranges = generics.CLONE(this._ranges, { deepCopy });
+        output.#staged_setGroup = (this.#staged_setGroup === null ? null : cutils.cloneField(this.#staged_setGroup, deepCopy));
+        output._rangeLengths = cutils.cloneField(this._rangeLengths, deepCopy);
+        output._rangeStarts = cutils.cloneField(this._rangeStarts, deepCopy);
+        output._ranges = cutils.cloneField(this._ranges, deepCopy);
 
         return;
     }
