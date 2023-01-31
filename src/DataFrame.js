@@ -294,12 +294,7 @@ export class DataFrame extends ann.Annotated {
     _bioconductor_SLICE(output, i, { allowView = false }) {
         let options = { allowView };
 
-        let new_columns = new Map;
-        for (const k of this._columns.names()) {
-            let sliced = generics.SLICE(this._columns.entry(k), i, options);
-            new_columns.set(k, sliced);
-        }
-
+        let new_columns = this._columns.apply(v => generics.SLICE(v, i, options));
         let new_rowNames = (this._rowNames == null ? null : generics.SLICE(this._rowNames, i, options));
 
         let new_numberOfRows;
@@ -310,7 +305,7 @@ export class DataFrame extends ann.Annotated {
         }
 
         output._rowNames = new_rowNames;
-        output._columns = new il.InternalList(new_columns, this._columns.names());
+        output._columns = new_columns;
         output._numberOfRows = new_numberOfRows;
         output._metadata = this._metadata;
         return; 

@@ -1,4 +1,5 @@
 import * as utils from "./utils.js";
+import * as cutils from "./clone-utils.js";
 import * as generics from "./AllGenerics.js";
 
 export class InternalList {
@@ -73,7 +74,7 @@ export class InternalList {
      **************************************************************************/
     
     removeEntry(i, { inPlace = false } = {}) {
-        let target = this; //cutils.setterTarget(this, inPlace);
+        let target = cutils.setterTarget(this, inPlace);
         if (!inPlace) {
             // Shallow copies so that we can do our setting.
             target._order = target._order.slice();
@@ -98,7 +99,7 @@ export class InternalList {
     }
 
     setEntry(i, value, { inPlace = false } = {}) {
-        let target = this; // cutils.setterTarget(this, inPlace);
+        let target = cutils.setterTarget(this, inPlace);
         if (!inPlace) {
             // Shallow copy so that we can do our setting.
             target._entries = new Map(target._entries);
@@ -131,7 +132,7 @@ export class InternalList {
             new_entries.set(names[i], this._entries.get(this._order[i]));
         }
 
-        let target = this;
+        let target = cutils.setterTarget(this, inPlace);
         target._entries = new_entries;
         target._order = names;
         return target;
@@ -154,7 +155,7 @@ export class InternalList {
             new_order.push(ii);
         }
 
-        let target = this; //cutils.setterTarget(this, inPlace);
+        let target = cutils.setterTarget(this, inPlace);
         target._entries = new_entries;
         target._order = new_order;
         return target;
@@ -177,7 +178,7 @@ export class InternalList {
             new_order.push(ii);
         }
 
-        let target = this; //cutils.setterTarget(this, inPlace);
+        let target = cutils.setterTarget(this, inPlace);
         target._order = new_order;
         return target;
     }
