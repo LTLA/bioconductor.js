@@ -1,5 +1,6 @@
 import * as generics from "./AllGenerics.js";
 import * as cutils from "./clone-utils.js";
+import * as utils from "./utils.js";
 
 /**
  * The Annotated class provides a store for arbitrary object-wide metadata.
@@ -7,14 +8,14 @@ import * as cutils from "./clone-utils.js";
  */
 export class Annotated {
     /**
-     * @param {Object} metadata - Object containing arbitrary metadata as key-value pairs.
+     * @param {Object|Map} metadata - Object or Map containing arbitrary metadata as key-value pairs.
      */
     constructor(metadata) {
         if (arguments.length == 0) {
             return;
         }
 
-        this._metadata = metadata;
+        this._metadata = utils.object2map(metadata);
     }
 
     /**************************************************************************
@@ -22,7 +23,7 @@ export class Annotated {
      **************************************************************************/
 
     /**
-     * @return {Object} Object containing arbitrary metadata.
+     * @return {Map} Map containing arbitrary metadata.
      */
     metadata() {
         return this._metadata;
@@ -33,7 +34,7 @@ export class Annotated {
      **************************************************************************/
 
     /**
-     * @param {Object} value - Object containing the metadata.
+     * @param {Object|Map} value - Object containing the metadata.
      * @param {Object} [options={}] - Optional parameters.
      * @param {boolean} [options.inPlace=false] - Whether to mutate this Annotated instance in place.
      * If `false`, a new instance is returned.
@@ -43,7 +44,7 @@ export class Annotated {
      */
     setMetadata(value, { inPlace = false } = {}) {
         let target = cutils.setterTarget(this, inPlace);
-        target._metadata = value;
+        target._metadata = utils.object2map(value);
         return target;
     }
 

@@ -8,13 +8,7 @@ export class InternalList {
             return;
         }
 
-        if (entries.constructor == Object) {
-            let replacement = new Map;
-            for (const [k, v] of Object.entries(entries)) {
-                replacement.set(k, v);
-            }
-            entries = replacement;
-        }
+        entries = utils.object2map(entries);
 
         let expected = Array.from(entries.keys());
         if (order !== null) {

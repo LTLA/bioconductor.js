@@ -87,7 +87,7 @@ test("Construction of a SummarizedExperiment works with names", () => {
 test("Construction of a SummarizedExperiment works with metadata", () => {
     let mat = utils.spawn_random_matrix(5, 4);
     let se = new bioc.SummarizedExperiment({ counts: mat }, { metadata: { foo: 1 } });
-    expect(se.metadata().foo).toEqual(1);
+    expect(se.metadata().get("foo")).toEqual(1);
 })
 
 test("setting/removing of the assays works as expected", () => {
@@ -282,7 +282,7 @@ test("SLICE_2D generic works as expected", () => {
         let sliced = bioc.SLICE_2D(se, [ 5, 3, 1 ], [ 0, 2, 4 ]);
         expect(sliced.rowNames()).toEqual(["F", "D", "B"]);
         expect(sliced.columnNames()).toEqual(["a", "c", "e"]);
-        expect(sliced.metadata().wailord).toBe(999);
+        expect(sliced.metadata().get("wailord")).toBe(999);
     }
 })
 
@@ -322,7 +322,7 @@ test("COMBINE_ROWS generic works as expected", () => {
         expect(combined.assayNames()).toEqual(["counts"]);
         expect(combined.assay("counts").values()).toEqual(bioc.COMBINE_ROWS([mat1, mat2]).values());
 
-        expect(combined.metadata()).toEqual({ bob: "builder" });
+        expect(combined.metadata().get("bob")).toEqual("builder");
     }
 
     // Multiple assays.
@@ -377,7 +377,7 @@ test("COMBINE_COLUMNS generic works as expected", () => {
         expect(combined.assayNames()).toEqual(["counts"]);
         expect(combined.assay("counts").values()).toEqual(bioc.COMBINE_COLUMNS([mat1, mat2]).values());
 
-        expect(combined.metadata()).toEqual({ bob: "builder" });
+        expect(combined.metadata().get("bob")).toEqual("builder");
     }
 
     // Multiple assays.

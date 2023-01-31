@@ -123,3 +123,18 @@ export function checkNonNegative(x, msg) {
         }
     }
 }
+
+export function object2map(x) {
+    if (x.constructor == Object) {
+        let replacement = new Map;
+        for (const [k, v] of Object.entries(x)) {
+            replacement.set(k, v);
+        }
+        return replacement;
+    } 
+
+    if (!(x instanceof Map)) {
+        throw new Error("'x' should be either an object or Map");
+    }
+    return x;
+}

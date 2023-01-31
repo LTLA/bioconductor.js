@@ -21,7 +21,7 @@ test("constructing a GRanges works (simple)", () => {
     expect(x.names()).toBeNull();
     expect(x.elementMetadata().numberOfRows()).toBe(obj.seqnames.length);
     expect(x.elementMetadata().numberOfColumns()).toBe(0);
-    expect(x.metadata()).toEqual({});
+    expect(x.metadata()).toEqual(new Map);
 
     // Fails if the start and ranges don't match up.
     expect(() => new bioc.GRanges(obj.seqnames.slice(0, 2), obj.ranges)).toThrow("length equal to");
@@ -172,14 +172,14 @@ test("GRanges setters work for the elementMetadata", () => {
 test("GRanges setters work for the metadata", () => {
     let obj = spawnObject();
     let x = new bioc.GRanges(obj.seqnames, obj.ranges, { metadata: { thing: 2 } });
-    expect(x.metadata()).toEqual({ thing: 2 });
+    expect(x.metadata().get("thing")).toBe(2);
 
     let y = x.setMetadata({ boo: 5 });
-    expect(y.metadata()).toEqual({ boo: 5 });
-    expect(x.metadata()).not.toEqual({ boo: 5 }); // doesn't mutate the original.
+    expect(y.metadata().get("boo")).toBe(5);
+    expect(x.metadata().has("boo")).toBe(false); // doesn't mutate the original.
 
     x.$setMetadata({ boo: 5 });
-    expect(x.metadata()).toEqual({ boo: 5 });
+    expect(x.metadata().get("boo")).toEqual(5);
 })
 
 test("LENGTH generic works correctly for GRanges", () => {
@@ -236,9 +236,9 @@ test("CLONE generic works correctly for GRanges", () => {
     expect(y.start()).toEqual(new Int32Array([2,4,6,8]));
 
     // Same for the metadata.
-    x.metadata().foo = 5;
-    expect("foo" in x.metadata()).toBe(true);
-    expect("foo" in y.metadata()).toBe(false);
+    x.metadata().set("foo", 5);
+    expect(x.metadata().has("foo")).toBe(true);
+    expect(y.metadata().has("foo")).toBe(false);
 })
 
 test("overlap method works correctly for GRanges", () => {

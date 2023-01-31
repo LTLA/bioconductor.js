@@ -42,7 +42,7 @@ test("Construction of a RangedSummarizedExperiment works with all bits and piece
     expect(rse.columnData().column("bar")).toEqual(cdf.column("bar"));
     expect(rse.rowNames()).toEqual(rnames);
     expect(rse.columnNames()).toEqual(cnames);
-    expect(rse.metadata().bob).toBe(1);
+    expect(rse.metadata().get("bob")).toBe(1);
 })
 
 test("Construction of a RangedSummarizedExperiment works with null rowRanges", () => {
@@ -134,7 +134,7 @@ test("COMBINE_COLUMNS generic works as expected", () => {
     let NC2 = 8;
     let mat2 = utils.spawn_random_matrix(NR, NC2);
     let gr2 = utils.spawn_random_GRanges(NR);
-    let se2 = new bioc.SummarizedExperiment({ counts: mat2 }, gr2);
+    let se2 = new bioc.RangedSummarizedExperiment({ counts: mat2 }, gr2);
 
     let combined = bioc.COMBINE_COLUMNS([se1, se2]);
     expect(combined.numberOfRows()).toEqual(NR);

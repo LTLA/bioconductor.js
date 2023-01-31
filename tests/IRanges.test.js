@@ -19,7 +19,7 @@ test("constructing a IRanges works (simple)", () => {
     expect(x.elementMetadata().numberOfRows()).toBe(obj.start.length);
     expect(x.elementMetadata().numberOfColumns()).toBe(0);
 
-    expect(x.metadata()).toEqual({});
+    expect(x.metadata()).toEqual(new Map);
 
     // Fails if the start and widths don't match up.
     expect(() => new bioc.IRanges(obj.start.slice(0, 2), obj.width)).toThrow("same length");
@@ -143,14 +143,14 @@ test("IRanges setters work for the elementMetadata", () => {
 test("IRanges setters work for the metadata", () => {
     let obj = spawnObject();
     let x = new bioc.IRanges(obj.start, obj.width, { metadata: { thing: 2 } });
-    expect(x.metadata()).toEqual({ thing: 2 });
+    expect(x.metadata().get("thing")).toEqual(2);
 
     let y = x.setMetadata({ boo: 5 });
-    expect(y.metadata()).toEqual({ boo: 5 });
-    expect(x.metadata()).not.toEqual({ boo: 5 }); // doesn't mutate the original.
+    expect(y.metadata().get("boo")).toEqual(5);
+    expect(x.metadata().has("boo")).toBe(false); // doesn't mutate the original.
 
     x.$setMetadata({ boo: 5 });
-    expect(x.metadata()).toEqual({ boo: 5 });
+    expect(x.metadata().get("boo")).toEqual(5);
 })
 
 test("LENGTH generic works correctly for IRanges", () => {
@@ -205,9 +205,9 @@ test("CLONE generic works correctly for IRanges", () => {
     expect(y.start()).toEqual(new Int32Array([1,3,5,7]));
 
     // Same for the metadata.
-    x.metadata().foo = 5;
-    expect("foo" in x.metadata()).toBe(true);
-    expect("foo" in y.metadata()).toBe(false);
+    x.metadata().set("foo", 5);
+    expect(x.metadata().has("foo")).toBe(true);
+    expect(y.metadata().has("foo")).toBe(false);
 })
 
 test("overlap method works correctly for IRanges", () => {

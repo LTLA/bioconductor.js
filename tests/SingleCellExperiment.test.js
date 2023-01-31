@@ -75,7 +75,7 @@ test("Construction of a SingleCellExperiment works with all bits and pieces", ()
     expect(sce.columnData().column("bar")).toEqual(cdf.column("bar"));
     expect(sce.rowNames()).toEqual(rnames);
     expect(sce.columnNames()).toEqual(cnames);
-    expect(sce.metadata().bob).toBe(1);
+    expect(sce.metadata().get("bob")).toBe(1);
 })
 
 test("Reduced dimension setters work as expected", () => {

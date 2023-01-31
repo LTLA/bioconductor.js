@@ -28,7 +28,7 @@ test("constructing a GroupedGRanges works", () => {
         elementMetadata: new bioc.DataFrame({ foo: utils.spawn_random_vector(10) })
     });
 
-    expect(ggr2.metadata().foo).toBe(1);
+    expect(ggr2.metadata().get("foo")).toBe(1);
     expect(ggr2.names().length).toBe(10);
     expect(ggr2.elementMetadata().column("foo").length).toBe(10);
 
