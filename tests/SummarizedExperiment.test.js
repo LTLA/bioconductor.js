@@ -130,6 +130,40 @@ test("setting/removing of the assays works as expected", () => {
     expect(() => { out.$removeAssay('foo') }).toThrow("failed to remove assay");
 })
 
+test("renaming the assays works as expected", () => {
+    let mat = utils.spawn_random_matrix(10, 20);
+    let mat2 = utils.spawn_random_matrix(10, 20);
+    let out = new bioc.SummarizedExperiment({ counts: mat, logcounts: mat2 });
+
+    let se = out.setAssayNames(["foo", "bar"]);
+    expect(se.assayNames()).toEqual(["foo", "bar"]);
+    expect(out.assayNames()).toEqual(["counts", "logcounts"]); // doesn't modify the original.
+
+    out.$setAssayNames(["foo", "bar"]);
+    expect(out.assayNames()).toEqual(["foo", "bar"]);
+    expect(out.assay(0).column(0)).toEqual(mat.column(0));
+    expect(out.assay(1).column(0)).toEqual(mat2.column(0));
+
+    expect(() => out.$setAssayNames(["WHEE"])).toThrow("failed to set the assay names");
+})
+
+test("slicing the assays works as expected", () => {
+    let mat = utils.spawn_random_matrix(10, 20);
+    let mat2 = utils.spawn_random_matrix(10, 20);
+    let out = new bioc.SummarizedExperiment({ counts: mat, logcounts: mat2 });
+
+    let se = out.sliceAssays(["counts"]);
+    expect(se.assayNames()).toEqual(["counts"]);
+    expect(out.assayNames()).toEqual(["counts", "logcounts"]); // doesn't modify the original.
+
+    out.$sliceAssays([1, 0]);
+    expect(out.assayNames()).toEqual(["logcounts", "counts"]); 
+    expect(out.assay(0).column(0)).toEqual(mat2.column(0));
+    expect(out.assay(1).column(0)).toEqual(mat.column(0));
+
+    expect(() => out.$sliceAssays(["WHEE"])).toThrow("failed to slice the assays");
+})
+
 test("setting/removing of the DFs works as expected", () => {
     let mat = utils.spawn_random_matrix(10, 20);
     let out = new bioc.SummarizedExperiment({ counts: mat });

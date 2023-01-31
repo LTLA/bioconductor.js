@@ -260,6 +260,64 @@ export class SummarizedExperiment extends ann.Annotated {
     }
 
     /**
+     * @param {Array} names - Array of strings containing the assay names.
+     * This should be of the same length as the number of assays and contain unique values.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this SummarizedExperiment instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {SummarizedExperiment} The SummarizedExperiment with modified assay names.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
+     */
+    setAssayNames(names, { inPlace = false } = {}) {
+        let target = cutils.setterTarget(this, inPlace);
+        try {
+            target._assays = target._assays.setNames(names, { inPlace });
+        } catch (e) {
+            throw new Error("failed to set the assay names for this " + this.constructor.className + "; " + e.message, { cause: e });
+        }
+        return target;
+    }
+
+    /**
+     * @param {Array} names - Array of strings containing the assay names.
+     * This should be of the same length as the number of assays and contain unique values.
+     * @return {SummarizedExperiment} A reference to this SummarizedExperiment with modified assay names.
+     */
+    $setAssayNames(names) {
+        return this.setAssayNames(names, { inPlace: true });
+    }
+
+    /**
+     * @param {Array} i - Array of strings or indices specifying the assays to retain in the slice.
+     * This should refer to unique assay names.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this SummarizedExperiment instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {SummarizedExperiment} The SummarizedExperiment with sliced assays.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
+     */
+    sliceAssays(i, { inPlace = false } = {}) {
+        let target = cutils.setterTarget(this, inPlace);
+        try {
+            target._assays = this._assays.slice(i, { inPlace });
+        } catch (e) {
+            throw new Error("failed to slice the assays for this " + this.constructor.className + "; " + e.message, { cause: e });
+        }
+        return target;
+    }
+
+    /**
+     * @param {Array} i - Array of strings or indices specifying the assays to retain in the slice.
+     * This should refer to unique assay names.
+     * @return {SummarizedExperiment} A reference to this SummarizedExperiment with sliced assays.
+     */
+    $sliceAssays(i) {
+        return this.sliceAssays(i, { inPlace: true });
+    }
+
+    /**
      * @param {DataFrame} value - Data frame containing the row annotations.
      * This should have one row for each row of this SummarizedExperiment.
      * @param {Object} [options={}] - Optional parameters.

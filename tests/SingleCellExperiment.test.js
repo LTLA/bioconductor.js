@@ -119,6 +119,43 @@ test("Reduced dimension setters work as expected", () => {
     expect(() => sce.$setReducedDimension("PCA", utils.spawn_random_matrix(10, 1))).toThrow("number of rows");
 })
 
+test("Reduced dimension renaming works as expected", () => {
+    let mat = utils.spawn_random_matrix(10, 20);
+    let rd1 = utils.spawn_random_matrix(20, 5);
+    let rd2 = utils.spawn_random_matrix(20, 3);
+    let sce = new bioc.SingleCellExperiment({ counts: mat }, { reducedDimensions: { PCA: rd1, MDS: rd2 } });
+
+    let out = sce.setReducedDimensionNames(["TSNE", "UMAP"]);
+    expect(out.reducedDimensionNames()).toEqual(["TSNE", "UMAP"]);
+    expect(sce.reducedDimensionNames()).toEqual(["PCA", "MDS"]);
+
+    sce.$setReducedDimensionNames(["pca", "mds"]);
+    expect(sce.reducedDimensionNames()).toEqual(["pca", "mds"]);
+    expect(sce.reducedDimension(0).column(0)).toEqual(rd1.column(0));
+    expect(sce.reducedDimension(1).column(0)).toEqual(rd2.column(0));
+
+    expect(() => sce.$setReducedDimensionNames([1,2])).toThrow("failed to set the reduced dimension names");
+})
+
+test("Reduced dimension slicing works as expected", () => {
+    let mat = utils.spawn_random_matrix(10, 20);
+    let rd1 = utils.spawn_random_matrix(20, 5);
+    let rd2 = utils.spawn_random_matrix(20, 3);
+    let sce = new bioc.SingleCellExperiment({ counts: mat }, { reducedDimensions: { PCA: rd1, MDS: rd2 } });
+
+    let out = sce.sliceReducedDimensions([1, 0]);
+    expect(out.reducedDimensionNames()).toEqual(["MDS", "PCA"]);
+    expect(out.reducedDimension(0).column(0)).toEqual(rd2.column(0));
+    expect(out.reducedDimension(1).column(0)).toEqual(rd1.column(0));
+    expect(sce.reducedDimensionNames()).toEqual(["PCA", "MDS"]); // original is unaffected.
+
+    sce.$sliceReducedDimensions(["MDS"]);
+    expect(sce.reducedDimensionNames()).toEqual(["MDS"]);
+    expect(sce.reducedDimension(0).column(0)).toEqual(rd2.column(0));
+
+    expect(() => sce.$sliceReducedDimensions([1,2])).toThrow("failed to slice the reduced dimensions");
+})
+
 test("Alternative experiment setters work as expected", () => {
     let mat = utils.spawn_random_matrix(10, 20);
     let alt1 = new bioc.SummarizedExperiment({ counts: utils.spawn_random_matrix(5, 20) });
@@ -158,6 +195,43 @@ test("Alternative experiment setters work as expected", () => {
     expect(() => sce.$removeAlternativeExperiment("FOO")).toThrow("failed to remove");
     expect(() => sce.$setAlternativeExperiment("X", utils.spawn_random_matrix(10, 1))).toThrow("SummarizedExperiment");
     expect(() => sce.$setAlternativeExperiment("X", bioc.SLICE_2D(alt1, null, [1,2,3]))).toThrow("number of columns");
+})
+
+test("Alternative experiment renaming works as expected", () => {
+    let mat = utils.spawn_random_matrix(10, 20);
+    let alt1 = new bioc.SummarizedExperiment({ counts: utils.spawn_random_matrix(5, 20) });
+    let alt2 = new bioc.SummarizedExperiment({ counts: utils.spawn_random_matrix(2, 20) });
+    let sce = new bioc.SingleCellExperiment({ counts: mat }, { alternativeExperiments: { foo: alt1, bar: alt2 } });
+
+    let out = sce.setAlternativeExperimentNames(["WHEE", "stuff"]);
+    expect(out.alternativeExperimentNames()).toEqual(["WHEE", "stuff"]);
+    expect(sce.alternativeExperimentNames()).toEqual(["foo", "bar"]);
+
+    sce.$setAlternativeExperimentNames(["blah", "whee"]);
+    expect(sce.alternativeExperimentNames()).toEqual(["blah", "whee"]);
+    expect(out.alternativeExperiment(0).assay(0).column(0)).toEqual(alt1.assay(0).column(0));
+    expect(out.alternativeExperiment(1).assay(0).column(0)).toEqual(alt2.assay(0).column(0));
+
+    expect(() => sce.$setAlternativeExperimentNames([1,2])).toThrow("failed to set the alternative experiment names");
+})
+
+test("Alternative experiment slicing works as expected", () => {
+    let mat = utils.spawn_random_matrix(10, 20);
+    let alt1 = new bioc.SummarizedExperiment({ counts: utils.spawn_random_matrix(5, 20) });
+    let alt2 = new bioc.SummarizedExperiment({ counts: utils.spawn_random_matrix(2, 20) });
+    let sce = new bioc.SingleCellExperiment({ counts: mat }, { alternativeExperiments: { foo: alt1, bar: alt2 } });
+
+    let out = sce.sliceAlternativeExperiments([1, 0]);
+    expect(out.alternativeExperimentNames()).toEqual(["bar", "foo"]);
+    expect(out.alternativeExperiment(0).assay(0).column(0)).toEqual(alt2.assay(0).column(0));
+    expect(out.alternativeExperiment(1).assay(0).column(0)).toEqual(alt1.assay(0).column(0));
+    expect(sce.alternativeExperimentNames()).toEqual(["foo", "bar"]);
+
+    sce.$sliceAlternativeExperiments(["bar"]);
+    expect(sce.alternativeExperimentNames()).toEqual(["bar"]);
+    expect(sce.alternativeExperiment(0).assay(0).column(0)).toEqual(alt2.assay(0).column(0));
+
+    expect(() => sce.$sliceAlternativeExperiments([1,2])).toThrow("failed to slice the alternative experiments");
 })
 
 test("SLICE_2D generic works as expected", () => {

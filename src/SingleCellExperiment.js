@@ -192,6 +192,64 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
     }
 
     /**
+     * @param {Array} names - Array of strings containing the reduced dimension names.
+     * This should be of the same length as the number of reduced dimensions and contain unique values.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this SummarizedExperiment instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {SummarizedExperiment} The SummarizedExperiment with modified reduced dimension names.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
+     */
+    setReducedDimensionNames(names, { inPlace = false } = {}) {
+        let target = cutils.setterTarget(this, inPlace);
+        try {
+            target._reducedDimensions = target._reducedDimensions.setNames(names, { inPlace });
+        } catch (e) {
+            throw new Error("failed to set the reduced dimension names for this " + this.constructor.className + "; " + e.message, { cause: e });
+        }
+        return target;
+    }
+
+    /**
+     * @param {Array} names - Array of strings containing the reduced dimension names.
+     * This should be of the same length as the number of reduced dimensions and contain unique values.
+     * @return {SummarizedExperiment} A reference to this SummarizedExperiment with modified reduced dimension names.
+     */
+    $setReducedDimensionNames(names) {
+        return this.setReducedDimensionNames(names, { inPlace: true });
+    }
+
+    /**
+     * @param {Array} i - Array of strings or indices specifying the reduced dimensions to retain in the slice.
+     * This should refer to unique reduced dimension names.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this SummarizedExperiment instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {SummarizedExperiment} The SummarizedExperiment with sliced reduced dimensions.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
+     */
+    sliceReducedDimensions(i, { inPlace = false } = {}) {
+        let target = cutils.setterTarget(this, inPlace);
+        try {
+            target._reducedDimensions = this._reducedDimensions.slice(i, { inPlace });
+        } catch (e) {
+            throw new Error("failed to slice the reduced dimensions for this " + this.constructor.className + "; " + e.message, { cause: e });
+        }
+        return target;
+    }
+
+    /**
+     * @param {Array} i - Array of strings or indices specifying the reduced dimensions to retain in the slice.
+     * This should refer to unique reduced dimension names.
+     * @return {SummarizedExperiment} A reference to this SummarizedExperiment with sliced reduced dimensions.
+     */
+    $sliceReducedDimensions(i) {
+        return this.sliceReducedDimensions(i, { inPlace: true });
+    }
+
+    /**
      * @param {string|number} i - Identity of the reduced dimension to remove, either by name or index.
      * @param {Object} [options={}] - Optional parameters.
      * @param {boolean} [options.inPlace=false] - Whether to mutate this SingleCellExperiment instance in place.
@@ -254,6 +312,65 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
     $setAlternativeExperiment(i, value) {
         return this.setAlternativeExperiment(i, value, { inPlace: true });
     }
+
+    /**
+     * @param {Array} names - Array of strings containing the alternative experiment names.
+     * This should be of the same length as the number of alternative experiments and contain unique values.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this SummarizedExperiment instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {SummarizedExperiment} The SummarizedExperiment with modified alternative experiment names.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
+     */
+    setAlternativeExperimentNames(names, { inPlace = false } = {}) {
+        let target = cutils.setterTarget(this, inPlace);
+        try {
+            target._alternativeExperiments = target._alternativeExperiments.setNames(names, { inPlace });
+        } catch (e) {
+            throw new Error("failed to set the alternative experiment names for this " + this.constructor.className + "; " + e.message, { cause: e });
+        }
+        return target;
+    }
+
+    /**
+     * @param {Array} names - Array of strings containing the alternative experiment names.
+     * This should be of the same length as the number of alternative experiments and contain unique values.
+     * @return {SummarizedExperiment} A reference to this SummarizedExperiment with modified alternative experiment names.
+     */
+    $setAlternativeExperimentNames(names) {
+        return this.setAlternativeExperimentNames(names, { inPlace: true });
+    }
+
+    /**
+     * @param {Array} i - Array of strings or indices specifying the alternative experiments to retain in the slice.
+     * This should refer to unique alternative experiment names.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this SummarizedExperiment instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {SummarizedExperiment} The SummarizedExperiment with sliced alternative experiments.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
+     */
+    sliceAlternativeExperiments(i, { inPlace = false } = {}) {
+        let target = cutils.setterTarget(this, inPlace);
+        try {
+            target._alternativeExperiments = this._alternativeExperiments.slice(i, { inPlace });
+        } catch (e) {
+            throw new Error("failed to slice the alternative experiments for this " + this.constructor.className + "; " + e.message, { cause: e });
+        }
+        return target;
+    }
+
+    /**
+     * @param {Array} i - Array of strings or indices specifying the alternative experiments to retain in the slice.
+     * This should refer to unique alternative experiment names.
+     * @return {SummarizedExperiment} A reference to this SummarizedExperiment with sliced alternative experiments.
+     */
+    $sliceAlternativeExperiments(i) {
+        return this.sliceAlternativeExperiments(i, { inPlace: true });
+    }
+
 
     /**************************************************************************
      **************************************************************************
