@@ -268,289 +268,7 @@ All arrays should have the same number of rows and columns.</p></td>
                 </td>
             
 
-            <td class="description last"><p>Optional parameters.</p>
-                <h6>Properties</h6>
-                
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-        <th>Attributes</th>
-        
-
-        
-        <th>Default</th>
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>assayOrder</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Array</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-                    &lt;nullable><br>
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    <code>null</code>
-                
-                </td>
-            
-
-            <td class="description last"><p>Array of strings specifying the ordering of the assays.
-If non-<code>null</code>, this should have the same values as the keys of <code>assays</code>.
-If <code>null</code>, an arbitrary ordering is obtained from <code>assays</code>.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>rowData</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="DataFrame.html">DataFrame</a></span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-                    &lt;nullable><br>
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    <code>null</code>
-                
-                </td>
-            
-
-            <td class="description last"><p>Data frame of row annotations.
-If non-<code>null</code>, this should have a number of rows equal to the number of rows in each entry of <code>assays</code>.
-If <code>null</code>, an empty <a href="DataFrame.html">DataFrame</a> is automatically created.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>columnData</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="DataFrame.html">DataFrame</a></span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-                    &lt;nullable><br>
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    <code>null</code>
-                
-                </td>
-            
-
-            <td class="description last"><p>Data frame of column annotations.
-If non-<code>null</code>, this should have a number of columns equal to the number of columns in each entry of <code>assays</code>.
-If <code>null</code>, an empty <a href="DataFrame.html">DataFrame</a> is automatically created.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>rowNames</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Array</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-                    &lt;nullable><br>
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    <code>null</code>
-                
-                </td>
-            
-
-            <td class="description last"><p>Array of strings of length equal to the number of rows in the <code>assays</code>, containing row names.
-Alternatively <code>null</code>, if no row names are present.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>columnNames</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Array</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-                    &lt;nullable><br>
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    <code>null</code>
-                
-                </td>
-            
-
-            <td class="description last"><p>Array of strings of length equal to the number of columns in the <code>assays</code>, containing column names.
-Alternatively <code>null</code>, if no column names are present.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>metadata</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Object</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    <code>{}</code>
-                
-                </td>
-            
-
-            <td class="description last"><p>Object containing arbitrary metadata as key-value pairs.</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-            </td>
+            <td class="description last"><p>Optional parameters, including those used in the <a href="SummarizedExperiment.html">SummarizedExperiment</a> constructor.</p></td>
         </tr>
 
     
@@ -1909,7 +1627,7 @@ Alternatively <code>null</code>, to remove all row names.</p></td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="RangedSummarizedExperiment.js.html">RangedSummarizedExperiment.js</a>, <a href="RangedSummarizedExperiment.js.html#line105">line 105</a>
+        <a href="RangedSummarizedExperiment.js.html">RangedSummarizedExperiment.js</a>, <a href="RangedSummarizedExperiment.js.html#line91">line 91</a>
     </li></ul></dd>
     
 
@@ -3504,7 +3222,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="RangedSummarizedExperiment.js.html">RangedSummarizedExperiment.js</a>, <a href="RangedSummarizedExperiment.js.html#line75">line 75</a>
+        <a href="RangedSummarizedExperiment.js.html">RangedSummarizedExperiment.js</a>, <a href="RangedSummarizedExperiment.js.html#line61">line 61</a>
     </li></ul></dd>
     
 
@@ -5367,7 +5085,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="RangedSummarizedExperiment.js.html">RangedSummarizedExperiment.js</a>, <a href="RangedSummarizedExperiment.js.html#line93">line 93</a>
+        <a href="RangedSummarizedExperiment.js.html">RangedSummarizedExperiment.js</a>, <a href="RangedSummarizedExperiment.js.html#line79">line 79</a>
     </li></ul></dd>
     
 
@@ -5651,7 +5369,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Tue Jan 31 2023 20:55:18 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Tue Jan 31 2023 21:14:00 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
