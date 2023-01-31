@@ -1,6 +1,6 @@
 {
     "name": "bioconductor",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "description": "Bioconductor classes, generics and methods, implemented in Javascript.",
     "license": "MIT",
     "main": "src/index.js",
