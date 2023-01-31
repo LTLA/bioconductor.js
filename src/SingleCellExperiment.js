@@ -2,6 +2,7 @@ import * as generics from "./AllGenerics.js";
 import * as rse from "./RangedSummarizedExperiment.js";
 import * as se from "./SummarizedExperiment.js";
 import * as utils from "./utils.js";
+import * as il from "./InternalList.js";
 
 /**
  * A SingleCellExperiment is a {@linkplain RangedSummarizedExperiment} subclass that contains additional fields for storing reduced dimensions and alternative experiments.
@@ -20,33 +21,14 @@ import * as utils from "./utils.js";
  * @extends RangedSummarizedExperiment
  */
 export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
-    static #check_reduced_dimensions(reducedDimensions, numberOfColumns) {
-        for (const [k, v] of Object.entries(reducedDimensions)) {
-            if (generics.NUMBER_OF_ROWS(v) !== numberOfColumns) {
-                throw new Error("number of rows for reduced dimension '" + k + "' is not equal to number of columns for this SingleCellExperiment");
-            }
-        }
-    }
-
-    static #check_alternative_experiments(alternativeExperiments, numberOfColumns) {
-        for (const [k, v] of Object.entries(alternativeExperiments)) {
-            if (!(v instanceof se.SummarizedExperiment)) {
-                throw new Error("alternative experiment '" + k + "' is not a SummarizedExperiment");
-            }
-            if (v.numberOfColumns(v) !== numberOfColumns) {
-                throw new Error("number of columns for alternative experiment '" + k + "' is not equal to number of columns for this SingleCellExperiment");
-            }
-        }
-    }
-
     /**
      * @param {Object} assays - Object where keys are the assay names and values are multi-dimensional arrays of experimental data.
      * @param {Object} [options={}] - Optional parameters.
-     * @param {Object} [reducedDimensions={}] - Object containing named reduced dimensions.
+     * @param {Object|Map} [reducedDimensions={}] - Object containing named reduced dimensions.
      * Each value should be a 2-dimensional object with number of rows equal to the number of columns of the assays.
      * @param {?Array} [reducedDimensionOrder=null] - Array containing the order of the reduced dimensions.
      * This should have the same values as the keys of `reducedDimensions`, and defaults to those keys if `null`.
-     * @param {Object} [alternativeExperiments={}] - Object containing named alternative experiments.
+     * @param {Object|Map} [alternativeExperiments={}] - Object containing named alternative experiments.
      * Each value should be a 2-dimensional object with number of columns equal to that of the assays.
      * @param {?Array} [alternativeExperimentOrder=null] - Array containing the order of the alternative experiments.
      * This should have the same values as the keys of `alternativeExperiments`, and defaults to those keys if `null`.
@@ -85,21 +67,39 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
         }
 
         super(assays, rowRanges, { assayOrder, rowData, columnData, rowNames, columnNames, metadata });
+        let ncols = this.numberOfColumns();
 
-        SingleCellExperiment.#check_reduced_dimensions(reducedDimensions, this.numberOfColumns());
-        this._reducedDimensions = {
-            entries: reducedDimensions,
-            order: utils.checkEntryOrder(reducedDimensions, reducedDimensionOrder, "reducedDimension")
-        };
+        try {
+            this._reducedDimensions = new il.InternalList(reducedDimensions, reducedDimensionOrder);
+        } catch (e) {
+            throw new Error("failed to initialize reduced dimension list for this " + this.constructor.className + "; " + e.message, { cause: e });
+        }
+        for (const k of this._reducedDimensions.names()) {
+            let v = this._reducedDimensions.entry(k);
+            if (generics.NUMBER_OF_ROWS(v) !== ncols) {
+                throw new Error("number of rows for reduced dimension '" + k + "' is not equal to number of columns for this " + this.constructor.className);
+            }
+        }
 
-        SingleCellExperiment.#check_alternative_experiments(alternativeExperiments, this.numberOfColumns());
-        this._alternativeExperiments = {
-            entries: alternativeExperiments,
-            order: utils.checkEntryOrder(alternativeExperiments, alternativeExperimentOrder, "alternativeExperiment")
-        };
+        try {
+            this._alternativeExperiments = new il.InternalList(alternativeExperiments, alternativeExperimentOrder);
+        } catch (e) {
+            throw new Error("failed to initialize alternative experiment list for this " + this.constructor.className + "; " + e.message, { cause: e });
+        }
+        for (const k of this._alternativeExperiments.names()) {
+            let v = this._alternativeExperiments.entry(k);
+            if (!(v instanceof se.SummarizedExperiment)) {
+                throw new Error("alternative experiment '" + k + "' is not a SummarizedExperiment");
+            }
+            if (v.numberOfColumns(v) !== ncols) {
+                throw new Error("number of columns for alternative experiment '" + k + "' is not equal to number of columns for this " + this.constructor.className);
+            }
+        }
 
         return;
     }
+
+    static className = "SingleCellExperiment";
 
     /**************************************************************************
      **************************************************************************
@@ -109,7 +109,7 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
      * @return {Array} Array of strings containing the (ordered) names of the reduced dimensions.
      */
     reducedDimensionNames() {
-        return this._reducedDimensions.order;
+        return this._reducedDimensions.names();
     }
 
     /**
@@ -117,14 +117,20 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
      * @return {*} The contents of reduced dimension `i` as an multi-dimensional array-like object.
      */
     reducedDimension(i) {
-        return utils.retrieveSingleEntry(this._reducedDimensions.entries, this._reducedDimensions.order, i, "reduced dimension", "SingleCellExperiment");
+        let output;
+        try {
+            output = this._reducedDimensions.entry(i);
+        } catch (e) {
+            throw new Error("failed to retrieve the specified reduced dimension from this " + this.constructor.className + "; " + e.message, { cause: e });
+        }
+        return output;
     }
 
     /**
      * @return {Array} Array of strings containing the (ordered) names of the alternative experiments.
      */
     alternativeExperimentNames() {
-        return this._alternativeExperiments.order;
+        return this._alternativeExperiments.names();
     }
 
     /**
@@ -132,7 +138,13 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
      * @return {SummarizedExperiment} The specified alternative experiment `i`. 
      */
     alternativeExperiment(i) {
-        return utils.retrieveSingleEntry(this._alternativeExperiments.entries, this._alternativeExperiments.order, i, "alternative experiment", "SingleCellExperiment");
+        let output;
+        try {
+            output = this._alternativeExperiments.entry(i);
+        } catch (e) {
+            throw new Error("failed to retrieve the specified alternative experiment from this " + this.constructor.className + "; " + e.message, { cause: e });
+        }
+        return output;
     }
 
     /**************************************************************************
@@ -144,7 +156,11 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
      * @return {SingleCellExperiment} Reference to this SingleCellExperiment after removing the specified assay.
      */
     $removeReducedDimension(i) {
-        utils.removeSingleEntry(this._reducedDimensions.entries, this._reducedDimensions.order, i, "reduced dimension", "SingleCellExperiment");
+        try {
+            this._reducedDimensions.$removeEntry(i);
+        } catch (e) {
+            throw new Error("failed to remove the specified reduced dimension from this " + this.constructor.className + "; " + e.message, { cause: e });
+        }
         return this;
     }
 
@@ -161,7 +177,7 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
         if (generics.NUMBER_OF_ROWS(value) != this.numberOfColumns()) {
             throw new Error("number of rows of 'value' should be the same as the number of columns of this SingleCellExperiment");
         }
-        utils.setSingleEntry(this._reducedDimensions.entries, this._reducedDimensions.order, i, value, "reduced dimension", "SingleCellExperiment");
+        this._reducedDimensions.$setEntry(i, value);
         return this;
     }
 
@@ -170,7 +186,11 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
      * @return {SingleCellExperiment} Reference to this SingleCellExperiment after removing the specified assay.
      */
     $removeAlternativeExperiment(i) {
-        utils.removeSingleEntry(this._alternativeExperiments.entries, this._alternativeExperiments.order, i, "alternative experiment", "SingleCellExperiment");
+        try {
+            this._alternativeExperiments.$removeEntry(i);
+        } catch (e) {
+            throw new Error("failed to remove the specified alternative experiment from this " + this.constructor.className + "; " + e.message, { cause: e });
+        }
         return this;
     }
 
@@ -187,7 +207,7 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
         if (!(value instanceof se.SummarizedExperiment) || generics.NUMBER_OF_COLUMNS(value) != this.numberOfColumns()) {
             throw new Error("'value' should be a SummarizedExperiment with the same number of columns as this SingleCellExperiment");
         }
-        utils.setSingleEntry(this._alternativeExperiments.entries, this._alternativeExperiments.order, i, value, "alternative experiment", "SingleCellExperiment");
+        this._alternativeExperiments.$setEntry(i, value);
         return this;
     }
 
@@ -198,24 +218,20 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
     _bioconductor_SLICE_2D(output, rows, columns, { allowView = false }) {
         super._bioconductor_SLICE_2D(output, rows, columns, { allowView });
 
-        output._reducedDimensions = utils.shallowCloneEntries(this._reducedDimensions);
-        output._alternativeExperiments = utils.shallowCloneEntries(this._alternativeExperiments);
-
         if (columns !== null) {
-            for (const [k, v] of Object.entries(output._reducedDimensions.entries)) {
-                output._reducedDimensions.entries[k] = generics.SLICE_2D(v, columns, null, { allowView });
-            }
-            for (const [k, v] of Object.entries(output._alternativeExperiments.entries)) {
-                output._alternativeExperiments.entries[k] = generics.SLICE_2D(v, null, columns, { allowView });
-            }
+            output._reducedDimensions = this._reducedDimensions.apply(v => generics.SLICE_2D(v, columns, null, { allowView }));
+            output._alternativeExperiments = this._alternativeExperiments.apply(v => generics.SLICE_2D(v, null, columns, { allowView }));
+        } else {
+            output._reducedDimensions = this._reducedDimensions;
+            output._alternativeExperiments = this._alternativeExperiments;
         }
     }
 
     _bioconductor_COMBINE_ROWS(output, objects) {
         super._bioconductor_COMBINE_ROWS(output, objects);
 
-        output._reducedDimensions = utils.shallowCloneEntries(this._reducedDimensions);
-        output._alternativeExperiments = utils.shallowCloneEntries(this._alternativeExperiments);
+        output._reducedDimensions = this._reducedDimensions;
+        output._alternativeExperiments = this._alternativeExperiments;
 
         return;
     }
@@ -223,8 +239,17 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
     _bioconductor_COMBINE_COLUMNS(output, objects) {
         super._bioconductor_COMBINE_COLUMNS(output, objects);
 
-        output._reducedDimensions = utils.combineEntries(objects.map(x => x._reducedDimensions), generics.COMBINE_ROWS, "reducedDimensionNames" , "SingleCellExperiment"); 
-        output._alternativeExperiments = utils.combineEntries(objects.map(x => x._alternativeExperiments), generics.COMBINE_COLUMNS, "alternativeExperimentNames" , "SingleCellExperiment"); 
+        try {
+            output._reducedDimensions = il.InternalList.combineParallelEntries(objects.map(x => x._reducedDimensions), generics.COMBINE_ROWS);
+        } catch (e) {
+            throw new Error("failed to combine reduced dimensions for " + this.constructor.className + " objects; " + e.message, { cause: e });
+        }
+
+        try {
+            output._alternativeExperiments = il.InternalList.combineParallelEntries(objects.map(x => x._alternativeExperiments), generics.COMBINE_COLUMNS);
+        } catch (e) {
+            throw new Error("failed to combine alternative experiments for " + this.constructor.className + " objects; " + e.message, { cause: e });
+        }
 
         return;
     }
@@ -232,9 +257,8 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
     _bioconductor_CLONE(output, { deepCopy }) {
         super._bioconductor_CLONE(output, { deepCopy });
 
-        let FUN = (deepCopy ? generics.CLONE : utils.shallowCloneEntries);
-        output._reducedDimensions = FUN(this._reducedDimensions);
-        output._alternativeExperiments = FUN(this._alternativeExperiments);
+        output._reducedDimensions = generics.CLONE(this._reducedDimensions, { deepCopy });
+        output._alternativeExperiments = generics.CLONE(this._alternativeExperiments, { deepCopy });
 
         return;
     }

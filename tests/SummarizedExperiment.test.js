@@ -115,7 +115,7 @@ test("setting/removing of the assays works as expected", () => {
     // Errors.
     expect(() => { out.$setAssay('foo', utils.spawn_random_matrix(10, 10)) }).toThrow("same dimensions");
     expect(() => { out.$setAssay('foo', utils.spawn_random_matrix(20, 20)) }).toThrow("same dimensions");
-    expect(() => { out.$removeAssay('foo') }).toThrow("no assay");
+    expect(() => { out.$removeAssay('foo') }).toThrow("failed to remove assay");
 })
 
 test("setting/removing of the DFs works as expected", () => {
