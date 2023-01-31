@@ -217,7 +217,7 @@ export class DataFrame extends ann.Annotated {
             if (names[i] in new_columns) {
                 throw new Error("detected duplicates in replacement 'names'");
             }
-            new_columns[names[i]] = target._columns.entries[target._columns.order[i]];
+            new_columns[names[i]] = this._columns.entries[this._columns.order[i]];
         }
 
         let target = cutils.setterTarget(this, inPlace);

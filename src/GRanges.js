@@ -150,7 +150,7 @@ export class GRanges extends vec.Vector {
      * @return {GRanges} A reference to this GRanges object after setting the sequence names to `seqnames`.
      */
     $setSeqnames(seqnames) {
-        return this.setSeqnames(seqnames, { inPlace });
+        return this.setSeqnames(seqnames, { inPlace: true });
     }
 
     /**

@@ -2,6 +2,7 @@ import * as generics from "./AllGenerics.js";
 import * as ann from "./Annotated.js";
 import * as df from "./DataFrame.js";
 import * as utils from "./utils.js";
+import * as cutils from "./clone-utils.js";
 
 /**
  * A SummarizedExperiment contains zero or more assays, consisting of multi-dimensional arrays (usually matrices) of experimental data,
@@ -198,7 +199,7 @@ export class SummarizedExperiment extends ann.Annotated {
     removeAssay(i, { inPlace = false } = {}) {
         let target = cutils.setterTarget(this, inPlace);
         if (inPlace) {
-            target._assays = cutils.shallowCloneEntries(target.assays);
+            target._assays = cutils.shallowCloneEntries(target._assays);
         }
 
         utils.removeSingleEntry(this._assays.entries, this._assays.order, i, "assay", "SummarizedExperiment");
@@ -318,7 +319,7 @@ export class SummarizedExperiment extends ann.Annotated {
      * @return {SummarizedExperiment} A reference to this SummarizedExperiment with modified column data.
      */
     $setColumnData(value) {
-        return this.setColumn(value, { inPlace: true });
+        return this.setColumnData(value, { inPlace: true });
     }
 
     /**
@@ -398,7 +399,7 @@ export class SummarizedExperiment extends ann.Annotated {
     }
 
     _bioconductor_SLICE_2D(output, rows, columns, { allowView = false }) {
-        output._assays = utils.shallowCloneEntries(this._assays);
+        output._assays = cutils.shallowCloneEntries(this._assays);
         for (const [k, v] of Object.entries(output._assays.entries)) {
             output._assays.entries[k] = generics.SLICE_2D(v, rows, columns, { allowView });
         }

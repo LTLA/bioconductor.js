@@ -2,6 +2,7 @@ import * as generics from "./AllGenerics.js";
 import * as rse from "./RangedSummarizedExperiment.js";
 import * as se from "./SummarizedExperiment.js";
 import * as utils from "./utils.js";
+import * as cutils from "./clone-utils.js";
 
 /**
  * A SingleCellExperiment is a {@linkplain RangedSummarizedExperiment} subclass that contains additional fields for storing reduced dimensions and alternative experiments.
@@ -284,8 +285,8 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
     _bioconductor_SLICE_2D(output, rows, columns, { allowView = false }) {
         super._bioconductor_SLICE_2D(output, rows, columns, { allowView });
 
-        output._reducedDimensions = utils.shallowCloneEntries(this._reducedDimensions);
-        output._alternativeExperiments = utils.shallowCloneEntries(this._alternativeExperiments);
+        output._reducedDimensions = cutils.shallowCloneEntries(this._reducedDimensions);
+        output._alternativeExperiments = cutils.shallowCloneEntries(this._alternativeExperiments);
 
         if (columns !== null) {
             for (const [k, v] of Object.entries(output._reducedDimensions.entries)) {
@@ -300,8 +301,8 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
     _bioconductor_COMBINE_ROWS(output, objects) {
         super._bioconductor_COMBINE_ROWS(output, objects);
 
-        output._reducedDimensions = utils.shallowCloneEntries(this._reducedDimensions);
-        output._alternativeExperiments = utils.shallowCloneEntries(this._alternativeExperiments);
+        output._reducedDimensions = cutils.shallowCloneEntries(this._reducedDimensions);
+        output._alternativeExperiments = cutils.shallowCloneEntries(this._alternativeExperiments);
 
         return;
     }

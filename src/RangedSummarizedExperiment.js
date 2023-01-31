@@ -3,6 +3,7 @@ import * as gr from "./GRanges.js";
 import * as ggr from "./GroupedGRanges.js";
 import * as se from "./SummarizedExperiment.js";
 import * as utils from "./utils.js";
+import * as cutils from "./clone-utils.js";
 
 /**
  * A RangedSummarizedExperiment is a {@linkplain SummarizedExperiment} subclass where each row represents a genomic interval.

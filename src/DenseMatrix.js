@@ -1,3 +1,5 @@
+import * as cutils from "./clone-utils.js";
+
 /**
  * Dense matrix of numbers.
  * Not really a Bioconductor-exclusive data structure, but we need this at a minimum for the {@linkplain SummarizedExperiment} to be useful.
