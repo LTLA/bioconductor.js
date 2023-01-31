@@ -2,6 +2,7 @@ import * as generics from "./AllGenerics.js";
 import * as ann from "./Annotated.js";
 import * as df from "./DataFrame.js";
 import * as utils from "./utils.js";
+import * as il from "./InternalList.js";
 
 /**
  * A SummarizedExperiment contains zero or more assays, consisting of multi-dimensional arrays (usually matrices) of experimental data,
@@ -55,24 +56,25 @@ export class SummarizedExperiment extends ann.Annotated {
         super(metadata);
 
         // Check the assays.
-        let vals = Object.values(assays);
-        let nrows = null, ncols = null;
-        if (vals.length) {
-            for (var i = 0; i < vals.length; i++) {
-                let nr = generics.NUMBER_OF_ROWS(vals[i]);
-                let nc = generics.NUMBER_OF_COLUMNS(vals[i]);
-                if (i == 0) {
-                    nrows = nr;
-                    ncols = nc;
-                } else if (nrows !== nr || ncols !== nc) {
-                    throw new Error("expected all assays in 'assays' to have the same number of rows and columns");
-                }
+        try {
+            this._assays = new il.InternalList(assays, assayOrder);
+        } catch (e) {
+            throw new Error("failed to construct internal list of assays for this SummarizedExperiment; " + e.message, { cause: e });
+        }
+
+        let nrows = null;
+        let ncols = null;
+        for (const k of this._assays.names()) {
+            let current = this._assays.entry(k);
+            let nr = generics.NUMBER_OF_ROWS(current);
+            let nc = generics.NUMBER_OF_COLUMNS(current);
+            if (nrows == null) {
+                nrows = nr;
+                ncols = nc;
+            } else if (nrows !== nr || ncols !== nc) {
+                throw new Error("expected all assays in 'assays' to have the same number of rows and columns");
             }
         }
-        this._assays = {
-            entries: assays,
-            order: utils.checkEntryOrder(assays, assayOrder, "assay")
-        };
 
         // Check the rowData.
         if (rowData === null) {
@@ -112,7 +114,7 @@ export class SummarizedExperiment extends ann.Annotated {
         this._columnNames = columnNames;
     }
 
-    static name = "SummarizedExperiment";
+    static className = "SummarizedExperiment";
 
     /**************************************************************************
      **************************************************************************
@@ -122,14 +124,14 @@ export class SummarizedExperiment extends ann.Annotated {
      * @return {Array} Array of assay names.
      */
     assayNames() {
-        return this._assays.order;
+        return this._assays.names();
     }
 
     /**
      * @return {number} Number of assays.
      */
     numberOfAssays() {
-        return this._assays.order.length;
+        return this._assays.numberOfEntries();
     }
 
     /**
@@ -137,7 +139,13 @@ export class SummarizedExperiment extends ann.Annotated {
      * @return {*} The contents of assay `i` as an multi-dimensional array-like object.
      */
     assay(i) {
-        return utils.retrieveSingleEntry(this._assays.entries, this._assays.order, i, "assay", "SummarizedExperiment");
+        let output;
+        try {
+            output = this._assays.entry(i);
+        } catch (e) {
+            throw new Error("failed to retrieve assay " + (typeof i == "string" ? "'" + i + "'" : String(i)) + "; " + e.message, { cause: e });
+        }
+        return output;
     }
 
     /**
@@ -191,7 +199,11 @@ export class SummarizedExperiment extends ann.Annotated {
      * @return {SummarizedExperiment} Reference to this SummarizedExperiment after removing the specified assay.
      */
     $removeAssay(i) {
-        utils.removeSingleEntry(this._assays.entries, this._assays.order, i, "assay", "SummarizedExperiment");
+        try {
+            this._assays.$removeEntry(i);
+        } catch (e) {
+            throw new Error("failed to remove assay " + (typeof i == "string" ? "'" + i + "'" : String(i)) + " from this " + this.constructor.className + "; " + e.message, { cause: e });
+        }
         return this;
     }
 
@@ -208,7 +220,7 @@ export class SummarizedExperiment extends ann.Annotated {
         if (generics.NUMBER_OF_ROWS(value) !== this.numberOfRows() || generics.NUMBER_OF_COLUMNS(value) !== this.numberOfColumns()) {
             throw new Error("expected 'value' to have the same dimensions as this 'SummarizedExperiment'");
         }
-        utils.setSingleEntry(this._assays.entries, this._assays.order, i, value, "assay", "SummarizedExperiment");
+        this._assays.$setEntry(i, value);
         return this;
     }
 
@@ -283,10 +295,14 @@ export class SummarizedExperiment extends ann.Annotated {
     }
 
     _bioconductor_SLICE_2D(output, rows, columns, { allowView = false }) {
-        output._assays = utils.shallowCloneEntries(this._assays);
-        for (const [k, v] of Object.entries(output._assays.entries)) {
-            output._assays.entries[k] = generics.SLICE_2D(v, rows, columns, { allowView });
+        let new_assays = new Map;
+        let first_order = this._assays.names();
+        for (const k of first_order) {
+            let v = this._assays.entry(k);
+            let sliced = generics.SLICE_2D(v, rows, columns, { allowView });
+            new_assays.set(k, sliced);
         }
+        output._assays = new il.InternalList(new_assays, first_order);
 
         if (rows !== null) {
             output._rowData = generics.SLICE(this._rowData, rows, { allowView });
@@ -309,7 +325,7 @@ export class SummarizedExperiment extends ann.Annotated {
     }
 
     _bioconductor_COMBINE_ROWS(output, objects) {
-        output._assays = utils.combineEntries(objects.map(x => x._assays), generics.COMBINE_ROWS, "assayNames" , "SummarizedExperiment"); 
+        output._assays = il.InternalList.combineParallelEntries(objects.map(x => x._assays), generics.COMBINE_ROWS);
 
         let all_dfs = objects.map(x => x._rowData);
         output._rowData = generics.COMBINE(all_dfs);
@@ -324,7 +340,7 @@ export class SummarizedExperiment extends ann.Annotated {
     }
 
     _bioconductor_COMBINE_COLUMNS(output, objects) {
-        output._assays = utils.combineEntries(objects.map(x => x._assays), generics.COMBINE_COLUMNS, "assayNames" , "SummarizedExperiment"); 
+        output._assays = il.InternalList.combineParallelEntries(objects.map(x => x._assays), generics.COMBINE_COLUMNS);
 
         let all_dfs = objects.map(x => x._columnData);
         output._columnData = generics.COMBINE(all_dfs);
