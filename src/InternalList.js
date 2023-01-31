@@ -97,10 +97,6 @@ export class InternalList {
         return target;
     }
 
-    $removeEntry(i) {
-        return this.removeEntry(i, { inPlace: true });
-    }
-
     setEntry(i, value, { inPlace = false } = {}) {
         let target = this; // cutils.setterTarget(this, inPlace);
         if (!inPlace) {
@@ -124,10 +120,6 @@ export class InternalList {
         return target;
     }
 
-    $setEntry(i, value) {
-        return this.setEntry(i, value, { inPlace: true });
-    }
-
     setNames(names, { inPlace = false } = {}) {
         utils.checkNamesArray(names, "replacement 'names'", this._order.length, "length of 'names()'");
 
@@ -143,10 +135,6 @@ export class InternalList {
         target._entries = new_entries;
         target._order = names;
         return target;
-    }
-
-    $setNames(names) {
-        return this.setNames(names, { inPlace: true });
     }
 
     sliceEntries(indices, { inPlace = false } = {}) {
@@ -172,10 +160,6 @@ export class InternalList {
         return target;
     }
 
-    $sliceEntries(indices) {
-        return this.sliceEntries(indices, { inPlace: true });
-    }
-
     reorderEntries(indices, { inPlace = false } = {}) {
         if (indices.length !== this._order.length) {
             throw utils.formatLengthError("reordered indices", "the number of existing entries");
@@ -198,10 +182,6 @@ export class InternalList {
         return target;
     }
 
-    $reorderEntries(indices) {
-        return this.reorderEntries(indices, { inPlace: true });
-    }
-
     /**************************************************************************
      **************************************************************************
      **************************************************************************/
@@ -222,10 +202,6 @@ export class InternalList {
             new_entries.set(k, FUN(v));
         }
         return (inPlace ? this : new InternalList(new_entries, this._order));
-    }
-
-    $apply(FUN) {
-        return this.apply(FUN, { inPlace: true });
     }
 
     static combineParallelEntries(objects, combiner) {
