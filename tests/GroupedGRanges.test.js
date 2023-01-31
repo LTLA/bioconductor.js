@@ -139,19 +139,20 @@ test("setting multiple different groups works as expected", () => {
         let updated = [...grl_raw];
         let grl_raw2 = spawn_GRanges_list(5);
 
+        let ggr2 = ggr;
         for (var i = 0; i < 4; i++) { 
-            let ggr2 = ggr.setGroup(i * 2 + 1, grl_raw2[i]);
+            ggr2 = ggr2.setGroup(i * 2 + 1, grl_raw2[i]);
             updated[i * 2 + 1] = grl_raw2[i];
-
-            let ggr3 = new bioc.GroupedGRanges(updated);
-            expect(ggr2.ranges().start()).toEqual(ggr3.ranges().start());
-            expect(ggr2.rangeStarts()).toEqual(ggr3.rangeStarts());
-            expect(ggr2.rangeLengths()).toEqual(ggr3.rangeLengths());
-
-            expect(copy.ranges().start()).toEqual(ggr.ranges().start());
-            expect(copy.rangeStarts()).toEqual(ggr.rangeStarts());
-            expect(copy.rangeLengths()).toEqual(ggr.rangeLengths());
         }
+
+        let ggr3 = new bioc.GroupedGRanges(updated);
+        expect(ggr2.ranges().start()).toEqual(ggr3.ranges().start());
+        expect(ggr2.rangeStarts()).toEqual(ggr3.rangeStarts());
+        expect(ggr2.rangeLengths()).toEqual(ggr3.rangeLengths());
+
+        expect(copy.ranges().start()).toEqual(ggr.ranges().start());
+        expect(copy.rangeStarts()).toEqual(ggr.rangeStarts());
+        expect(copy.rangeLengths()).toEqual(ggr.rangeLengths());
     }
 })
 

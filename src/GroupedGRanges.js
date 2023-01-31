@@ -221,6 +221,8 @@ export class GroupedGRanges extends vec.Vector {
         } catch (e) {
             throw new Error("failed to combine staged '$setGroup' operations; " + e.message);
         }
+
+        this.#staged_setGroup = null;
         return;
     }
 
