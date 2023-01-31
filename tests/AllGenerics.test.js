@@ -3,6 +3,7 @@ import * as bioc from "../src/index.js";
 test("cloning works on the built-in types", () => {
     expect(bioc.CLONE(1)).toBe(1);
     expect(bioc.CLONE("asdasd")).toBe("asdasd");
+    expect(bioc.CLONE(null)).toBeNull();
 
     {
         let x = [ "Y", "Z" ];
@@ -28,6 +29,32 @@ test("cloning works on the built-in types", () => {
         expect(xclone).toEqual(x);
         xclone.c[0] = "tatiana";
         expect(x.c[0]).toEqual("princess");
+    }
+
+    // Works for Maps.
+    {
+        let x = new Map;
+        x.set("A", "Aaron");
+        x.set("B", "Brian");
+
+        let xclone = bioc.CLONE(x);
+        expect(xclone.get("A")).toEqual("Aaron");
+        expect(xclone.get("B")).toEqual("Brian");
+
+        xclone.set("C", "Christine");
+        expect(x.has("C")).toBe(false);
+    }
+
+    // Works for Sets.
+    {
+        let x = new Set([ "Aaron", "Brian" ]);
+
+        let xclone = bioc.CLONE(x);
+        expect(xclone.has("Aaron")).toBe(true);
+        expect(xclone.has("Brian")).toBe(true);
+
+        xclone.add("Christine");
+        expect(x.has("Christine")).toBe(false);
     }
 })
 
