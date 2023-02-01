@@ -109,6 +109,40 @@ export class RangedSummarizedExperiment extends se.SummarizedExperiment {
         super._bioconductor_COMBINE_ROWS(output, objects);
 
         let collected = objects.map(x => x._rowRanges);
+
+        // Check if any object is a GroupedGRanges, and promoting them.
+        if (collected.some(x => x instanceof ggr.GroupedGRanges)) {
+            for (var i = 0; i < collected.length; i++) {
+                let current = collected[i];
+
+                if (current instanceof gr.GRanges) {
+                    let widths = new Int32Array(generics.LENGTH(current));
+                    widths.fill(1);
+
+                    let options = { 
+                        rangeLengths: widths,
+                        names: current.names(),
+                        elementMetadata: current.elementMetadata(),
+                        metadata: current.metadata()
+                    };
+
+                    if (options.names !== null) {
+                        current = current.setNames(null);
+                    } 
+
+                    if (options.elementMetadata.metadata().size > 0 || options.elementMetadata.numberOfColumns() > 0) {
+                        current = current.setElementMetadata(null);
+                    }
+
+                    if (options.metadata.size > 0) {
+                        current = current.setMetadata(new Map);
+                    }
+
+                    collected[i] = new ggr.GroupedGRanges(current, options);
+                }
+            }
+        }
+
         output._rowRanges = generics.COMBINE(collected);
 
         return;
