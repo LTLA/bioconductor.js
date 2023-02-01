@@ -7,9 +7,17 @@ import * as cutils from "./clone-utils.js";
 
 /**
  * A RangedSummarizedExperiment is a {@linkplain SummarizedExperiment} subclass where each row represents a genomic interval.
- * As such, it stores an additional {@linkplain GRanges} of length equal to the number of rows,
- * where each element represents the genomic range for the corresponding row of the SummarizedExperiment.
- * It supports the same set of generics as the {@linkplain SummarizedExperiment}.
+ * As such, it stores an additional {@linkplain GRanges} or {@linkplain GroupedGRanges} of length equal to the number of rows,
+ * where each element represents the genomic range(s) for the corresponding row of the SummarizedExperiment.
+ *
+ * The RangedSummarizedExperiment supports the same set of generics as the {@linkplain SummarizedExperiment}.
+ * Each method will call the base method, with the following extensions:
+ *
+ * - {@linkcode SLICE_2D} will additionally slice the supplied genomic ranges by the desired `rows`.
+ * - {@linkcode COMBINE_ROWS} will combine genomic ranges across objects.
+ *   If some objects contain a GroupedGRanges and other objects contain GRanges, the latter will be coerced to a GroupedGRanges (where each group contains one range) before combining.
+ *   If any object is a base SummarizedExperiment, a GroupedGRanges containing zero-length groups will be automatically constructed to attempt combining.
+ * - {@linkcode COMBINE_COLUMNS} will use the genomic ranges from the first object.
  *
  * @extends SummarizedExperiment
  */
@@ -108,10 +116,28 @@ export class RangedSummarizedExperiment extends se.SummarizedExperiment {
     _bioconductor_COMBINE_ROWS(output, objects) {
         super._bioconductor_COMBINE_ROWS(output, objects);
 
-        let collected = objects.map(x => x._rowRanges);
+        let collected = [];
+        let has_empty = false;
+        let has_ggr = false;
 
-        // Check if any object is a GroupedGRanges, and promoting them.
-        if (collected.some(x => x instanceof ggr.GroupedGRanges)) {
+        for (var i = 0; i < objects.length; i++) {
+            let x = objects[i];
+            if (x instanceof RangedSummarizedExperiment) {
+                let y = x._rowRanges;
+                if (y instanceof ggr.GroupedGRanges) {
+                    has_ggr = true;
+                }
+                collected.push(y);
+            } else if (x instanceof se.SummarizedExperiment) {
+                has_empty = true;
+                collected.push(null);
+            } else {
+                throw new Error("objects to be combined must be SummarizedExperiments (failing for object " + String(i) + ")");
+            }
+        }
+
+        // Promoting nulls and GRanges to GroupedGRanges, if necessary.
+        if (has_empty || has_ggr) {
             for (var i = 0; i < collected.length; i++) {
                 let current = collected[i];
 
@@ -139,6 +165,9 @@ export class RangedSummarizedExperiment extends se.SummarizedExperiment {
                     }
 
                     collected[i] = new ggr.GroupedGRanges(current, options);
+
+                } else if (current === null){
+                    collected[i] = ggr.GroupedGRanges.empty(objects[i].numberOfRows());
                 }
             }
         }
