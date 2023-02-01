@@ -104,7 +104,7 @@ test("SLICE_2D generic works as expected", () => {
     }
 })
 
-test("COMBINE_ROWS generic works as expected", () => {
+test("COMBINE_ROWS generic works as expected with GRanges", () => {
     let NC = 16;
 
     let NR1 = 11;
@@ -121,6 +121,64 @@ test("COMBINE_ROWS generic works as expected", () => {
     expect(combined.numberOfRows()).toEqual(NR1 + NR2);
     expect(combined.numberOfColumns()).toEqual(NC);
     expect(combined.rowRanges().start()).toEqual(bioc.COMBINE([gr1.start(), gr2.start()]));
+})
+
+test("COMBINE_ROWS generic works as expected with mixed GRanges and GroupedGRanges", () => {
+    let NC = 16;
+
+    let NR1 = 11;
+    let mat1 = utils.spawn_random_matrix(NR1, NC);
+    let gr1 = utils.spawn_random_GRanges(NR1);
+    let se1 = new bioc.RangedSummarizedExperiment({ counts: mat1 }, gr1);
+
+    let NR2 = 9;
+    let mat2 = utils.spawn_random_matrix(NR2, NC);
+    let width = new Int32Array(NR2);
+    width.fill(2);
+    let ggr2 = new bioc.GroupedGRanges(utils.spawn_random_GRanges(NR2*2), { rangeLengths: width });
+    let se2 = new bioc.RangedSummarizedExperiment({ counts: mat2 }, ggr2);
+
+    let combined = bioc.COMBINE_ROWS([se1, se2]);
+    let comranges = combined.rowRanges();
+    expect(comranges instanceof bioc.GroupedGRanges).toBe(true);
+    expect(comranges.numberOfGroups()).toBe(NR1 + NR2);
+
+    let first = bioc.SLICE(comranges, { start: 0, end: NR1 });
+    expect(first.ranges().start()).toEqual(gr1.start());
+    let filling = new Int32Array(NR1);
+    filling.fill(1);
+    expect(first.rangeLengths()).toEqual(filling);
+
+    let second = bioc.SLICE(comranges, { start: NR1, end: NR1 + NR2 });
+    expect(second.ranges().start()).toEqual(ggr2.ranges().start());
+    expect(second.rangeLengths()).toEqual(ggr2.rangeLengths());
+})
+
+test("COMBINE_ROWS generic works as expected with mixed GRanges and empty objects", () => {
+    let NC = 12;
+
+    let NR1 = 5;
+    let mat1 = utils.spawn_random_matrix(NR1, NC);
+    let gr1 = utils.spawn_random_GRanges(NR1);
+    let se1 = new bioc.RangedSummarizedExperiment({ counts: mat1 }, gr1);
+
+    let NR2 = 9;
+    let mat2 = utils.spawn_random_matrix(NR2, NC);
+    let se2 = new bioc.SummarizedExperiment({ counts: mat2 });
+
+    let combined = bioc.COMBINE_ROWS([se1, se2]);
+    let comranges = combined.rowRanges();
+    expect(comranges instanceof bioc.GroupedGRanges).toBe(true);
+    expect(comranges.numberOfGroups()).toBe(NR1 + NR2);
+
+    let first = bioc.SLICE(comranges, { start: 0, end: NR1 });
+    expect(first.ranges().start()).toEqual(gr1.start());
+    let filling = new Int32Array(NR1);
+    filling.fill(1);
+    expect(first.rangeLengths()).toEqual(filling);
+
+    let second = bioc.SLICE(comranges, { start: NR1, end: NR1 + NR2 });
+    expect(bioc.LENGTH(second.ranges())).toEqual(0);
 })
 
 test("COMBINE_COLUMNS generic works as expected", () => {
