@@ -60,9 +60,9 @@
 
     <section class="readme usertext">
         <article><h1>Bioconductor objects in Javascript</h1>
-<p>🚧🚧🚧🚧 <strong>Under construction!</strong> 🚧🚧🚧🚧</p>
 <p>This package aims to provide Javascript implementations of <a href="https://github.com/Bioconductor">Bioconductor</a> data structures for use in web applications.
-Much like the original R code, we focus on the use of common generics to provide composability, allowing users to construct complex objects that &quot;just work&quot;.</p>
+Much like the original R code, we focus on the use of common generics to provide composability, allowing users to construct complex objects that &quot;just work&quot;.
+We also attempt to circumvent Javascript's pass-by-reference behavior to avoid unintended modifications to unrelated objects when calling setter methods from their nested child objects.</p>
 <h2>Quick start</h2>
 <p>Here, we perform some generic operations on a <code>DataFrame</code> object, equivalent to Bioconductor's <code>S4Vectors::DFrame</code> class.</p>
 <pre class="prettyprint source lang-js"><code>// Import using ES6 notation
@@ -97,6 +97,89 @@ let more_results = new bioc.DataFrame(
 bioc.COMBINE([results, more_results]);
 </code></pre>
 <p>See the <a href="https://ltla.github.io/bioconductor.js">reference documentation</a> for more details.</p>
+<h1>Using generics</h1>
+<p>Our generics allow us to operate on different objects in a consistent manner.
+For example, a <code>DataFrame</code> allows us to store any object as a column as long as it defines methods for the <code>LENGTH</code>, <code>SLICE</code>, <code>CLONE</code> and <code>COMBINE</code> generics.
+This allows us to construct complex objects like a <code>DataFrame</code> nested inside another <code>DataFrame</code>.</p>
+<pre class="prettyprint source lang-js"><code>let genomic_results = new bioc.DataFrame(
+    { 
+        logFC: new Float64Array([-1, -2, 1.3, 2.1]),
+        pvalue: new Float64Array([0.01, 0.02, 0.001, 1e-8]),
+        location: new bioc.DataFrame({
+            &quot;chromosome&quot;: [ &quot;chrA&quot;, &quot;chrB&quot;, &quot;chrC&quot;, &quot;chrD&quot; ],
+            &quot;start&quot;: [ 1, 2, 3, 4 ],
+            &quot;width&quot;: [ 10, 20, 30, 40 ],
+            &quot;strand&quot;: new Uint8Array([-1, 1, 1, -1 ])
+        })
+    },
+    {
+        rowNames: [ &quot;p53&quot;, &quot;SNAP25&quot;, &quot;MALAT1&quot;, &quot;INS&quot; ]
+    }
+);
+
+let subset = bioc.SLICE(genomic_results, { start: 2, end: 4 });
+bioc.LENGTH(subset); 
+subset.column(&quot;location&quot;);
+</code></pre>
+<p>For example, we could store an <code>IRanges</code> as a column of our <code>DataFrame</code>, and all generics on the <code>DataFrame</code> will propagate to the column.</p>
+<pre class="prettyprint source lang-js"><code>let old_location = genomic_results.column(&quot;location&quot;);
+let new_location = new bioc.GRanges(old_location.column(&quot;chromosome&quot;),
+    new bioc.IRanges(old_location.column(&quot;start&quot;), old_location.column(&quot;width&quot;)),
+    { strand: old_location.column(&quot;strand&quot;) });
+genomic_results.$setColumn(&quot;location&quot;, new_location);
+
+subset = bioc.SLICE(genomic_results, { start: 2, end: 4 });
+subset.column(&quot;location&quot;);
+</code></pre>
+<p>We mimic R's S4 generics using methods in Javascript classes.
+For example, each vector-like class should define a <code>_bioconductor_LENGTH</code> method to quantify its concept of &quot;length&quot;.
+The <code>LENGTH</code> function will then call this method to obtain a length value for any instance of any supported class.
+We prefix this method with <code>_bioconductor_</code> to avoid collisions with other properties;
+this allows safe monkey patching of third-party classes if they are sufficiently vector-like.</p>
+<p>(Admittedly, the <code>LENGTH</code> function is not really necessary, as users could just call <code>_bioconductor_LENGTH</code> directly.
+However, the latter is long and unpleasant to type, so we might as well wrap it in something that's easier to remember.
+It would also require monkey patching of built-in classes like Arrays and TypedArrays, which is somewhat concerning as it risks interfering with the behavior of other packages.
+By defining our own <code>LENGTH</code> function, we can safely handle the built-in classes as special cases without modifying their prototypes.)</p>
+<h1>Mimicking copy-on-write</h1>
+<p>We mimic R's copy-on-write behavior by ensuring that setters will return a new object rather than mutating the existing object.
+This avoids silent pass-by-reference changes in separate objects, which would be particularly problematic in complex classes that contain many child objects.
+In the example below, <code>another_reference</code> still retains the original set of row names while only <code>modified</code> has its row names removed.</p>
+<pre class="prettyprint source lang-js"><code>// Construct a DataFrame
+let results = new bioc.DataFrame(
+    { 
+        logFC: new Float64Array([-1, -2, 1.3, 2.1]),
+        pvalue: new Float64Array([0.01, 0.02, 0.001, 1e-8])
+    },
+    {
+        rowNames: [ &quot;p53&quot;, &quot;SNAP25&quot;, &quot;MALAT1&quot;, &quot;INS&quot; ]
+    }
+);
+
+let another_reference = results;
+let modified = results.setRowNames(null);
+</code></pre>
+<p>For users who are very sure that they are only operating on a single instance of the object,
+or for those who wish to exploit pass-by-reference behavior to multiple multiple objects at once,
+we can use mutating setters.
+These are prefixed with <code>$</code> signs to indicate their potentially unexpected behavior.</p>
+<pre class="prettyprint source lang-js"><code>results.$setRowNames(null);
+another_reference.rowNames(); // this will now be null.
+</code></pre>
+<p>Note that this copy-on-write paradigm only applies to the setters defined in the <strong>bioconductor.js</strong> classes.
+Assignments to base objects (e.g., arrays, TypedArrays) will still exhibit pass-by-reference behavior.
+If there is a risk of inadvertently modifying a shared object, users should consider <code>CLONE</code>ing their object before modifying it.</p>
+<pre class="prettyprint source lang-js"><code>// Returns a base object, i.e., Float64Array of log-fold changes.
+let lfc = results.column(&quot;logFC&quot;);
+
+// We clone it so that changes don't propagate to 'results' by reference.
+// We can then apply our arbitrary modifications to the copy.
+let lfc_copy = bioc.CLONE(lfc);
+lfc_copy[0] = 100;
+
+// Only 'more_modified' will contain the new log-FC's;
+// 'results' itself is not affected.
+let more_modified = results.setColumn(&quot;logFC&quot;, lfc_copy);
+</code></pre>
 <h1>Representing (genomic) ranges</h1>
 <p>We can construct equivalents of Bioconductor's <code>IRanges</code> and <code>GRanges</code> objects, representing integer and genomic ranges respectively.</p>
 <pre class="prettyprint source lang-js"><code>let ir = new bioc.IRanges(/* start = */ [1,2,3], /* width = */ [ 10, 20, 30 ]);
@@ -149,41 +232,8 @@ let sample_meta = new bioc.DataFrame({ group: treatment });
 bioc.SLICE_2D(se, { start: 0, end: 50 }, [0, 2, 4, 8, 10, 12, 14, 16, 18]);
 bioc.COMBINE_COLUMNS([se, se]);
 </code></pre>
-<h1>Using generics</h1>
-<p>Our generics allow us to operate on different objects in a consistent manner.
-For example, a <code>DataFrame</code> allows us to store any object as a column as long as it defines methods for the <code>LENGTH</code>, <code>SLICE</code>, <code>CLONE</code> and <code>COMBINE</code> generics.
-This allows us to construct complex objects like a <code>DataFrame</code> nested inside another <code>DataFrame</code>.</p>
-<pre class="prettyprint source lang-js"><code>let genomic_results = new bioc.DataFrame(
-    { 
-        logFC: new Float64Array([-1, -2, 1.3, 2.1]),
-        pvalue: new Float64Array([0.01, 0.02, 0.001, 1e-8]),
-        location: new bioc.DataFrame({
-            &quot;chromosome&quot;: [ &quot;chrA&quot;, &quot;chrB&quot;, &quot;chrC&quot;, &quot;chrD&quot; ],
-            &quot;start&quot;: [ 1, 2, 3, 4 ],
-            &quot;width&quot;: [ 10, 20, 30, 40 ],
-            &quot;strand&quot;: new Uint8Array([-1, 1, 1, -1 ])
-        })
-    },
-    {
-        rowNames: [ &quot;p53&quot;, &quot;SNAP25&quot;, &quot;MALAT1&quot;, &quot;INS&quot; ]
-    }
-);
-
-let subset = bioc.SLICE(genomic_results, { start: 2, end: 4 });
-bioc.LENGTH(subset); 
-subset.column(&quot;location&quot;);
-</code></pre>
-<p>Indeed, we can even store an <code>IRanges</code> as a column of our <code>DataFrame</code>, and all generics on the <code>DataFrame</code> will propagate to the column.</p>
-<pre class="prettyprint source lang-js"><code>let old_location = genomic_results.column(&quot;location&quot;);
-let new_location = new bioc.GRanges(old_location.column(&quot;chromosome&quot;),
-    new bioc.IRanges(old_location.column(&quot;start&quot;), old_location.column(&quot;width&quot;)),
-    { strand: old_location.column(&quot;strand&quot;) });
-genomic_results.$setColumn(&quot;location&quot;, new_location);
-
-subset = bioc.SLICE(genomic_results, { start: 2, end: 4 });
-subset.column(&quot;location&quot;);
-</code></pre>
-<h2>Supported classes and generics</h2>
+<p>Similar implementations are provided for the <code>RangedSummarizedExperiment</code> and <a href="https://bioconductor.org/packages/SingleCellExperiment"><code>SingleCellExperiment</code></a> classes.</p>
+<h1>Supported classes and generics</h1>
 <p>For classes:</p>
 <table>
 <thead>
@@ -258,7 +308,7 @@ subset.column(&quot;location&quot;);
 </tr>
 <tr>
 <td><a href="https://ltla.github.io/bioconductor.js/SLICE_2D.html"><code>SLICE_2D</code></a></td>
-<td><code>[</code></td>
+<td><code>base::&quot;[&quot;</code></td>
 </tr>
 <tr>
 <td><a href="https://ltla.github.io/bioconductor.js/COMBINE_ROWS.html"><code>COMBINE_ROWS</code></a></td>
@@ -270,21 +320,10 @@ subset.column(&quot;location&quot;);
 </tr>
 </tbody>
 </table>
-<h2>Design considerations</h2>
-<p>We mimic R's S4 generics using methods in Javascript classes.
-For example, each supported class defines a <code>_bioconductor_LENGTH</code> method to quantify its concept of &quot;length&quot;.
-The <code>LENGTH</code> function will then call this method to obtain a length value for any instance of any supported class.
-We prefix this method with <code>_bioconductor_</code> to avoid collisions with other properties;
-this allows safe monkey patching of third-party classes if they are sufficiently vector-like.</p>
-<p>Admittedly, the <code>LENGTH</code> function is not really necessary, as users could just call <code>_bioconductor_LENGTH</code> directly.
-However, the latter is long and unpleasant to type, so we might as well wrap it in something that's easier to remember.
-It would also require monkey patching of built-in classes like Arrays and TypedArrays, which is somewhat concerning as it risks interfering with the behavior of other packages.
-By defining our own <code>LENGTH</code> function, we can safely handle the built-in classes as special cases without modifying their prototypes.</p>
-<p>Another difference from R is that Javascript functions can modify objects in place.
-To avoid confusion, all class methods that modify their instances are prefixed with the <code>$</code> symbol.
-The same applies to all functions that modify their input arguments.
-Functions or methods without <code>$</code> should not modify their inputs when used with default parameters,
-though modifications are allowed if the user provides explicit settings to do so.</p></article>
+<h1>Further reading</h1>
+<p>A high-level description of Bioconductor data structures is given in the <a href="https://doi.org/10.1038/nmeth.3252">&quot;Orchestrating high-throughput genomic analysis with Bioconductor&quot;</a> paper.</p>
+<p>The formulation of the generics was mostly based on the code in the <a href="https://github.com/Bioconductor/S4Vectors"><strong>S4Vectors</strong></a> package.</p>
+<p>The implementation of each class is based on the code in the correspond R package, e.g., <code>GRanges</code> in <a href="https://bioconductor.org/packages/GenomicRanges"><strong>GenomicRanges</strong></a>.</p></article>
     </section>
 
 
@@ -299,7 +338,7 @@ though modifications are allowed if the user provides explicit settings to do so
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Wed Feb 01 2023 16:32:59 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Wed Feb 01 2023 17:05:59 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
