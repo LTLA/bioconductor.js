@@ -45,9 +45,9 @@ See the [reference documentation](https://ltla.github.io/bioconductor.js) for mo
 
 # Using generics
 
-Our generics allow us to operate on different objects in a consistent manner.
+Our generics allow users to operate on different objects in a consistent manner.
 For example, a `DataFrame` allows us to store any object as a column as long as it defines methods for the `LENGTH`, `SLICE`, `CLONE` and `COMBINE` generics.
-This allows us to construct complex objects like a `DataFrame` nested inside another `DataFrame`.
+This enables the construction of complex objects like a `DataFrame` nested inside another `DataFrame`.
 
 ```js
 let genomic_results = new bioc.DataFrame(
@@ -71,7 +71,8 @@ bioc.LENGTH(subset);
 subset.column("location");
 ```
 
-For example, we could store an `IRanges` as a column of our `DataFrame`, and all generics on the `DataFrame` will propagate to the column.
+Alternatively, we could store an `IRanges` (see below) as a column of our `DataFrame`.
+All generics on the parent `DataFrame` will be automatically applied to the `IRanges` column.
 
 ```js
 let old_location = genomic_results.column("location");
@@ -97,7 +98,7 @@ By defining our own `LENGTH` function, we can safely handle the built-in classes
 
 # Mimicking copy-on-write
 
-We mimic R's copy-on-write behavior by ensuring that setters will return a new object rather than mutating the existing object.
+We mimic R's copy-on-write behavior by returning a new object from any setter, rather than mutating the existing object.
 This avoids silent pass-by-reference changes in separate objects, which would be particularly problematic in complex classes that contain many child objects.
 In the example below, `another_reference` still retains the original set of row names while only `modified` has its row names removed.
 
@@ -119,7 +120,7 @@ let modified = results.setRowNames(null);
 
 For users who are very sure that they are only operating on a single instance of the object,
 or for those who wish to exploit pass-by-reference behavior to multiple multiple objects at once, 
-we can use mutating setters.
+we can use mutating setters for slightly more efficiency.
 These are prefixed with `$` signs to indicate their potentially unexpected behavior.
 
 ```js
@@ -148,6 +149,7 @@ let more_modified = results.setColumn("logFC", lfc_copy);
 # Representing (genomic) ranges
 
 We can construct equivalents of Bioconductor's `IRanges` and `GRanges` objects, representing integer and genomic ranges respectively.
+Similarly, Bioconductor's `GRangesList` is implemented as a `GroupedGRanges` in this package.
 
 ```js
 let ir = new bioc.IRanges(/* start = */ [1,2,3], /* width = */ [ 10, 20, 30 ]);
@@ -176,7 +178,7 @@ gr.$setElementMetadata(meta);
 gr.elementMetadata().columnNames();
 ```
 
-# Handling experimental data
+# Handling experimental assays
 
 The `SummarizedExperiment` object is a data structure for storing experimental data in a matrix-like object, 
 along with further annotations on the rows (usually features) and samples (usually columns).
@@ -253,5 +255,5 @@ A high-level description of Bioconductor data structures is given in the ["Orche
 
 The formulation of the generics was mostly based on the code in the [**S4Vectors**](https://github.com/Bioconductor/S4Vectors) package.
 
-The implementation of each class is based on the code in the correspond R package, e.g., `GRanges` in [**GenomicRanges**](https://bioconductor.org/packages/GenomicRanges).
+The implementation of each class is based on the code in the corresponding R package, e.g., `GRanges` in [**GenomicRanges**](https://bioconductor.org/packages/GenomicRanges).
 
