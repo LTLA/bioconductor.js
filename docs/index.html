@@ -98,9 +98,9 @@ bioc.COMBINE([results, more_results]);
 </code></pre>
 <p>See the <a href="https://ltla.github.io/bioconductor.js">reference documentation</a> for more details.</p>
 <h1>Using generics</h1>
-<p>Our generics allow us to operate on different objects in a consistent manner.
+<p>Our generics allow users to operate on different objects in a consistent manner.
 For example, a <code>DataFrame</code> allows us to store any object as a column as long as it defines methods for the <code>LENGTH</code>, <code>SLICE</code>, <code>CLONE</code> and <code>COMBINE</code> generics.
-This allows us to construct complex objects like a <code>DataFrame</code> nested inside another <code>DataFrame</code>.</p>
+This enables the construction of complex objects like a <code>DataFrame</code> nested inside another <code>DataFrame</code>.</p>
 <pre class="prettyprint source lang-js"><code>let genomic_results = new bioc.DataFrame(
     { 
         logFC: new Float64Array([-1, -2, 1.3, 2.1]),
@@ -121,7 +121,8 @@ let subset = bioc.SLICE(genomic_results, { start: 2, end: 4 });
 bioc.LENGTH(subset); 
 subset.column(&quot;location&quot;);
 </code></pre>
-<p>For example, we could store an <code>IRanges</code> as a column of our <code>DataFrame</code>, and all generics on the <code>DataFrame</code> will propagate to the column.</p>
+<p>Alternatively, we could store an <code>IRanges</code> (see below) as a column of our <code>DataFrame</code>.
+All generics on the parent <code>DataFrame</code> will be automatically applied to the <code>IRanges</code> column.</p>
 <pre class="prettyprint source lang-js"><code>let old_location = genomic_results.column(&quot;location&quot;);
 let new_location = new bioc.GRanges(old_location.column(&quot;chromosome&quot;),
     new bioc.IRanges(old_location.column(&quot;start&quot;), old_location.column(&quot;width&quot;)),
@@ -141,7 +142,7 @@ However, the latter is long and unpleasant to type, so we might as well wrap it 
 It would also require monkey patching of built-in classes like Arrays and TypedArrays, which is somewhat concerning as it risks interfering with the behavior of other packages.
 By defining our own <code>LENGTH</code> function, we can safely handle the built-in classes as special cases without modifying their prototypes.)</p>
 <h1>Mimicking copy-on-write</h1>
-<p>We mimic R's copy-on-write behavior by ensuring that setters will return a new object rather than mutating the existing object.
+<p>We mimic R's copy-on-write behavior by returning a new object from any setter, rather than mutating the existing object.
 This avoids silent pass-by-reference changes in separate objects, which would be particularly problematic in complex classes that contain many child objects.
 In the example below, <code>another_reference</code> still retains the original set of row names while only <code>modified</code> has its row names removed.</p>
 <pre class="prettyprint source lang-js"><code>// Construct a DataFrame
@@ -160,7 +161,7 @@ let modified = results.setRowNames(null);
 </code></pre>
 <p>For users who are very sure that they are only operating on a single instance of the object,
 or for those who wish to exploit pass-by-reference behavior to multiple multiple objects at once,
-we can use mutating setters.
+we can use mutating setters for slightly more efficiency.
 These are prefixed with <code>$</code> signs to indicate their potentially unexpected behavior.</p>
 <pre class="prettyprint source lang-js"><code>results.$setRowNames(null);
 another_reference.rowNames(); // this will now be null.
@@ -181,7 +182,8 @@ lfc_copy[0] = 100;
 let more_modified = results.setColumn(&quot;logFC&quot;, lfc_copy);
 </code></pre>
 <h1>Representing (genomic) ranges</h1>
-<p>We can construct equivalents of Bioconductor's <code>IRanges</code> and <code>GRanges</code> objects, representing integer and genomic ranges respectively.</p>
+<p>We can construct equivalents of Bioconductor's <code>IRanges</code> and <code>GRanges</code> objects, representing integer and genomic ranges respectively.
+Similarly, Bioconductor's <code>GRangesList</code> is implemented as a <code>GroupedGRanges</code> in this package.</p>
 <pre class="prettyprint source lang-js"><code>let ir = new bioc.IRanges(/* start = */ [1,2,3], /* width = */ [ 10, 20, 30 ]);
 let gr = new bioc.GRanges([ &quot;chrA&quot;, &quot;chrB&quot;, &quot;chrC&quot; ], ir, { strand: [ 1, 0, -1 ] });
 
@@ -201,7 +203,7 @@ meta.$setColumn(&quot;symbol&quot;, [ &quot;Nanog&quot;, &quot;Snap25&quot;, &qu
 gr.$setElementMetadata(meta);
 gr.elementMetadata().columnNames();
 </code></pre>
-<h1>Handling experimental data</h1>
+<h1>Handling experimental assays</h1>
 <p>The <code>SummarizedExperiment</code> object is a data structure for storing experimental data in a matrix-like object,
 along with further annotations on the rows (usually features) and samples (usually columns).
 To illustrate, let's mock up a small count matrix, ostensibly from an RNA-seq experiment:</p>
@@ -323,7 +325,7 @@ bioc.COMBINE_COLUMNS([se, se]);
 <h1>Further reading</h1>
 <p>A high-level description of Bioconductor data structures is given in the <a href="https://doi.org/10.1038/nmeth.3252">&quot;Orchestrating high-throughput genomic analysis with Bioconductor&quot;</a> paper.</p>
 <p>The formulation of the generics was mostly based on the code in the <a href="https://github.com/Bioconductor/S4Vectors"><strong>S4Vectors</strong></a> package.</p>
-<p>The implementation of each class is based on the code in the correspond R package, e.g., <code>GRanges</code> in <a href="https://bioconductor.org/packages/GenomicRanges"><strong>GenomicRanges</strong></a>.</p></article>
+<p>The implementation of each class is based on the code in the corresponding R package, e.g., <code>GRanges</code> in <a href="https://bioconductor.org/packages/GenomicRanges"><strong>GenomicRanges</strong></a>.</p></article>
     </section>
 
 
@@ -338,7 +340,7 @@ bioc.COMBINE_COLUMNS([se, se]);
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Wed Feb 01 2023 17:05:59 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Sat Feb 04 2023 07:52:24 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
