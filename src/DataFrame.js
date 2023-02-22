@@ -60,7 +60,7 @@ export class DataFrame extends ann.Annotated {
         }
 
         for (const k of this._columns.names()) {
-            let n = (this._columns.entry(k)).length;
+            let n = generics.LENGTH(this._columns.entry(k));
             if (this._numberOfRows == null) {
                 this._numberOfRows = n;
             } else if (n != this._numberOfRows) {
