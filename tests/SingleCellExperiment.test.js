@@ -234,6 +234,21 @@ test("Alternative experiment slicing works as expected", () => {
     expect(() => sce.$sliceAlternativeExperiments([1,2])).toThrow("failed to slice the alternative experiments");
 })
 
+test("Main experiment getters work as expected", () => {
+    let mat = utils.spawn_random_matrix(10, 20);
+    let alt1 = new bioc.SummarizedExperiment({ counts: utils.spawn_random_matrix(5, 20) });
+
+    let sce = new bioc.SingleCellExperiment({ counts: mat }, { mainExperimentName: "foo" });
+    expect(sce.mainExperimentName()).toBe("foo");
+
+    let out = sce.setMainExperimentName(null);
+    expect(sce.mainExperimentName()).toBe("foo");
+    expect(out.mainExperimentName()).toBeNull();
+
+    sce.$setMainExperimentName("bar");
+    expect(sce.mainExperimentName()).toBe("bar");
+})
+
 test("SLICE_2D generic works as expected", () => {
     let mat = utils.spawn_random_matrix(10, 20);
     let alt = new bioc.SummarizedExperiment({ counts: utils.spawn_random_matrix(5, 20) });
@@ -245,6 +260,7 @@ test("SLICE_2D generic works as expected", () => {
         let sliced = bioc.SLICE_2D(sce, null, [1,2,3,4]);
         expect(sliced.reducedDimension(0).numberOfRows()).toBe(4);
         expect(sliced.alternativeExperiment(0).numberOfColumns()).toBe(4);
+        expect(sliced.mainExperimentName()).toBeNull()
     }
 
     // By row (no effect).
@@ -268,8 +284,10 @@ test("COMBINE_ROWS generic works as expected", () => {
     // No-op on the reduced dimensions.
     expect(combined.reducedDimensionNames()).toEqual(["PCA"]);
     expect(combined.reducedDimension(0).column(0)).toEqual(rd1.column(0));
+
     expect(combined.alternativeExperimentNames()).toEqual(["STUFF"]);
     expect(combined.alternativeExperiment(0).assay(0).column(0)).toEqual(alt1.assay(0).column(0));
+    expect(combined.mainExperimentName()).toBeNull()
 })
 
 test("COMBINE_COLUMNS generic works as expected", () => {
@@ -289,6 +307,7 @@ test("COMBINE_COLUMNS generic works as expected", () => {
     expect(combined.reducedDimension(0).column(0)).toEqual(bioc.COMBINE([rd1.column(0), rd2.column(0)]));
     expect(combined.alternativeExperimentNames()).toEqual(["STUFF"]);
     expect(combined.alternativeExperiment(0).assay(0).row(0)).toEqual(bioc.COMBINE([alt1.assay(0).row(0), alt2.assay(0).row(0)]));
+    expect(combined.mainExperimentName()).toBeNull()
 
     // Errors.
     let sce3 = new bioc.SingleCellExperiment({ counts: mat1 }, { reducedDimensions: { PCA: rd1 } });

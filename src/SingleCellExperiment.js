@@ -34,6 +34,7 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
      * Each value should be a 2-dimensional object with number of columns equal to that of the assays.
      * @param {?Array} [options.alternativeExperimentOrder=null] - Array containing the order of the alternative experiments.
      * This should have the same values as the keys of `alternativeExperiments`, and defaults to those keys if `null`.
+     * @param {?string} [options.mainExperimentName=null] - Main experiment name, possibly `null` if the main experiment is unnamed.
      */
     constructor(assays, options={}) {
         if (arguments.length == 0) {
@@ -41,7 +42,7 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
             return;
         }
 
-        let { reducedDimensions = {}, reducedDimensionOrder = null, alternativeExperiments = {}, alternativeExperimentOrder = null, rowRanges = null } = options;
+        let { reducedDimensions = {}, reducedDimensionOrder = null, alternativeExperiments = {}, alternativeExperimentOrder = null, rowRanges = null, mainExperimentName = null } = options;
         super(assays, rowRanges, options);
         let ncols = this.numberOfColumns();
 
@@ -72,6 +73,7 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
             }
         }
 
+        this._mainExperimentName = mainExperimentName;
         return;
     }
 
@@ -121,6 +123,13 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
             throw new Error("failed to retrieve the specified alternative experiment from this " + this.constructor.className + "; " + e.message, { cause: e });
         }
         return output;
+    }
+
+    /**
+     * @return {?string} The name of the main experiment, possibly `null` if this is unnamed.
+     */
+    mainExperimentName() {
+        return this._mainExperimentName;
     }
 
     /**************************************************************************
@@ -371,6 +380,27 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
         return this.sliceAlternativeExperiments(i, { inPlace: true });
     }
 
+    /**
+     * @return {?string} name - The name of the main experiment, possibly `null` if this is unnamed.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this SingleCellExperiment instance in place.
+     * If `false`, a new instance is returned.
+     * @return {SingleCellExperiment} A SingleCellExperiment with a new main experiment name.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
+     */
+    setMainExperimentName(name, { inPlace = false } = {}) {
+        let target = cutils.setterTarget(this, inPlace);
+        target._mainExperimentName = name;
+        return target;
+    }
+
+    /**
+     * @return {?string} name - The name of the main experiment, possibly `null` if this is unnamed.
+     * @return {SingleCellExperiment} A reference to this SingleCellExperiment with a new main experiment name.
+     */
+    $setMainExperimentName(name) {
+        return this.setMainExperimentName(name, { inPlace: true });
+    }
 
     /**************************************************************************
      **************************************************************************
@@ -386,6 +416,8 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
             output._reducedDimensions = this._reducedDimensions;
             output._alternativeExperiments = this._alternativeExperiments;
         }
+
+        output._mainExperimentName = this._mainExperimentName;
     }
 
     _bioconductor_COMBINE_ROWS(output, objects) {
@@ -393,6 +425,7 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
 
         output._reducedDimensions = this._reducedDimensions;
         output._alternativeExperiments = this._alternativeExperiments;
+        output._mainExperimentName = this._mainExperimentName;
 
         return;
     }
@@ -412,6 +445,7 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
             throw new Error("failed to combine alternative experiments for " + this.constructor.className + " objects; " + e.message, { cause: e });
         }
 
+        output._mainExperimentName = this._mainExperimentName;
         return;
     }
 
@@ -420,6 +454,7 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
 
         output._reducedDimensions = cutils.cloneField(this._reducedDimensions, deepCopy);
         output._alternativeExperiments = cutils.cloneField(this._alternativeExperiments, deepCopy);
+        output._mainExperimentName = this._mainExperimentName;
 
         return;
     }
