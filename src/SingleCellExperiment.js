@@ -204,10 +204,10 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
      * @param {Array} names - Array of strings containing the reduced dimension names.
      * This should be of the same length as the number of reduced dimensions and contain unique values.
      * @param {Object} [options={}] - Optional parameters.
-     * @param {boolean} [options.inPlace=false] - Whether to mutate this SummarizedExperiment instance in place.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this SingleCellExperiment instance in place.
      * If `false`, a new instance is returned.
      *
-     * @return {SummarizedExperiment} The SummarizedExperiment with modified reduced dimension names.
+     * @return {SingleCellExperiment} The SingleCellExperiment with modified reduced dimension names.
      * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
     setReducedDimensionNames(names, { inPlace = false } = {}) {
@@ -223,7 +223,7 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
     /**
      * @param {Array} names - Array of strings containing the reduced dimension names.
      * This should be of the same length as the number of reduced dimensions and contain unique values.
-     * @return {SummarizedExperiment} A reference to this SummarizedExperiment with modified reduced dimension names.
+     * @return {SingleCellExperiment} A reference to this SingleCellExperiment with modified reduced dimension names.
      */
     $setReducedDimensionNames(names) {
         return this.setReducedDimensionNames(names, { inPlace: true });
@@ -233,10 +233,10 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
      * @param {Array} i - Array of strings or indices specifying the reduced dimensions to retain in the slice.
      * This should refer to unique reduced dimension names.
      * @param {Object} [options={}] - Optional parameters.
-     * @param {boolean} [options.inPlace=false] - Whether to mutate this SummarizedExperiment instance in place.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this SingleCellExperiment instance in place.
      * If `false`, a new instance is returned.
      *
-     * @return {SummarizedExperiment} The SummarizedExperiment with sliced reduced dimensions.
+     * @return {SingleCellExperiment} The SingleCellExperiment with sliced reduced dimensions.
      * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
     sliceReducedDimensions(i, { inPlace = false } = {}) {
@@ -252,7 +252,7 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
     /**
      * @param {Array} i - Array of strings or indices specifying the reduced dimensions to retain in the slice.
      * This should refer to unique reduced dimension names.
-     * @return {SummarizedExperiment} A reference to this SummarizedExperiment with sliced reduced dimensions.
+     * @return {SingleCellExperiment} A reference to this SingleCellExperiment with sliced reduced dimensions.
      */
     $sliceReducedDimensions(i) {
         return this.sliceReducedDimensions(i, { inPlace: true });
@@ -291,7 +291,7 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
      *   `i` should be non-negative and less than the number of alternative experiments.
      * - If `i` is a string, any alternative experiment with the same name is replaced.
      *   If no such alternative experiment exists, a new alternative experiment is appended to the list of alternative experiments.
-     * @param {*} value - Multi-dimensional array-like object to set/add as the alternative experiment.
+     * @param {SummarizedExperiment} value - A SummarizedExperiment to set/add as the alternative experiment.
      * @param {Object} [options={}] - Optional parameters.
      * @param {boolean} [options.inPlace=false] - Whether to mutate this SingleCellExperiment instance in place.
      * If `false`, a new instance is returned.
@@ -314,7 +314,7 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
      *   `i` should be non-negative and less than the number of alternative experiments.
      * - If `i` is a string, any alternative experiment with the same name is replaced.
      *   If no such alternative experiment exists, a new alternative experiment is appended to the list of alternative experiments.
-     * @param {*} value - Multi-dimensional array-like object to set/add as the alternative experiment.
+     * @param {SummarizedExperiment} value - A SummarizedExperiment to set/add as the alternative experiment.
      *
      * @return {SingleCellExperiment} A reference to this SingleCellExperiment with modified alternative experiments.
      */
@@ -326,10 +326,10 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
      * @param {Array} names - Array of strings containing the alternative experiment names.
      * This should be of the same length as the number of alternative experiments and contain unique values.
      * @param {Object} [options={}] - Optional parameters.
-     * @param {boolean} [options.inPlace=false] - Whether to mutate this SummarizedExperiment instance in place.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this SingleCellExperiment instance in place.
      * If `false`, a new instance is returned.
      *
-     * @return {SummarizedExperiment} The SummarizedExperiment with modified alternative experiment names.
+     * @return {SingleCellExperiment} The SingleCellExperiment with modified alternative experiment names.
      * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
     setAlternativeExperimentNames(names, { inPlace = false } = {}) {
@@ -345,7 +345,7 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
     /**
      * @param {Array} names - Array of strings containing the alternative experiment names.
      * This should be of the same length as the number of alternative experiments and contain unique values.
-     * @return {SummarizedExperiment} A reference to this SummarizedExperiment with modified alternative experiment names.
+     * @return {SingleCellExperiment} A reference to this SingleCellExperiment with modified alternative experiment names.
      */
     $setAlternativeExperimentNames(names) {
         return this.setAlternativeExperimentNames(names, { inPlace: true });
@@ -355,10 +355,10 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
      * @param {Array} i - Array of strings or indices specifying the alternative experiments to retain in the slice.
      * This should refer to unique alternative experiment names.
      * @param {Object} [options={}] - Optional parameters.
-     * @param {boolean} [options.inPlace=false] - Whether to mutate this SummarizedExperiment instance in place.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this SingleCellExperiment instance in place.
      * If `false`, a new instance is returned.
      *
-     * @return {SummarizedExperiment} The SummarizedExperiment with sliced alternative experiments.
+     * @return {SingleCellExperiment} The SingleCellExperiment with sliced alternative experiments.
      * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
     sliceAlternativeExperiments(i, { inPlace = false } = {}) {
@@ -374,7 +374,7 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
     /**
      * @param {Array} i - Array of strings or indices specifying the alternative experiments to retain in the slice.
      * This should refer to unique alternative experiment names.
-     * @return {SummarizedExperiment} A reference to this SummarizedExperiment with sliced alternative experiments.
+     * @return {SingleCellExperiment} A reference to this SingleCellExperiment with sliced alternative experiments.
      */
     $sliceAlternativeExperiments(i) {
         return this.sliceAlternativeExperiments(i, { inPlace: true });
