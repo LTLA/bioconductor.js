@@ -137,6 +137,32 @@ test("Reduced dimension renaming works as expected", () => {
     expect(() => sce.$setReducedDimensionNames([1,2])).toThrow("failed to set the reduced dimension names");
 })
 
+test("Getting/setting all reduced dimensions works as expected", () => {
+    let mat = utils.spawn_random_matrix(10, 20);
+    let rd1 = utils.spawn_random_matrix(20, 5);
+    let rd2 = utils.spawn_random_matrix(20, 3);
+    let sce = new bioc.SingleCellExperiment({ counts: mat }, { reducedDimensions: { PCA: rd1, MDS: rd2 } });
+
+    expect(sce.reducedDimensionNames()).toEqual(["PCA", "MDS"])
+    expect(sce.reducedDimensions().get("PCA").values()).toEqual(rd1.values());
+    expect(sce.reducedDimensions().get("MDS").values()).toEqual(rd2.values());
+
+    let sce2 = sce.setReducedDimensions({ "foo": rd1 }, { newOrder: true });
+    expect(sce2.reducedDimensionNames()).toEqual([ "foo" ])
+    expect(sce2.reducedDimensions().get("foo").values()).toEqual(rd1.values());
+
+    sce2 = sce.setReducedDimensions({ "foo": rd1, "bar": rd2 }, { newOrder: [ "bar", "foo" ] });
+    expect(sce2.reducedDimensionNames()).toEqual(["bar", "foo"])
+
+    expect(() => sce.setReducedDimensions({ "foo": rd2, "bar": rd1 })).toThrow("failed to replace reduced dimension list");
+    expect(() => sce.setReducedDimensions({ "counts": utils.spawn_random_matrix(10, 10) }, { newOrder: true })).toThrow("mismatch in the number of rows");
+
+    sce.$setReducedDimensions({ "foo": rd2, "bar": rd1 }, { newOrder: true });
+    expect(sce.reducedDimensionNames()).toEqual(["foo", "bar"])
+    expect(sce.reducedDimensions().get("foo").values()).toEqual(rd2.values());
+    expect(sce.reducedDimensions().get("bar").values()).toEqual(rd1.values());
+})
+
 test("Reduced dimension slicing works as expected", () => {
     let mat = utils.spawn_random_matrix(10, 20);
     let rd1 = utils.spawn_random_matrix(20, 5);
@@ -232,6 +258,33 @@ test("Alternative experiment slicing works as expected", () => {
     expect(sce.alternativeExperiment(0).assay(0).column(0)).toEqual(alt2.assay(0).column(0));
 
     expect(() => sce.$sliceAlternativeExperiments([1,2])).toThrow("failed to slice the alternative experiments");
+})
+
+test("Alternative experiment slicing works as expected", () => {
+    let mat = utils.spawn_random_matrix(10, 20);
+    let alt1 = new bioc.SummarizedExperiment({ counts: utils.spawn_random_matrix(5, 20) });
+    let alt2 = new bioc.SummarizedExperiment({ counts: utils.spawn_random_matrix(2, 20) });
+    let sce = new bioc.SingleCellExperiment({ counts: mat }, { alternativeExperiments: { foo: alt1, bar: alt2 } });
+
+    expect(sce.alternativeExperimentNames()).toEqual(["foo", "bar"])
+    expect(sce.alternativeExperiments().get("foo").numberOfRows()).toEqual(alt1.numberOfRows());
+    expect(sce.alternativeExperiments().get("bar").numberOfRows()).toEqual(alt2.numberOfRows());
+
+    let sce2 = sce.setAlternativeExperiments({ "foo": alt1 }, { newOrder: true });
+    expect(sce2.alternativeExperimentNames()).toEqual([ "foo" ])
+    expect(sce2.alternativeExperiments().get("foo").numberOfRows()).toEqual(alt1.numberOfRows());
+
+    sce2 = sce.setAlternativeExperiments({ "foo": alt1, "bar": alt2 }, { newOrder: [ "bar", "foo" ] });
+    expect(sce2.alternativeExperimentNames()).toEqual(["bar", "foo"])
+
+    expect(() => sce.setAlternativeExperiments({ "spikes": alt1, "repeats": alt2 })).toThrow("failed to replace alternative experiment list");
+    let alt3 = new bioc.SummarizedExperiment({ counts: utils.spawn_random_matrix(2, 10) });
+    expect(() => sce.setAlternativeExperiments({ "spikes": alt3 }, { newOrder: true })).toThrow("mismatch in the number of columns");
+
+    sce.$setAlternativeExperiments({ "SIRV": alt1, "ERCC": alt2 }, { newOrder: true });
+    expect(sce.alternativeExperimentNames()).toEqual(["SIRV", "ERCC"])
+    expect(sce.alternativeExperiments().get("SIRV").numberOfRows()).toEqual(alt1.numberOfRows());
+    expect(sce.alternativeExperiments().get("ERCC").numberOfRows()).toEqual(alt2.numberOfRows());
 })
 
 test("Main experiment getters work as expected", () => {

@@ -150,6 +150,13 @@ export class SummarizedExperiment extends ann.Annotated {
     }
 
     /**
+     * @return {Map} Map where keys are the assay names and values are the assays.
+     */
+    assays() {
+        return this._assays.entries();
+    }
+
+    /**
      * @return {DataFrame} Data frame of row data, with one row per row in this SummarizedExperiment.
      */
     rowData() {
@@ -243,6 +250,65 @@ export class SummarizedExperiment extends ann.Annotated {
         let target = cutils.setterTarget(this, inPlace);
         target._assays = target._assays.set(i, value, { inPlace });
         return target;
+    }
+
+    /**
+     * @param {Object|Map} value - Object containing zero, one or more multi-dimensional array-like objects in the values.
+     * All arrays should have the same number of rows and columns.
+     * Keys are assay names, each of which should be present in `order`.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this SummarizedExperiment instance in place.
+     * If `false`, a new instance is returned.
+     * @param {Array|boolean} [options.newOrder=false] - Whether to replace the order of assays with the order of keys in `value`.
+     * If `false`, the existing order in {@linkcode SummarizedExperiment#assayNames assayNames} is used.
+     * If an array is provided, this is used as the order.
+     * If `null`, this has the same effect as `true`.
+     *
+     * @return {SummarizedExperiment} A SummarizedExperiment with modified assays.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
+     */
+    setAssays(value, { inPlace = false, newOrder = false } = {}) {
+        let target = cutils.setterTarget(this, inPlace);
+
+        if (newOrder === false) {
+            newOrder = target._assays.names();
+        } else if (newOrder == true) {
+            newOrder = null;
+        }
+        try {
+            target._assays = new il.InternalList(value, newOrder);
+        } catch (e) {
+            throw new Error("failed to replace assay list for this SummarizedExperiment; " + e.message, { cause: e });
+        }
+
+        let se_nr = target.numberOfRows();
+        let se_nc = target.numberOfColumns();
+        for (const k of target._assays.names()) {
+            let current = target._assays.entry(k);
+            let nr = generics.NUMBER_OF_ROWS(current);
+            let nc = generics.NUMBER_OF_COLUMNS(current);
+            if (nr !== se_nr || nc !== se_nc) {
+                throw new Error("mismatch in the dimensions of assay '" + k + "' compared to the SummarizedExperiment");
+            }
+        }
+
+        return target;
+    }
+
+    /**
+     * @param {Object|Map} value - Object containing zero, one or more multi-dimensional array-like objects in the values.
+     * All arrays should have the same number of rows and columns.
+     * Keys are assay names, each of which should be present in `order`.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {Array|boolean} [options.newOrder=false] - Whether to replace the order of assays with the order of keys in `value`.
+     * If `false`, the existing order in {@linkcode SummarizedExperiment#assayNames assayNames} is used.
+     * If an array is provided, this is used as the order.
+     * If `null`, this has the same effect as `true`.
+     *
+     * @return {SummarizedExperiment} A reference to this SummarizedExperiment with modified assays.
+     */
+    $setAssays(value, { newOrder = false } = {}) {
+        return this.setAssays(value, { inPlace: true, newOrder });
     }
 
     /**

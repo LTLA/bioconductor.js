@@ -105,6 +105,13 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
     }
 
     /**
+     * @return {Map} Map where keys are the names and values are the reduced dimensions.
+     */
+    reducedDimensions() {
+        return this._reducedDimensions.entries();
+    }
+
+    /**
      * @return {Array} Array of strings containing the (ordered) names of the alternative experiments.
      */
     alternativeExperimentNames() {
@@ -123,6 +130,13 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
             throw new Error("failed to retrieve the specified alternative experiment from this " + this.constructor.className + "; " + e.message, { cause: e });
         }
         return output;
+    }
+
+    /**
+     * @return {Map} Map where keys are the names and values are the alternative experiments.
+     */
+    alternativeExperiments() {
+        return this._alternativeExperiments.entries();
     }
 
     /**
@@ -230,6 +244,63 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
     }
 
     /**
+     * @param {Object|Map} value - Object containing zero, one or more multi-dimensional array-like objects in the values.
+     * Each value should be a 2-dimensional object with number of rows equal to the number of columns in this SingleCellExperiment.
+     * Keys are reduced dimension names, each of which should be present in `order`.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this SingleCellExperiment instance in place.
+     * If `false`, a new instance is returned.
+     * @param {Array|boolean} [options.newOrder=false] - Whether to replace the order of reduced dimensions with the order of keys in `value`.
+     * If `false`, the existing order in {@linkcode SingleCellExperiment#reducedDimensionNames reducedDimensionNames} is used.
+     * If an array is provided, this is used as the order.
+     * If `null`, this has the same effect as `true`.
+     *
+     * @return {SingleCellExperiment} A SingleCellExperiment with the new reduced dimensions.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
+     */
+    setReducedDimensions(value, { inPlace = false, newOrder = false } = {}) {
+        let target = cutils.setterTarget(this, inPlace);
+
+        if (newOrder === false) {
+            newOrder = target._reducedDimensions.names();
+        } else if (newOrder == true) {
+            newOrder = null;
+        }
+        try {
+            target._reducedDimensions = new il.InternalList(value, newOrder);
+        } catch (e) {
+            throw new Error("failed to replace reduced dimension list for this SingleCellExperiment; " + e.message, { cause: e });
+        }
+
+        let sce_nc = target.numberOfColumns();
+        for (const k of target._reducedDimensions.names()) {
+            let current = target._reducedDimensions.entry(k);
+            let nr = generics.NUMBER_OF_ROWS(current);
+            if (nr !== sce_nc) {
+                throw new Error("mismatch in the number of rows for reduced dimension '" + k + "' compared to the number of columns in the SingleCellExperiment");
+            }
+        }
+
+        return target;
+    }
+
+    /**
+     * @param {Object|Map} value - Object containing zero, one or more multi-dimensional array-like objects in the values.
+     * Each value should be a 2-dimensional object with number of rows equal to the number of columns in this SingleCellExperiment.
+     * Keys are reduced dimension names, each of which should be present in `order`.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {Array|boolean} [options.newOrder=false] - Whether to replace the order of reduced dimensions with the order of keys in `value`.
+     * If `false`, the existing order in {@linkcode SingleCellExperiment#reducedDimensionNames reducedDimensionNames} is used.
+     * If an array is provided, this is used as the order.
+     * If `null`, this has the same effect as `true`.
+     *
+     * @return {SingleCellExperiment} A reference to this SingleCellExperiment with the new reduced dimensions.
+     */
+    $setReducedDimensions(value, { newOrder = false } = {}) {
+        return this.setReducedDimensions(value, { inPlace: true, newOrder });
+    }
+
+    /**
      * @param {Array} i - Array of strings or indices specifying the reduced dimensions to retain in the slice.
      * This should refer to unique reduced dimension names.
      * @param {Object} [options={}] - Optional parameters.
@@ -257,6 +328,10 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
     $sliceReducedDimensions(i) {
         return this.sliceReducedDimensions(i, { inPlace: true });
     }
+
+    /**************************************************************************
+     **************************************************************************
+     **************************************************************************/
 
     /**
      * @param {string|number} i - Identity of the reduced dimension to remove, either by name or index.
@@ -349,6 +424,63 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
      */
     $setAlternativeExperimentNames(names) {
         return this.setAlternativeExperimentNames(names, { inPlace: true });
+    }
+
+    /**
+     * @param {Object|Map} value - Object containing zero, one or more {@link SummarizedExperiment} objects in the values.
+     * Each value should have the same number of columns as this SingleCellExperiment.
+     * Keys are alternative experiment names, each of which should be present in `order`.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {boolean} [options.inPlace=false] - Whether to mutate this SingleCellExperiment instance in place.
+     * If `false`, a new instance is returned.
+     * @param {Array|boolean} [options.newOrder=false] - Whether to replace the order of alternative experiments with the order of keys in `value`.
+     * If `false`, the existing order in {@linkcode SingleCellExperiment#alternativeExperimentNames alternativeExperimentNames} is used.
+     * If an array is provided, this is used as the order.
+     * If `null`, this has the same effect as `true`.
+     *
+     * @return {SingleCellExperiment} A SingleCellExperiment with the new alternative experiments.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
+     */
+    setAlternativeExperiments(value, { inPlace = false, newOrder = false } = {}) {
+        let target = cutils.setterTarget(this, inPlace);
+
+        if (newOrder === false) {
+            newOrder = target._alternativeExperiments.names();
+        } else if (newOrder == true) {
+            newOrder = null;
+        }
+        try {
+            target._alternativeExperiments = new il.InternalList(value, newOrder);
+        } catch (e) {
+            throw new Error("failed to replace alternative experiment list for this SingleCellExperiment; " + e.message, { cause: e });
+        }
+
+        let sce_nc = target.numberOfColumns();
+        for (const k of target._alternativeExperiments.names()) {
+            let current = target._alternativeExperiments.entry(k);
+            let nr = generics.NUMBER_OF_COLUMNS(current);
+            if (nr !== sce_nc) {
+                throw new Error("mismatch in the number of columns for alternative experiment '" + k + "' compared to the SingleCellExperiment");
+            }
+        }
+
+        return target;
+    }
+
+    /**
+     * @param {Object|Map} value - Object containing zero, one or more {@link SummarizedExperiment} objects in the values.
+     * Each value should have the same number of columns as this SingleCellExperiment.
+     * Keys are alternative experiment names, each of which should be present in `order`.
+     * @param {Object} [options={}] - Optional parameters.
+     * @param {Array|boolean} [options.newOrder=false] - Whether to replace the order of alternative experiments with the order of keys in `value`.
+     * If `false`, the existing order in {@linkcode SingleCellExperiment#alternativeExperimentNames alternativeExperimentNames} is used.
+     * If an array is provided, this is used as the order.
+     * If `null`, this has the same effect as `true`.
+     *
+     * @return {SingleCellExperiment} A reference to this SingleCellExperiment with the new alternative experiments.
+     */
+    $setAlternativeExperiments(value, { newOrder = false } = {}) {
+        return this.setAlternativeExperiments(value, { inPlace: true, newOrder });
     }
 
     /**

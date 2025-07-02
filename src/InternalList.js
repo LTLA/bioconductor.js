@@ -59,6 +59,10 @@ export class InternalList {
         }
     }
 
+    entries() {
+        return this._entries;
+    }
+
     has(name) {
         return this._entries.has(name);
     }

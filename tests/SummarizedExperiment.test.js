@@ -90,7 +90,7 @@ test("Construction of a SummarizedExperiment works with metadata", () => {
     expect(se.metadata().get("foo")).toEqual(1);
 })
 
-test("setting/removing of the assays works as expected", () => {
+test("setting/removing a single assay works as expected", () => {
     let mat = utils.spawn_random_matrix(10, 20);
     let out = new bioc.SummarizedExperiment({ counts: mat });
     expect(out.assayNames()).toEqual(["counts"]);
@@ -162,6 +162,30 @@ test("slicing the assays works as expected", () => {
     expect(out.assay(1).column(0)).toEqual(mat.column(0));
 
     expect(() => out.$sliceAssays(["WHEE"])).toThrow("failed to slice the assays");
+})
+
+test("getting/setting all assays works as expected", () => {
+    let mat = utils.spawn_random_matrix(10, 20);
+    let out = new bioc.SummarizedExperiment({ counts: mat });
+    expect(out.assayNames()).toEqual(["counts"]);
+    expect(out.assays().get("counts").values()).toEqual(mat.values());
+
+    let mat2 = utils.spawn_random_matrix(10, 20);
+    let se = out.setAssays({ "foo": mat2, "bar": mat }, { newOrder: true });
+    expect(se.assayNames()).toEqual(["foo", "bar"])
+    expect(se.assays().get("foo").values()).toEqual(mat2.values());
+    expect(se.assays().get("bar").values()).toEqual(mat.values());
+
+    se = out.setAssays({ "foo": mat2, "bar": mat }, { newOrder: [ "bar", "foo" ] });
+    expect(se.assayNames()).toEqual(["bar", "foo"])
+
+    expect(() => out.setAssays({ "foo": mat2, "bar": mat })).toThrow("failed to replace assay list");
+    expect(() => out.setAssays({ "counts": utils.spawn_random_matrix(20, 10) }, { newOrder: true })).toThrow("mismatch in the dimensions");
+
+    out.$setAssays({ "foo": mat2, "bar": mat }, { newOrder: true });
+    expect(out.assayNames()).toEqual(["foo", "bar"])
+    expect(out.assays().get("foo").values()).toEqual(mat2.values());
+    expect(out.assays().get("bar").values()).toEqual(mat.values());
 })
 
 test("setting/removing of the DFs works as expected", () => {
