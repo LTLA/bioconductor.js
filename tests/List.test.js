@@ -201,3 +201,191 @@ test("name replacement works in a List", () => {
     expect(() => ll.get("A")).toThrow("no matching name");
     expect(ll.get("a")).toEqual(5);
 })
+
+test("List deleters work with indices", () => {
+    let src = { A: 1, B: 2, C: 3, D: 4, E: 5 };
+    let ll = new bioc.List(src);
+    let unnamed = new bioc.List([1,2,3,4,5]);
+
+    let ll2 = ll.delete(2);
+    expect(ll2.get(0)).toBe(1);
+    expect(ll2.get(2)).toBe(4);
+    expect(ll2.get("B")).toBe(2);
+    expect(ll2.get("D")).toBe(4);
+    expect(() => ll2.get("C")).toThrow("no matching name");
+    expect(ll2.names()).toEqual(["A","B","D","E"]);
+
+    let unnamed2 = unnamed.delete(1);
+    expect(unnamed2.get(0)).toBe(1);
+    expect(unnamed2.get(1)).toBe(3);
+
+    // Works in place.
+    expect(ll.get("D")).toEqual(4); // populating the lookup.
+    ll.delete(3, { inPlace: true });
+    expect(ll.names()).toEqual(["A","B","C","E"]);
+    expect(() => ll.get("D")).toThrow("no matching name"); // lookup is properly reset.
+})
+
+test("List deleters work with names", () => {
+    let src = { A: 1, B: 2, C: 3, D: 4, E: 5 };
+    let ll = new bioc.List(src);
+
+    // Test error code without a lookup.
+    expect(() => ll.delete("F")).toThrow("no matching name");
+
+    {
+        let ll2 = ll.delete("C"); // checking deletion without a lookup.
+        expect(ll2.get(0)).toBe(1);
+        expect(ll2.get(2)).toBe(4);
+        expect(ll2.get("B")).toBe(2);
+        expect(ll2.get("D")).toBe(4);
+        expect(() => ll2.get("C")).toThrow("no matching name");
+        expect(ll2.names()).toEqual(["A","B","D","E"]);
+    }
+
+    {
+        let res = ll.get("C"); // populate the look-up table.
+        expect(res).toBe(3); // existing objects are unaffected.
+        let ll2 = ll.delete("A"); // checking deletion with a lookup.
+        expect(ll2.get(0)).toBe(2);
+    }
+
+    {
+        let unnamed = new bioc.List([1,2,3,4,5]);
+        expect(() => unnamed.delete("A")).toThrow("no available names");
+    }
+
+    // Works in place.
+    expect(ll.get("D")).toEqual(4); // populating the lookup.
+    ll.delete("C", { inPlace: true });
+    expect(ll.names()).toEqual(["A","B","D","E"]);
+    expect(() => ll.get("C")).toThrow("no matching name"); // lookup is properly reset.
+})
+
+test("List slicing for ranges", () => {
+    let src = { A: 1, B: 2, C: 3, D: 4, E: 5 };
+    let ll = new bioc.List(src);
+
+    let sliced = ll.sliceRange(1, 3);
+    expect(sliced.length()).toEqual(2);
+    expect(sliced.values()).toEqual([2, 3]);
+    expect(sliced.names()).toEqual(["B", "C"]);
+
+    let unnamed = new bioc.List([1,2,3,4,5]);
+    let usliced = unnamed.sliceRange(0, 4);
+    expect(usliced.values()).toEqual([1,2,3,4]);
+    expect(usliced.names()).toBeNull();
+
+    // Works in place.
+    ll.sliceRange(2, 3, { inPlace: true });
+    expect(ll.length()).toEqual(1);
+    expect(ll.values()).toEqual([3]);
+    expect(ll.names()).toEqual(["C"]);
+})
+
+test("List slicing for indices", () => {
+    let src = { A: 1, B: 2, C: 3, D: 4, E: 5 };
+    let ll = new bioc.List(src);
+
+    let sliced = ll.sliceIndices([1, 3]);
+    expect(sliced.length()).toEqual(2);
+    expect(sliced.values()).toEqual([2, 4]);
+    expect(sliced.names()).toEqual(["B", "D"]);
+
+    sliced = ll.sliceIndices(["D", "C", "A"]);
+    expect(sliced.length()).toEqual(3);
+    expect(sliced.values()).toEqual([4, 3, 1]);
+    expect(sliced.names()).toEqual(["D", "C", "A"]);
+
+    let unnamed = new bioc.List([1,2,3,4,5]);
+    let usliced = unnamed.sliceIndices([0, 4, 3]);
+    expect(usliced.values()).toEqual([1,5,4]);
+    expect(usliced.names()).toBeNull();
+
+    expect(() => unnamed.sliceIndices(["D", "C", "A"])).toThrow("available names");
+
+    // Works in place.
+    expect(ll.get("A")).toEqual(1); // populating the lookup.
+    ll.sliceIndices([2, 3], { inPlace: true });
+    expect(ll.length()).toEqual(2);
+    expect(ll.values()).toEqual([3,4]);
+    expect(() => ll.get("A")).toThrow("no matching name"); // check that the lookup is properly reset.
+})
+
+test("LENGTH works for List", () => {
+    let src = { A: 1, B: 2, C: 3, D: 4, E: 5 };
+    let ll = new bioc.List(src);
+    expect(bioc.LENGTH(ll)).toEqual(5);
+})
+
+test("SLICE works for List", () => {
+    let src = { A: 1, B: 2, C: 3, D: 4, E: 5 };
+    let ll = new bioc.List(src);
+    let slice = bioc.SLICE(ll, [ 0, 2, 4 ]);
+    expect(slice.values()).toEqual([1, 3, 5]);
+    expect(slice.names()).toEqual(["A", "C", "E"]);
+})
+
+test("CLONE works for List", () => {
+    let src = { A: 1, B: 2, C: 3, D: 4, E: 5 };
+    let ll = new bioc.List(src);
+    let deepcopy = bioc.CLONE(ll);
+
+    deepcopy.values()[0] = 3;
+    expect(deepcopy.get(0)).toEqual(3);
+    expect(ll.get(0)).toEqual(1); // original is unaffected.
+})
+
+test("COMBINE works for List", () => {
+    // All named.
+    {
+        let src = { A: 1, B: 2, C: 3, D: 4, E: 5 };
+        let ll = new bioc.List(src);
+
+        let src2 = { a: -1, b: -2, c: -3, d: -4, e: -5 };
+        let ll2 = new bioc.List(src2);
+        let combined = bioc.COMBINE([ll, ll2]);
+        expect(combined.values()).toEqual([1,2,3,4,5,-1,-2,-3,-4,-5]);
+        expect(combined.names()).toEqual(["A", "B", "C", "D", "E", "a", "b", "c", "d", "e"]);
+
+        let src3 = { alpha: 100 };
+        let ll3 = new bioc.List(src3);
+        combined = bioc.COMBINE([ll, ll2, ll3]);
+        expect(combined.values()).toEqual([1,2,3,4,5,-1,-2,-3,-4,-5, 100]);
+        expect(combined.names()).toEqual(["A", "B", "C", "D", "E", "a", "b", "c", "d", "e", "alpha"]);
+    }
+
+    // All unnamed.
+    {
+        let unnamed = new bioc.List([1,2,3,4,5]);
+        let unnamed2 = new bioc.List([-1,-2,-3,-4,-5]);
+        let combined = bioc.COMBINE([unnamed, unnamed2]);
+        expect(combined.values()).toEqual([1,2,3,4,5,-1,-2,-3,-4,-5]);
+        expect(combined.names()).toBeNull();
+
+        let unnamed3 = new bioc.List([100]);
+        combined = bioc.COMBINE([unnamed, unnamed2, unnamed3]);
+        expect(combined.values()).toEqual([1,2,3,4,5,-1,-2,-3,-4,-5, 100]);
+        expect(combined.names()).toBeNull();
+    }
+
+    // Mix of named and unnamed.
+    {
+        let unnamed = new bioc.List([1,2,3,4,5]);
+        let src2 = { a: -1, b: -2, c: -3, d: -4, e: -5 };
+        let ll2 = new bioc.List(src2);
+        let unnamed3 = new bioc.List([100]);
+
+        let combined = bioc.COMBINE([unnamed, ll2, unnamed3]);
+        expect(combined.values()).toEqual([1,2,3,4,5,-1,-2,-3,-4,-5, 100]);
+        expect(combined.names()).toEqual(["", "", "", "", "", "a", "b", "c", "d", "e", ""]);
+    }
+
+    // Try other things.
+    {
+        let unnamed = new bioc.List([1,2,3,4,5]);
+        let combined = bioc.COMBINE([unnamed, [-1,-2], { "x": 300, "y": 400 }]);
+        expect(combined.values()).toEqual([1,2,3,4,5,-1,-2,300,400]);
+        expect(combined.names()).toEqual(["", "", "", "", "", "", "", "x", "y"]);
+    }
+})

@@ -314,8 +314,10 @@ export class List {
     /**
      * @param {string|number} i - Index or name of the list element to set.
      * Numbers are passed to {@linkcode List#setByIndex setByIndex} and strings are passed to {@linkcode List#setByName setByName}.
+     * @param {*} x - Replacement value for the list element.
      * @param {Object} [options={}] - Further options.
      * @param {?string} [options.name=null] - See the argument of the same name in {@linkcode List#setByName setByName}.
+     * Only used if `i` is a number.
      * @param {boolean} [options.inPlace=false] - Whether to modify this List instance in place.
      * If `false`, a new instance is returned.
      *
@@ -365,6 +367,17 @@ export class List {
 
     /***********************************************/
 
+    /**
+     * @param {number} i - Index of the list element to delete.
+     * This should be non-negative and no less than {@linkcode List#length length}.
+     * @param {Object} [options={}] - Further options.
+     * @param {?string} [options.name=null] - See the argument of the same name in {@linkcode List#setByName setByName}.
+     * @param {boolean} [options.inPlace=false] - Whether to modify this List instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {List} The List after deleting the `i`-th element.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
+     */
     deleteByIndex(i, { inPlace = false } = {}) {
         let target = cutils.setterTarget(this, inPlace);
         if (!inPlace) {
@@ -378,12 +391,24 @@ export class List {
         target._values.splice(i, 1);
         if (target._names !== null) {
             target._names.splice(i, 1);
+            if (inPlace) {
+                target._lookup = new Map; // lookup is invalidated if existing names change.
+            }
         }
 
-        target._lookup = new Map;
         return target;
     }
 
+    /**
+     * @param {number} name - Name of the list element to delete.
+     * This should already exist in {@linkcode List#names names}.
+     * @param {?string} [options.name=null] - See the argument of the same name in {@linkcode List#setByName setByName}.
+     * @param {boolean} [options.inPlace=false] - Whether to modify this List instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {List} The List after deleting the `name`d element.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
+     */
     deleteByName(name, { inPlace = false } = {}) {
         let target = cutils.setterTarget(this, inPlace);
         if (!inPlace) {
@@ -391,6 +416,10 @@ export class List {
             if (target._names !== null) {
                 target._names = target._names.slice();
             }
+        }
+
+        if (target._names == null) {
+            throw new Error("no available names in this " + this.constructor.className);
         }
 
         let candidate;
@@ -407,12 +436,24 @@ export class List {
         target._values.splice(candidate, 1);
         if (target._names !== null) {
             target._names.splice(candidate, 1);
+            if (inPlace) {
+                target._lookup = new Map; // lookup is invalidated if existing names change.
+            }
         }
 
-        target._lookup = new Map;
         return target;
     }
 
+    /**
+     * @param {string|number} i - Index or name of the list element to delete.
+     * Numbers are passed to {@linkcode List#deleteByIndex deleteByIndex} and strings are passed to {@linkcode List#deleteByName deleteByName}.
+     * @param {Object} [options={}] - Further options.
+     * @param {boolean} [options.inPlace=false] - Whether to modify this List instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {List} The List after deleting the `i`-th element. 
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
+     */
     delete(i, { inPlace = false } = {}) {
         if (typeof i == "number") {
             return this.deleteByIndex(i, { inPlace });
@@ -421,12 +462,31 @@ export class List {
         }
     }
 
-    slice(indices, { inPlace = false } = {}) {
+    /***********************************************/
+
+    sliceRange(start, end, { inPlace = false } = {}) {
+        let target = cutils.setterTarget(this, inPlace);
+
+        target._values = target._values.slice(start, end);
+        if (this._names !== null) {
+            target._names = target._names.slice(start, end);
+            if (inPlace) {
+                target._lookup = new Map;
+            }
+        }
+
+        return target;
+    }
+
+    sliceIndices(indices, { inPlace = false } = {}) {
         let new_names = [];
         let new_values = [];
 
         for (let i of indices) {
             if (typeof i == "string") {
+                if (this._names == null) {
+                    throw new Error("no available names in this " + this.constructor.className);
+                }
                 i = this.#check_lookup(i);
             } else {
                 this.#check_index(i);
@@ -451,11 +511,11 @@ export class List {
     /***********************************************/
 
     _bioconductor_LENGTH() {
-        return this.length;
+        return this.length();
     }
 
     _bioconductor_SLICE(output, i, { allowView = false }) {
-        let sliced = x.slice(i);
+        let sliced = this.sliceIndices(i);
         output._values = sliced._values;
         output._names = sliced._names;
         output._lookup = new Map;
@@ -477,9 +537,9 @@ export class List {
         let all_values = [];
         let all_names = null;
 
-        for (const x of objects) {
+        for (let x of objects) {
             if (!(x instanceof List)) {
-                x = List(x);
+                x = new List(x);
             }
 
             const xvals = x.values();
@@ -496,7 +556,7 @@ export class List {
                 }
             } else {
                 if (all_names === null) {
-                    all_names = new Array(all_values.length).fill("");
+                    all_names = new Array(all_values.length - xvals.length).fill("");
                 }
                 for (const yn of xnames) {
                     all_names.push(yn);
