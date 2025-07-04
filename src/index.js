@@ -1,3 +1,4 @@
+export * from "./List.js";
 export * from "./DataFrame.js";
 export * from "./IRanges.js";
 export * from "./GRanges.js";

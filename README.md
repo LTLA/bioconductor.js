@@ -227,6 +227,7 @@ For classes:
 
 |**Javascript**|**R/Bioconductor equivalent**|
 |---|---|
+| [`List`](https://ltla.github.io/bioconductor.js/List.html) | `base::list` |
 | [`DataFrame`](https://ltla.github.io/bioconductor.js/DataFrame.html) | `S4Vectors::DFrame` |
 | [`IRanges`](https://ltla.github.io/bioconductor.js/IRanges.html) | `IRanges::IRanges` |
 | [`GRanges`](https://ltla.github.io/bioconductor.js/GRanges.html) | `GenomicRanges::GRanges` |
