@@ -2,36 +2,62 @@ import * as utils from "./utils.js";
 import * as cutils from "./clone-utils.js";
 import * as generics from "./AllGenerics.js";
 
+/**
+ * An R-style list with optional names for elements.
+ * Callers can access list elements by positional index or by name.
+ *
+ * The List defines methods for the following generics:
+ *
+ * - {@linkcode LENGTH}
+ * - {@linkcode SLICE}
+ * - {@linkcode COMBINE}
+ * - {@linkcode CLONE}
+ */
 export class List {
-    #lookup;
-    #values;
-    #names;
+    _lookup;
+    _values;
+    _names;
 
+    /**
+     * @param {Array|Map|Object} values - An array of list elements.
+     * For Maps or objects, the values (in order of iteration) are used as the list elements.
+     * @param {Object} [options={}] - Further options.
+     * @param {?Array} [options.names=null] - An array of strings containing the names of the list elements.
+     * If provided, this should be of the same length as `values`.
+     * If `values` is a Map or object, `names` should have the same keys.
+     * If `values` is an array, the names may contain duplicate strings.
+     * If `null` and `values` is an array, the List will be unnamed.
+     */
     constructor(values, { names = null } = {}) {
+        if (arguments.length == 0) {
+            return;
+        }
+
         if (values instanceof Array) {
             if (names !== null) {
                 if (names.length != values.length) {
                     throw new Error("'names' and 'values' should have the same length");
                 }
                 for (const n of names) {
-                    if (!(n instanceof String)) {
+                    if (typeof n != "string") {
                         throw new Error("'names' should be an array of strings");
                     }
                 }
             }
 
-            this.#values = values;
-            this.#names = names;
+            this._values = values;
+            this._names = names;
 
         } else if (values instanceof Map) {
             let arr = [];
             if (names == null) {
-                names = values.keys();
-                for (const n of names) {
-                    if (!(n instanceof String)) {
+                names = [];
+                for (const [n, v] of values) {
+                    if (typeof n != "string") {
                         throw new Error("keys of 'values' should be strings");
                     }
-                    arr.push(values.get(n));
+                    names.push(n);
+                    arr.push(v);
                 }
 
             } else {
@@ -39,7 +65,7 @@ export class List {
                     throw new Error("size of 'values' should be equal to length of 'names'");
                 }
                 for (const n of names) {
-                    if (!(n instanceof String)) {
+                    if (typeof n != "string") {
                         throw new Error("'names' should be an array of strings");
                     }
                     if (!values.has(n)) {
@@ -49,26 +75,24 @@ export class List {
                 }
             }
 
-            this.#values = arr;
-            this.#names = names;
+            this._values = arr;
+            this._names = names;
 
         } else {
             let arr = [];
             if (names == null) {
-                names = Object.entries(values);
-                for (const n of names) {
-                    if (!(n instanceof String)) {
-                        throw new Error("keys of 'values' should be strings");
-                    }
-                    arr.push(values[n]);
+                names = [];
+                for (const [n, v] of Object.entries(values)) {
+                    names.push(n);
+                    arr.push(v);
                 }
 
             } else {
-                if (names.length != Object.keys(values).size) {
+                if (names.length != Object.keys(values).length) {
                     throw new Error("size of 'values' should be equal to length of 'names'");
                 }
                 for (const n of names) {
-                    if (!(n instanceof String)) {
+                    if (typeof n != "string") {
                         throw new Error("'names' should be an array of strings");
                     }
                     if (!(n in values)) {
@@ -78,172 +102,264 @@ export class List {
                 }
             }
 
-            this.#values = arr;
-            this.#names = names;
+            this._values = arr;
+            this._names = names;
         }
 
-        this.#lookup = new Map;
+        this._lookup = new Map;
     }
 
+    /**
+     * @return {?Array} Array of names of the list elements, or `null` if the list is unnamed.
+     */
     names() {
-        return this.#names;
+        return this._names;
     }
 
+    /**
+     * @return {Array} Array containing the list elements.
+     */
     values() {
-        return this.#values;
+        return this._values;
     }
 
-    get length() {
-        return this.#values.length;
+    /**
+     * @return {number} Length of the list. 
+     */
+    length() {
+        return this._values.length;
     }
+
+    static className = "List";
 
     /***********************************************/
 
     #check_index(i) {
-        if (i < 0 || i >= this.#values.length) {
+        if (i < 0 || i >= this._values.length) {
             throw new Error(" index '" + String(i) + "' out of range for this " + this.constructor.className);
         }
     }
 
+    /**
+     * @param {number} i - Index of the list to retrieve.
+     * This should be non-negative and less than {@linkcode List#length length}.
+     * @return The `i`-th list element.
+     */
     getByIndex(i) {
         this.#check_index(i);
-        return this.#values[i];
+        return this._values[i];
     }
 
-    #check_lookup(name) {
-        if (!this.#lookup.has(name)) {
-            return this.#lookup.get(name);
+    #check_lookup(name, error) {
+        if (this._lookup.has(name)) {
+            return this._lookup.get(name);
         }
 
-        for (var i = this.#lookup.size; i < this.#names.length; i++) {
-            const current = this.#names[i];
-            if (this.#lookup.has(current)) {
+        for (var i = this._lookup.size; i < this._names.length; i++) {
+            const current = this._names[i];
+            if (this._lookup.has(current)) {
                 continue; // first instance of a duplicated name wins.
             }
-            this.#lookup.set(current, i);
-            if (this.#names[i] == name) {
+            this._lookup.set(current, i);
+            if (this._names[i] == name) {
                 return i;
             }
         }
 
-        throw new Error("no matching name for '" + name + "' in this " + this.constructor.className);
+        if (error) {
+            throw new Error("no matching name for '" + name + "' in this " + this.constructor.className);
+        } else {
+            return -1;
+        }
     }
 
+    /**
+     * @param {string} name - Name of the list element to retrieve.
+     * This should be present in {@linkcode List#names names}.
+     * @return The list element corresponding to `name`.
+     * If duplicates of `name` are present in the list, the first occurrence is returned.
+     */
     getByName(name) {
-        if (this.#names === null) {
+        if (this._names === null) {
             throw new Error("no available names in this " + this.constructor.className);
         }
-        let candidate = this.#check_lookup(name);
-        return this.#names[candidate];
+        let candidate = this.#check_lookup(name, true);
+        return this._values[candidate];
     }
 
+    /**
+     * @param {string|number} i - Index or name of the list element to retrieve.
+     * Numbers are passed to {@linkcode List#getByIndex getByIndex} and strings are passed to {@linkcode List#getByName getByName}.
+     * @return The list element at/for `i`.
+     */
     get(i) {
-        if (i instanceof Number) {
+        if (typeof i == "number") {
             return this.getByIndex(i);
         } else {
             return this.getByName(i);
         }
     }
 
+    /**
+     * @param {string} name - Name of a list element.
+     * @return {number} Index of the name in {@linkcode List#names names}.
+     * If duplicate names are present, the first occurrence is returned.
+     */
     nameToIndex(name) {
-        return this.#check_lookup(name);
+        return this.#check_lookup(name, true);
     }
 
     /***********************************************/
 
+    /**
+     * @param {number} i - Index of the list element to set.
+     * This should be non-negative and no greater than {@linkcode List#length length}.
+     * If `i` is less than `length`, the `i`-th element is replaced by `x`.
+     * If `i` is equal to `length`, `x` is appended to the end of the list.
+     * @param {*} x - Replacement value for the list element.
+     * @param {Object} [options={}] - Further options.
+     * @param {?string} [options.name=null] - Name for the list element at `i`.
+     * If `i` is less than `length`, the name of the `i`-th element is replaced by `name`.
+     * If `i` is equal to `length`, the name of the newly-appended element is set to `name`.
+     * @param {boolean} [options.inPlace=false] - Whether to modify this List instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {List} The List after setting the `i`-th element to `x`.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
+     */
     setByIndex(i, x, { name = null, inPlace = false } = {}) {
         let target = cutils.setterTarget(this, inPlace);
         if (!inPlace) {
-            target.#values = target.#values.slice();
-            if (target.#names !== null) {
-                target.#names = target.#names.slice();
+            target._values = target._values.slice();
+            if (target._names !== null) {
+                target._names = target._names.slice();
             }
         }
 
-        if (i < 0 || i > this.#values.length) {
+        if (i < 0 || i > this._values.length) {
             throw new Error(" index '" + String(i) + "' out of range for this " + this.constructor.className);
         }
 
-        if (i == target.#values.length) {
-            target.#values.push(x);
+        if (i == target._values.length) {
+            target._values.push(x);
             if (name == null) {
-                if (target.#names != null) {
-                    target.#names.push("");
+                if (target._names != null) {
+                    target._names.push("");
                 }
 
             } else {
-                if (target.#names == null) {
-                    target.#names = new Array(target.#values.length).fill("");
+                if (target._names == null) {
+                    target._names = new Array(target._values.length).fill("");
                 }
-                if (!(name instanceof String)) {
+                if (typeof name != "string") {
                     throw new Error("'name' should be a string");
                 }
-                target.#names.push(name);
-            }
-
-            if (!inPlace) {
-                target.#lookup = new Map; // the two different objects can no longer share look-up tables if the names might be different.
+                target._names[target._values.length - 1] = name;
             }
 
         } else {
-            target.#values[i] = x;
+            target._values[i] = x;
             if (name !== null) {
-                if (target.#names === null) {
-                    target.#names = new Array(this.#values.length).fill("");
+                if (target._names === null) {
+                    target._names = new Array(this._values.length).fill("");
                 }
-                target.#names[i] = name;
+                target._names[i] = name;
+                if (inPlace) {
+                    target._lookup = new Map; // lookup is invalidated if the existing names change.
+                }
             }
         }
 
         return target;
     }
 
+    /**
+     * @param {number} name - Name of the list element to set.
+     * If this already exists in {@linkcode List#names names}, the corresponding element is replaced by `x`.
+     * Otherwise, `x` is appended to the List with the name `name`.
+     * @param {*} x - Replacement value for the list element.
+     * @param {Object} [options={}] - Further options.
+     * @param {boolean} [options.inPlace=false] - Whether to modify this List instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {List} The List after setting the `name`d entry to `x`.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
+     */
     setByName(name, x, { inPlace = false } = {}) {
         let target = cutils.setterTarget(this, inPlace);
         if (!inPlace) {
-            target.#names = target.#names.slice();
-            if (target.#names !== null) {
-                target.#names = target.#names.slice();
+            target._values = target._values.slice();
+            if (target._names !== null) {
+                target._names = target._names.slice();
             }
-            target.#lookup = new Map; // see corresponding comment in setByIndex.
         }
 
-        if (target.#names !== null) {
-            candidate = target.#check_lookup(name);
-            target.#values[candidate] = x;
+        if (target._names !== null) {
+            let candidate = target.#check_lookup(name, false);
+            if (candidate < 0) {
+                target._values.push(x);
+                target._names.push(name);
+            } else {
+                target._values[candidate] = x;
+            }
         } else {
-            target.#names = new Array(this.#values.length).fill("");
-            target.#names.push(name);
-            target.#values.push(x);
+            target._names = new Array(this._values.length).fill("");
+            target._names.push(name);
+            target._values.push(x);
         }
 
         return target;
     }
 
+    /**
+     * @param {string|number} i - Index or name of the list element to set.
+     * Numbers are passed to {@linkcode List#setByIndex setByIndex} and strings are passed to {@linkcode List#setByName setByName}.
+     * @param {Object} [options={}] - Further options.
+     * @param {?string} [options.name=null] - See the argument of the same name in {@linkcode List#setByName setByName}.
+     * @param {boolean} [options.inPlace=false] - Whether to modify this List instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {List} The List after setting the `i`-th element to `x`.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
+     */
     set(i, x, { name = null, inPlace = false } = {}) {
-        if (i instanceof Number) {
+        if (typeof i == "number") {
             return this.setByIndex(i, x, { name, inPlace });
         } else {
             return this.setByName(i, x, { inPlace });
         }
     }
 
+    /**
+     * @param {?Array} names - Array of strings of length equal to {@linkcode List#length length}.
+     * This may contain duplicates.
+     * Alternatively `null`, to remove existing names.
+     * @param {Object} [options={}] - Further options.
+     * @param {boolean} [options.inPlace=false] - Whether to modify this List instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {List} The List after replacing the names with `names`.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
+     */
     setNames(names, { inPlace = false } = {}) {
         let target = cutils.setterTarget(this, inPlace);
 
         if (names !== null) {
-            if (names.length != this.#values.length) {
+            if (names.length != this._values.length) {
                 throw new Error("'names' and 'values' should have the same length");
             }
             for (const n of names) {
-                if (!(n instanceof String)) {
+                if (typeof n != "string") {
                     throw new Error("'names' should be an array of strings");
                 }
             }
         }
 
-        target.#names = names;
-        target.#lookup = new Map;
+        target._names = names;
+        if (inPlace) {
+            target._lookup = new Map; // lookup is invalidated if the existing names change.
+        }
+
         return target;
     }
 
@@ -252,53 +368,53 @@ export class List {
     deleteByIndex(i, { inPlace = false } = {}) {
         let target = cutils.setterTarget(this, inPlace);
         if (!inPlace) {
-            target.#values = target.#values.slice();
-            if (target.#names !== null) {
-                target.#names = target.#names.slice();
+            target._values = target._values.slice();
+            if (target._names !== null) {
+                target._names = target._names.slice();
             }
         }
 
         this.#check_index(i);
-        target.#values.splice(i, 1);
-        if (target.#names !== null) {
-            target.#names.splice(i, 1);
+        target._values.splice(i, 1);
+        if (target._names !== null) {
+            target._names.splice(i, 1);
         }
 
-        target.#lookup = new Map;
+        target._lookup = new Map;
         return target;
     }
 
     deleteByName(name, { inPlace = false } = {}) {
         let target = cutils.setterTarget(this, inPlace);
         if (!inPlace) {
-            target.#values = target.#values.slice();
-            if (target.#names !== null) {
-                target.#names = target.#names.slice();
+            target._values = target._values.slice();
+            if (target._names !== null) {
+                target._names = target._names.slice();
             }
         }
 
         let candidate;
-        if (this.#lookup.has(name)) {
-            candidate = this.#lookup.get(name);
+        if (this._lookup.has(name)) {
+            candidate = this._lookup.get(name);
         } else {
             // Don't use check_lookup() as we're going to reset the lookup immediately, so it would be needlessly inefficient.
-            candidate = this.#names.indexOf(name); 
+            candidate = this._names.indexOf(name); 
             if (candidate < 0) {
                 throw new Error("no matching name for '" + name + "' in this " + this.constructor.className);
             }
         }
 
-        target.#values.splice(candidate, 1);
-        if (target.#names !== null) {
-            target.#names.splice(candidate, 1);
+        target._values.splice(candidate, 1);
+        if (target._names !== null) {
+            target._names.splice(candidate, 1);
         }
 
-        target.#lookup = new Map;
+        target._lookup = new Map;
         return target;
     }
 
     delete(i, { inPlace = false } = {}) {
-        if (i instanceof Number) {
+        if (typeof i == "number") {
             return this.deleteByIndex(i, { inPlace });
         } else {
             return this.deleteByName(i, { inPlace });
@@ -310,25 +426,25 @@ export class List {
         let new_values = [];
 
         for (let i of indices) {
-            if (i instanceof String) {
+            if (typeof i == "string") {
                 i = this.#check_lookup(i);
             } else {
                 this.#check_index(i);
             }
 
-            new_values.push(this.#values[i]);
-            if (this.#names !== null) {
-                new_names.push(this.#names[i]);
+            new_values.push(this._values[i]);
+            if (this._names !== null) {
+                new_names.push(this._names[i]);
             }
         }
 
         let target = cutils.setterTarget(this, inPlace);
-        target.#values = new_values;
-        if (this.#names !== null) {
-            target.#names = new_names;
+        target._values = new_values;
+        if (this._names !== null) {
+            target._names = new_names;
         }
 
-        target.#lookup = new Map;
+        target._lookup = new Map;
         return target;
     }
 
@@ -340,19 +456,20 @@ export class List {
 
     _bioconductor_SLICE(output, i, { allowView = false }) {
         let sliced = x.slice(i);
-        output.#values = sliced.#values;
-        output.#names = sliced.#names;
+        output._values = sliced._values;
+        output._names = sliced._names;
+        output._lookup = new Map;
         return output;
     }
 
     _bioconductor_CLONE(output, { deepCopy = true }) {
-        output.#values = cutils.cloneField(this.#values, deepCopy);
-        output.#names = cutils.cloneField(this.#names, deepCopy);
+        output._values = cutils.cloneField(this._values, deepCopy);
+        output._names = cutils.cloneField(this._names, deepCopy);
 
         // Technically, this is unnecessarily inefficient if the names don't change in the clone.
         // But that would be risking some very dangerous bugs if we forget to reset it after a name change.
         // Better to just reset the lookup so that the clones are independent.
-        output.#lookup = new Map;
+        output._lookup = new Map;
         return;
     }
 
@@ -387,8 +504,9 @@ export class List {
             }
         }
 
-        output.#values = all_values;
-        output.#names = all_names;
+        output._values = all_values;
+        output._names = all_names;
+        output._lookup = new Map;
         return;
     }
 }
