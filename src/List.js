@@ -536,6 +536,31 @@ export class List {
 
     /***********************************************/
 
+    /**
+     * @return {iterator} An iterable iterator that can be used in, e.g., `for...of` constructs to loop over the List.
+     * The list values are directly returned during iteration, i.e., names are ignored.
+     */
+    [Symbol.iterator]() {
+        let counter = 0;
+        let all_values = this._values;
+        return {
+            next: function() {
+                if (counter < all_values.length) {
+                    let val = all_values[counter];
+                    counter++;
+                    return { done: false, value: val };
+                } else {
+                    return { done: true };
+                }
+            },
+            [Symbol.iterator]() {
+                return this;
+            },
+        }
+    }
+
+    /***********************************************/
+
     _bioconductor_LENGTH() {
         return this.length();
     }

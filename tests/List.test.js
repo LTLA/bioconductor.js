@@ -312,6 +312,17 @@ test("List slicing for indices", () => {
     expect(() => ll.get("A")).toThrow("no matching name"); // check that the lookup is properly reset.
 })
 
+test("Lists can be iterated over", () => {
+    let src = { A: 1, B: 2, C: 3, D: 4, E: 5 };
+    let ll = new bioc.List(src);
+
+    let collected = [];
+    for (const x of ll) {
+        collected.push(x);
+    }
+    expect(collected).toEqual([1,2,3,4,5]);
+})
+
 test("LENGTH works for List", () => {
     let src = { A: 1, B: 2, C: 3, D: 4, E: 5 };
     let ll = new bioc.List(src);
