@@ -2,6 +2,95 @@ import * as utils from "./utils.js";
 import * as cutils from "./clone-utils.js";
 import * as generics from "./AllGenerics.js";
 
+class IndexedNames {
+    constructor(names) {
+        this._names = names;
+        this._lookup = new Map;
+    }
+
+    names() {
+        return this._names;
+    }
+
+    nameToIndexUncached(name) {
+        if (this._lookup.has(name)) {
+            return this._lookup.get(name);
+        }
+        return this._names.indexOf(name);
+    }
+
+    nameToIndex(name, { error = true } = {}) {
+        if (this._lookup.has(name)) {
+            return this._lookup.get(name);
+        }
+
+        for (var i = this._lookup.size; i < this._names.length; i++) {
+            const current = this._names[i];
+            if (this._lookup.has(current)) {
+                continue; // only keep the first instance of a duplicated name.
+            }
+            this._lookup.set(current, i);
+            if (this._names[i] == name) {
+                return i;
+            }
+        }
+
+        if (error) {
+            throw new Error("no matching name for '" + name + "' in this " + this.constructor.className);
+        } else {
+            return -1;
+        }
+    }
+
+    indexToName(i) {
+        return this._names[i];
+    }
+
+    append(name, { inPlace = false } = {}) {
+        let target = cutils.setterTarget(this, inPlace);
+        if (!inPlace) {
+            target._names = target._names.slice();
+            target._lookup = new Map; // always making a new map to avoid sharing lookup tables between instances with different names.
+        }
+        target._names.push(name);
+        return target;
+    }
+
+    set(i, name, { inPlace = false } = {}) {
+        let target = cutils.setterTarget(this, inPlace);
+        if (!inPlace) {
+            target._names = target._names.slice();
+            target._lookup = new Map; // always making a new map to avoid sharing lookup tables between instances with different names.
+        } else {
+            if (target._lookup.size > i) { // if the lookup never got to that point, we don't have to wipe it.
+                target._lookup = new Map;
+            }
+        }
+        target._names[i] = name;
+        return target;
+    }
+
+    delete(i, { inPlace = false } = {}) {
+        let target = cutils.setterTarget(this, inPlace);
+        if (!inPlace) {
+            target._names = target._names.slice();
+            target._lookup = new Map; // always making a new map to avoid sharing lookup tables between instances with different names.
+        } else {
+            if (target._lookup.size > i) { // i.e., if the lookup never got to that point, we don't have to wipe it.
+                target._lookup = new Map;
+            }
+        }
+        target._names.splice(i, 1);
+        return target;
+    }
+
+    _bioconductor_CLONE(output, { deepCopy = true }) {
+        output._names = this._names;
+        output._lookup = this._lookup;
+        return output;
+    }
+}
+
 /**
  * An R-style list with optional names.
  * Callers can get/set individual elements by positional index or name.
@@ -18,10 +107,6 @@ import * as generics from "./AllGenerics.js";
  * Otherwise, it would be impossible to construct a slice with duplicate indices or to combine multiple `List` instances with shared names.
  */
 export class List {
-    _lookup;
-    _values;
-    _names;
-
     /**
      * @param {Array|Map|Object} values - Elements of the List.
      * For Maps or objects, the values (in order of iteration) are used as the List elements.
@@ -47,6 +132,7 @@ export class List {
                         throw new Error("'names' should be an array of strings");
                     }
                 }
+                names = new IndexedNames(names);
             }
 
             this._values = values;
@@ -80,7 +166,7 @@ export class List {
             }
 
             this._values = arr;
-            this._names = names;
+            this._names = new IndexedNames(names);
 
         } else {
             let arr = [];
@@ -107,17 +193,19 @@ export class List {
             }
 
             this._values = arr;
-            this._names = names;
+            this._names = new IndexedNames(names);
         }
-
-        this._lookup = new Map;
     }
 
     /**
      * @return {?Array} Array of names of the List elements, or `null` if the List is unnamed.
      */
     names() {
-        return this._names;
+        if (this._names == null) {
+            return null;
+        } else {
+            return this._names.names();
+        }
     }
 
     /**
@@ -154,29 +242,6 @@ export class List {
         return this._values[i];
     }
 
-    #check_lookup(name, error) {
-        if (this._lookup.has(name)) {
-            return this._lookup.get(name);
-        }
-
-        for (var i = this._lookup.size; i < this._names.length; i++) {
-            const current = this._names[i];
-            if (this._lookup.has(current)) {
-                continue; // first instance of a duplicated name wins.
-            }
-            this._lookup.set(current, i);
-            if (this._names[i] == name) {
-                return i;
-            }
-        }
-
-        if (error) {
-            throw new Error("no matching name for '" + name + "' in this " + this.constructor.className);
-        } else {
-            return -1;
-        }
-    }
-
     /**
      * @param {string} name - Name of the List element to retrieve.
      * This should be present in {@linkcode List#names names}.
@@ -187,7 +252,7 @@ export class List {
         if (this._names === null) {
             throw new Error("no available names in this " + this.constructor.className);
         }
-        let candidate = this.#check_lookup(name, true);
+        let candidate = this._names.nameToIndex(name);
         return this._values[candidate];
     }
 
@@ -210,7 +275,7 @@ export class List {
      * If duplicate names are present, the first occurrence is returned.
      */
     nameToIndex(name) {
-        return this.#check_lookup(name, true);
+        return this._names.nameToIndex(name);
     }
 
     /***********************************************/
@@ -236,9 +301,6 @@ export class List {
         let target = cutils.setterTarget(this, inPlace);
         if (!inPlace) {
             target._values = target._values.slice();
-            if (target._names !== null) {
-                target._names = target._names.slice();
-            }
         }
 
         if (i < 0 || i > this._values.length) {
@@ -249,28 +311,31 @@ export class List {
             target._values.push(x);
             if (name == null) {
                 if (target._names != null) {
-                    target._names.push("");
+                    target._names = target._names.append("", { inPlace });
                 }
 
             } else {
-                if (target._names == null) {
-                    target._names = new Array(target._values.length).fill("");
-                }
                 if (typeof name != "string") {
                     throw new Error("'name' should be a string");
                 }
-                target._names[target._values.length - 1] = name;
+                if (target._names == null) {
+                    const new_names = new Array(target._values.length).fill("");
+                    new_names[i] = name;
+                    target._names = new IndexedNames(new_names);
+                } else {
+                    target._names = target._names.append(name, { inPlace });
+                }
             }
 
         } else {
             target._values[i] = x;
             if (name !== null) {
                 if (target._names === null) {
-                    target._names = new Array(this._values.length).fill("");
-                }
-                target._names[i] = name;
-                if (inPlace) {
-                    target._lookup = new Map; // lookup is invalidated if the existing names change.
+                    const new_names = new Array(target._values.length).fill("");
+                    new_names[i] = name;
+                    target._names = new IndexedNames(new_names);
+                } else {
+                    target._names = target._names.set(i, name, { inPlace });
                 }
             }
         }
@@ -295,22 +360,20 @@ export class List {
         let target = cutils.setterTarget(this, inPlace);
         if (!inPlace) {
             target._values = target._values.slice();
-            if (target._names !== null) {
-                target._names = target._names.slice();
-            }
         }
 
         if (target._names !== null) {
-            let candidate = target.#check_lookup(name, false);
+            let candidate = target._names.nameToIndex(name, { error: false });
             if (candidate < 0) {
                 target._values.push(x);
-                target._names.push(name);
+                target._names = target._names.append(name, { inPlace });
             } else {
                 target._values[candidate] = x;
             }
         } else {
-            target._names = new Array(this._values.length).fill("");
-            target._names.push(name);
+            const new_names = new Array(target._values.length).fill("");
+            new_names.push(name);
+            target._names = new IndexedNames(new_names);
             target._values.push(x);
         }
 
@@ -363,11 +426,7 @@ export class List {
             }
         }
 
-        target._names = names;
-        if (inPlace) {
-            target._lookup = new Map; // lookup is invalidated if the existing names change.
-        }
-
+        target._names = new IndexedNames(names);
         return target;
     }
 
@@ -388,18 +447,12 @@ export class List {
         let target = cutils.setterTarget(this, inPlace);
         if (!inPlace) {
             target._values = target._values.slice();
-            if (target._names !== null) {
-                target._names = target._names.slice();
-            }
         }
 
         this.#check_index(i);
         target._values.splice(i, 1);
         if (target._names !== null) {
-            target._names.splice(i, 1);
-            if (inPlace) {
-                target._lookup = new Map; // lookup is invalidated if existing names change.
-            }
+            target._names = target._names.delete(i, { inPlace });
         }
 
         return target;
@@ -419,32 +472,21 @@ export class List {
         let target = cutils.setterTarget(this, inPlace);
         if (!inPlace) {
             target._values = target._values.slice();
-            if (target._names !== null) {
-                target._names = target._names.slice();
-            }
         }
 
         if (target._names == null) {
             throw new Error("no available names in this " + this.constructor.className);
         }
 
-        let candidate;
-        if (this._lookup.has(name)) {
-            candidate = this._lookup.get(name);
-        } else {
-            // Don't use check_lookup() as we're going to reset the lookup immediately, so it would be needlessly inefficient.
-            candidate = this._names.indexOf(name); 
-            if (candidate < 0) {
-                throw new Error("no matching name for '" + name + "' in this " + this.constructor.className);
-            }
+        // Don't cache as we're going to reset the lookup immediately, so it would be needlessly inefficient.
+        let candidate = this._names.nameToIndexUncached(name);
+        if (candidate < 0) {
+            throw new Error("no matching name for '" + name + "' in this " + this.constructor.className);
         }
 
         target._values.splice(candidate, 1);
         if (target._names !== null) {
-            target._names.splice(candidate, 1);
-            if (inPlace) {
-                target._lookup = new Map; // lookup is invalidated if existing names change.
-            }
+            target._names = target._names.delete(candidate, { inPlace });
         }
 
         return target;
@@ -485,10 +527,7 @@ export class List {
 
         target._values = target._values.slice(start, end);
         if (this._names !== null) {
-            target._names = target._names.slice(start, end);
-            if (inPlace) {
-                target._lookup = new Map;
-            }
+            target._names = new IndexedNames(target._names.names().slice(start, end));
         }
 
         return target;
@@ -513,21 +552,21 @@ export class List {
                 if (this._names == null) {
                     throw new Error("no available names in this " + this.constructor.className);
                 }
-                i = this.#check_lookup(i);
+                i = this._names.nameToIndex(i);
             } else {
                 this.#check_index(i);
             }
 
             new_values.push(this._values[i]);
             if (this._names !== null) {
-                new_names.push(this._names[i]);
+                new_names.push(this._names.indexToName(i));
             }
         }
 
         let target = cutils.setterTarget(this, inPlace);
         target._values = new_values;
         if (this._names !== null) {
-            target._names = new_names;
+            target._names = new IndexedNames(new_names);
         }
 
         target._lookup = new Map;
@@ -569,18 +608,12 @@ export class List {
         let sliced = this.sliceIndices(i);
         output._values = sliced._values;
         output._names = sliced._names;
-        output._lookup = new Map;
         return output;
     }
 
     _bioconductor_CLONE(output, { deepCopy = true }) {
         output._values = cutils.cloneField(this._values, deepCopy);
         output._names = cutils.cloneField(this._names, deepCopy);
-
-        // Technically, this is unnecessarily inefficient if the names don't change in the clone.
-        // But that would be risking some very dangerous bugs if we forget to reset it after a name change.
-        // Better to just reset the lookup so that the clones are independent.
-        output._lookup = new Map;
         return;
     }
 
@@ -616,8 +649,7 @@ export class List {
         }
 
         output._values = all_values;
-        output._names = all_names;
-        output._lookup = new Map;
+        output._names = new IndexedNames(all_names);
         return;
     }
 }
