@@ -164,10 +164,6 @@ export class GroupedGRanges extends vec.Vector {
         return target;
     }
 
-    /**
-     * @param {GRanges} ranges - Genomic ranges of length equal to the concatenated set of ranges returned by {@linkcode GroupedGRanges#ranges ranges}.
-     * @return {GroupedGRanges} A reference to this GroupedGRanges object after modifying the internal ranges.
-     */
     $setRanges(ranges) {
         return this.setRanges(ranges, { inPlace: true });
     }
@@ -258,14 +254,6 @@ export class GroupedGRanges extends vec.Vector {
         return target;
     }
 
-    /**
-     * See comments for {@linkcode GroupedGRanges#$setGroup $setGroup}.
-     *
-     * @param {number} i - Index of the group of interest.
-     * @param {GRanges} ranges - Genomic ranges for group `i`.
-     *
-     * @return {GroupedGRanges} A reference to this GroupedGRanges object after setting group `i`.
-     */
     $setGroup(i, ranges) {
         return this.setGroup(i, ranges, { inPlace: true });
     }

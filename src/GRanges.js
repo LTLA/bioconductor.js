@@ -145,10 +145,6 @@ export class GRanges extends vec.Vector {
         return target;
     }
 
-    /**
-     * @param {Array} seqnames - Array of strings containing the sequence names for each genomic range.
-     * @return {GRanges} A reference to this GRanges object after setting the sequence names to `seqnames`.
-     */
     $setSeqnames(seqnames) {
         return this.setSeqnames(seqnames, { inPlace: true });
     }
@@ -177,11 +173,6 @@ export class GRanges extends vec.Vector {
         return target;
     }
 
-    /**
-     * @param {IRanges} ranges - Start positions and widths for each genomic range.
-     * This should have length equal to the number of ranges. 
-     * @return {GRanges} A reference to this GRanges object after setting the ranges to `ranges`.
-     */
     $setRanges(ranges) {
         return this.setRanges(ranges, { inPlace: true });
     }
@@ -209,13 +200,6 @@ export class GRanges extends vec.Vector {
         return target;
     }
 
-    /**
-     * @param {Array|TypedArray} strand - Array of strands for each genomic range.
-     * This should have length equal to the number of ranges. 
-     * Entries may be 0 (any strand), 1 (forward strand) or -1 (reverse strand).
-     *
-     * @return {GRanges} A reference to this GRanges object after setting the strands to `strand`.
-     */
     $setStrand(strand) {
         return this.setStrand(strand, { inPlace: true });
     }

@@ -88,13 +88,6 @@ export class Vector extends ann.Annotated {
         return target;
     }
 
-    /**
-     * @param {?DataFrame} elementMetadata - Arbitrary metadata for each vector element.
-     * This should have number of rows equal to the vector length.
-     * Alternatively `null`, in which case all existing per-element metadata is removed.
-     *
-     * @return {Vector} A reference to this Vector object after setting the element metadata to `value`.
-     */
     $setElementMetadata(elementMetadata) {
         return this.setElementMetadata(elementMetadata, { inPlace: true });
     }
@@ -119,13 +112,6 @@ export class Vector extends ann.Annotated {
         return target;
     }
 
-    /**
-     * @param {?Array} names - Array of strings containing a name for each range.
-     * This should have length equal to the number of ranges.
-     * Alternatively `null`, if no names are present.
-     *
-     * @return {Vector} A reference to this Vector object after setting the element metadata to `value`.
-     */
     $setNames(names) {
         return this.setNames(names, { inPlace: true });
     }

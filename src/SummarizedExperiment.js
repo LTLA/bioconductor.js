@@ -221,10 +221,6 @@ export class SummarizedExperiment extends ann.Annotated {
         return target;
     }
 
-    /**
-     * @param {string|number} i - Identity of the assay to add, either by name or index.
-     * @return {SummarizedExperiment} A reference to this SummarizedExperiment after removing the specified assay.
-     */
     $removeAssay(i) {
         return this.removeAssay(i, { inPlace: true });
     }
@@ -295,32 +291,10 @@ export class SummarizedExperiment extends ann.Annotated {
         return target;
     }
 
-    /**
-     * @param {Object|Map} value - Object containing zero, one or more multi-dimensional array-like objects in the values.
-     * All arrays should have the same number of rows and columns.
-     * Keys are assay names, each of which should be present in `order`.
-     * @param {Object} [options={}] - Optional parameters.
-     * @param {Array|boolean} [options.newOrder=false] - Whether to replace the order of assays with the order of keys in `value`.
-     * If `false`, the existing order in {@linkcode SummarizedExperiment#assayNames assayNames} is used.
-     * If an array is provided, this is used as the order.
-     * If `null`, this has the same effect as `true`.
-     *
-     * @return {SummarizedExperiment} A reference to this SummarizedExperiment with modified assays.
-     */
     $setAssays(value, { newOrder = false } = {}) {
         return this.setAssays(value, { inPlace: true, newOrder });
     }
 
-    /**
-     * @param {string|number} i - Identity of the assay to add, either by name or index.
-     * - If `i` is a number, the assay at the specified index is replaced.
-     *   `i` should be non-negative and less than the number of assays.
-     * - If `i` is a string, any assay with the same name is replaced.
-     *   If no such assay exists, a new assay is appended to the list of assays.
-     * @param {*} value - Multi-dimensional array-like object to set/add as the assay.
-     *
-     * @return {SummarizedExperiment} A reference to this SummarizedExperiment with modified assays.
-     */
     $setAssay(i, value) {
         return this.setAssay(i, value, { inPlace: true });
     }
@@ -345,11 +319,6 @@ export class SummarizedExperiment extends ann.Annotated {
         return target;
     }
 
-    /**
-     * @param {Array} names - Array of strings containing the assay names.
-     * This should be of the same length as the number of assays and contain unique values.
-     * @return {SummarizedExperiment} A reference to this SummarizedExperiment with modified assay names.
-     */
     $setAssayNames(names) {
         return this.setAssayNames(names, { inPlace: true });
     }
@@ -374,11 +343,6 @@ export class SummarizedExperiment extends ann.Annotated {
         return target;
     }
 
-    /**
-     * @param {Array} i - Array of strings or indices specifying the assays to retain in the slice.
-     * This should refer to unique assay names.
-     * @return {SummarizedExperiment} A reference to this SummarizedExperiment with sliced assays.
-     */
     $sliceAssays(i) {
         return this.sliceAssays(i, { inPlace: true });
     }
@@ -407,11 +371,6 @@ export class SummarizedExperiment extends ann.Annotated {
         return target;
     }
 
-    /**
-     * @param {DataFrame} value - Data frame containing the row annotations.
-     * This should have one row for each row of this SummarizedExperiment.
-     * @return {SummarizedExperiment} A reference to this SummarizedExperiment with modified row data.
-     */
     $setRowData(value) {
         return this.setRowData(value, { inPlace: true });
     }
@@ -440,11 +399,6 @@ export class SummarizedExperiment extends ann.Annotated {
         return target;
     }
 
-    /**
-     * @param {DataFrame} value - Data frame containing the column annotations.
-     * This should have one row for each columns of this SummarizedExperiment.
-     * @return {SummarizedExperiment} A reference to this SummarizedExperiment with modified column data.
-     */
     $setColumnData(value) {
         return this.setColumnData(value, { inPlace: true });
     }
@@ -469,12 +423,6 @@ export class SummarizedExperiment extends ann.Annotated {
         return target;
     }
 
-    /**
-     * @param {Array} names - Array of strings of length equal to the number of rows in this SummarizedExperiment, containing row names.
-     * Alternatively `null`, to remove all row names.
-     *
-     * @return {SummarizedExperiment} A reference to this SummarizedExperiment with modified row names.
-     */
     $setRowNames(names) {
         return this.setRowNames(names, { inPlace: true });
     }
@@ -499,16 +447,6 @@ export class SummarizedExperiment extends ann.Annotated {
         return target;
     }
 
-    /**
-     * @param {Array} names - Array of strings of length equal to the number of columns in this SummarizedExperiment, containing column names.
-     * Alternatively `null`, to remove all column names.
-     * @param {Object} [options={}] - Optional parameters.
-     * @param {boolean} [options.inPlace=false] - Whether to mutate this SummarizedExperiment instance in place.
-     * If `false`, a new instance is returned.
-     *
-     * @return {SummarizedExperiment} The SummarizedExperiment with modified column names.
-     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
-     */
     $setColumnNames(names) {
         return this.setColumnNames(names, { inPlace: true });
     }

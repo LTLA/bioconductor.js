@@ -149,10 +149,6 @@ export class DataFrame extends ann.Annotated {
         return target;
     }
 
-    /**
-     * @param {string|number} i - Column to remove, either by name or index.
-     * @return {DataFrame} A reference to this DataFrame after removing the specified column.
-     */
     $removeColumn(i) {
         return this.removeColumn(i, { inPlace: true });
     }
@@ -181,16 +177,6 @@ export class DataFrame extends ann.Annotated {
         return target;
     }
 
-    /**
-     * @param {string|number} i - Identity of the column to add, either by name or index.
-     * - If `i` is a number, the column at the specified index is replaced.
-     *   `i` should be non-negative and less than the number of columns.
-     * - If `i` is a string, any column with the same name is replaced.
-     *   If no such column exists, a new column is appended to the DataFrame.
-     * @param {*} value - Array-like column to set/add as the column.
-     *
-     * @return {DataFrame} A reference to this DataFrame after adding/replacing the specified column.
-     */
     $setColumn(i, value) {
         return this.setColumn(i, value, { inPlace: true });
     }
@@ -211,11 +197,6 @@ export class DataFrame extends ann.Annotated {
         return target;
     }
 
-    /**
-     * @param {Array} names - Array of unique strings containing the new name for each column.
-     * This should have the same length as {@linkcode DataFrame#columnNames DataFrame.columnNames}.
-     * @return {DataFrame} A reference to this DataFrame with modified column names.
-     */
     $setColumnNames(names) {
         return this.setColumnNames(names, { inPlace: true });
     }
@@ -242,13 +223,6 @@ export class DataFrame extends ann.Annotated {
         return target;
     }
 
-    /**
-     * @param {?Array} names - Array of unique strings containing the new name for each row.
-     * This should have the same length as {@linkcode DataFrame#numberOfRows DataFrame.numberOfRows}.
-     *
-     * Alternatively, this may be `null` to remove any existing column names.
-     * @return {DataFrame} A reference to this DataFrame with modified row names.
-     */
     $setRowNames(names) {
         return this.setRowNames(names, { inPlace: true });
     }
@@ -269,16 +243,6 @@ export class DataFrame extends ann.Annotated {
         return target;
     }
 
-    /**
-     * @param {Array} i - Array of strings or indices specifying the columns to retain in the slice.
-     * This should refer to unique column names.
-     * @param {Object} [options={}] - Optional parameters.
-     * @param {boolean} [options.inPlace=false] - Whether to mutate this DataFrame instance in place.
-     * If `false`, a new instance is returned.
-     *
-     * @return {DataFrame} Reference to this DataFrame after slicing to the specified columns.
-     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
-     */
     $sliceColumns(i) {
         return this.sliceColumns(i, { inPlace: true });
     }

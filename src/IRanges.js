@@ -107,11 +107,6 @@ export class IRanges extends vec.Vector {
         return target;
     }
 
-    /**
-     * @param {Array|TypedArray} value - Array of start positions for each range.
-     * This should have length equal to the number of ranges and be coercible into an Int32Array.
-     * @return {IRanges} A reference to this IRanges object after setting the start positions to `value`.
-     */
     $setStart(value) {
         return this.setStart(value, { inPlace: true });
     }
@@ -138,11 +133,6 @@ export class IRanges extends vec.Vector {
         return target;
     }
 
-    /**
-     * @param {Array|TypedArray} value - Array of widths for each range.
-     * This should have length equal to the number of ranges and be coercible into an Int32Array.
-     * @return {IRanges} A reference to this IRanges object after setting the widths to `value`.
-     */
     $setWidth(value) {
         return this.setWidth(value, { inPlace: true });
     }

@@ -48,10 +48,6 @@ export class Annotated {
         return target;
     }
 
-    /**
-     * @param {Object} value - Object containing the metadata.
-     * @return {Annotated} A reference to this Annotated object.
-     */
     $setMetadata(value) {
         return this.setMetadata(value, { inPlace: true });
     }

@@ -91,11 +91,6 @@ export class RangedSummarizedExperiment extends se.SummarizedExperiment {
         return target;
     }
 
-    /**
-     * @param {GRanges} value - Genomic ranges corresponding to each row.
-     * This should have length equal to the number of rows in this RangedSummarizedExperiment.
-     * @return {RangedSummarizedExperiment} A reference to this RangedSummarizedExperiment after modifying its `rowRanges`.
-     */
     $setRowRanges(value) {
         return this.setRowRanges(value, { inPlace: true });
     }

@@ -169,10 +169,6 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
         return target;
     }
 
-    /**
-     * @param {string|number} i - Identity of the reduced dimension to remove, either by name or index.
-     * @return {SingleCellExperiment} A reference to this SingleCellExperiment after removing the specified assay.
-     */
     $removeReducedDimension(i) {
         return this.removeReducedDimension(i, { inPlace: true });
     }
@@ -200,16 +196,6 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
         return target;
     }
 
-    /**
-     * @param {string|number} i - Identity of the reduced dimension to add, either by name or index.
-     * - If `i` is a number, the reduced dimension at the specified index is replaced.
-     *   `i` should be non-negative and less than the number of reduced dimensions.
-     * - If `i` is a string, any reduced dimension with the same name is replaced.
-     *   If no such reduced dimension exists, a new reduced dimension is appended to the list of reduced dimensions.
-     * @param {*} value - Multi-dimensional array-like object to set/add as the reduced dimension.
-     *
-     * @return {SingleCellExperiment} A reference to this SingleCellExperiment with modified reduced dimensions.
-     */
     $setReducedDimension(i, value) {
         return this.setReducedDimension(i, value, { inPlace: true });
     }
@@ -234,11 +220,6 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
         return target;
     }
 
-    /**
-     * @param {Array} names - Array of strings containing the reduced dimension names.
-     * This should be of the same length as the number of reduced dimensions and contain unique values.
-     * @return {SingleCellExperiment} A reference to this SingleCellExperiment with modified reduced dimension names.
-     */
     $setReducedDimensionNames(names) {
         return this.setReducedDimensionNames(names, { inPlace: true });
     }
@@ -284,18 +265,6 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
         return target;
     }
 
-    /**
-     * @param {Object|Map} value - Object containing zero, one or more multi-dimensional array-like objects in the values.
-     * Each value should be a 2-dimensional object with number of rows equal to the number of columns in this SingleCellExperiment.
-     * Keys are reduced dimension names, each of which should be present in `order`.
-     * @param {Object} [options={}] - Optional parameters.
-     * @param {Array|boolean} [options.newOrder=false] - Whether to replace the order of reduced dimensions with the order of keys in `value`.
-     * If `false`, the existing order in {@linkcode SingleCellExperiment#reducedDimensionNames reducedDimensionNames} is used.
-     * If an array is provided, this is used as the order.
-     * If `null`, this has the same effect as `true`.
-     *
-     * @return {SingleCellExperiment} A reference to this SingleCellExperiment with the new reduced dimensions.
-     */
     $setReducedDimensions(value, { newOrder = false } = {}) {
         return this.setReducedDimensions(value, { inPlace: true, newOrder });
     }
@@ -320,11 +289,6 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
         return target;
     }
 
-    /**
-     * @param {Array} i - Array of strings or indices specifying the reduced dimensions to retain in the slice.
-     * This should refer to unique reduced dimension names.
-     * @return {SingleCellExperiment} A reference to this SingleCellExperiment with sliced reduced dimensions.
-     */
     $sliceReducedDimensions(i) {
         return this.sliceReducedDimensions(i, { inPlace: true });
     }
@@ -352,10 +316,6 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
         return target;
     }
 
-    /**
-     * @param {string|number} i - Identity of the reduced dimension to remove, either by name or index.
-     * @return {SingleCellExperiment} A reference to this SingleCellExperiment after removing the specified assay.
-     */
     $removeAlternativeExperiment(i) {
         return this.removeAlternativeExperiment(i, { inPlace: true });;
     }
@@ -383,16 +343,6 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
         return target;
     }
 
-    /**
-     * @param {string|number} i - Identity of the alternative experiment to add, either by name or index.
-     * - If `i` is a number, the alternative experiment at the specified index is replaced.
-     *   `i` should be non-negative and less than the number of alternative experiments.
-     * - If `i` is a string, any alternative experiment with the same name is replaced.
-     *   If no such alternative experiment exists, a new alternative experiment is appended to the list of alternative experiments.
-     * @param {SummarizedExperiment} value - A SummarizedExperiment to set/add as the alternative experiment.
-     *
-     * @return {SingleCellExperiment} A reference to this SingleCellExperiment with modified alternative experiments.
-     */
     $setAlternativeExperiment(i, value) {
         return this.setAlternativeExperiment(i, value, { inPlace: true });
     }
@@ -417,11 +367,6 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
         return target;
     }
 
-    /**
-     * @param {Array} names - Array of strings containing the alternative experiment names.
-     * This should be of the same length as the number of alternative experiments and contain unique values.
-     * @return {SingleCellExperiment} A reference to this SingleCellExperiment with modified alternative experiment names.
-     */
     $setAlternativeExperimentNames(names) {
         return this.setAlternativeExperimentNames(names, { inPlace: true });
     }
@@ -467,18 +412,6 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
         return target;
     }
 
-    /**
-     * @param {Object|Map} value - Object containing zero, one or more {@link SummarizedExperiment} objects in the values.
-     * Each value should have the same number of columns as this SingleCellExperiment.
-     * Keys are alternative experiment names, each of which should be present in `order`.
-     * @param {Object} [options={}] - Optional parameters.
-     * @param {Array|boolean} [options.newOrder=false] - Whether to replace the order of alternative experiments with the order of keys in `value`.
-     * If `false`, the existing order in {@linkcode SingleCellExperiment#alternativeExperimentNames alternativeExperimentNames} is used.
-     * If an array is provided, this is used as the order.
-     * If `null`, this has the same effect as `true`.
-     *
-     * @return {SingleCellExperiment} A reference to this SingleCellExperiment with the new alternative experiments.
-     */
     $setAlternativeExperiments(value, { newOrder = false } = {}) {
         return this.setAlternativeExperiments(value, { inPlace: true, newOrder });
     }
@@ -503,11 +436,6 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
         return target;
     }
 
-    /**
-     * @param {Array} i - Array of strings or indices specifying the alternative experiments to retain in the slice.
-     * This should refer to unique alternative experiment names.
-     * @return {SingleCellExperiment} A reference to this SingleCellExperiment with sliced alternative experiments.
-     */
     $sliceAlternativeExperiments(i) {
         return this.sliceAlternativeExperiments(i, { inPlace: true });
     }
@@ -526,10 +454,6 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
         return target;
     }
 
-    /**
-     * @return {?string} name - The name of the main experiment, possibly `null` if this is unnamed.
-     * @return {SingleCellExperiment} A reference to this SingleCellExperiment with a new main experiment name.
-     */
     $setMainExperimentName(name) {
         return this.setMainExperimentName(name, { inPlace: true });
     }

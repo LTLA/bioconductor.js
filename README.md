@@ -79,7 +79,7 @@ let old_location = genomic_results.column("location");
 let new_location = new bioc.GRanges(old_location.column("chromosome"),
     new bioc.IRanges(old_location.column("start"), old_location.column("width")),
     { strand: old_location.column("strand") });
-genomic_results.$setColumn("location", new_location);
+genomic_results.setColumn("location", new_location, { inPlace: true });
 
 subset = bioc.SLICE(genomic_results, { start: 2, end: 4 });
 subset.column("location");
@@ -120,11 +120,10 @@ let modified = results.setRowNames(null);
 
 For users who are very sure that they are only operating on a single instance of the object,
 or for those who wish to exploit pass-by-reference behavior to multiple multiple objects at once, 
-we can use mutating setters for slightly more efficiency.
-These are prefixed with `$` signs to indicate their potentially unexpected behavior.
+we can improve efficiency by requesting `inPlace: true` in the setter methods.
 
 ```js
-results.$setRowNames(null);
+results.setRowNames(null, { inPlace: true });
 another_reference.rowNames(); // this will now be null.
 ```
 
@@ -173,8 +172,8 @@ We can store per-range metadata in the `elementMetadata` field of each object, j
 
 ```js
 let meta = gr.elementMetadata();
-meta.$setColumn("symbol", [ "Nanog", "Snap25", "Malat1" ]);
-gr.$setElementMetadata(meta);
+meta.setColumn("symbol", [ "Nanog", "Snap25", "Malat1" ], { inPlace: true });
+gr.setElementMetadata(meta, { inPlace: true });
 gr.elementMetadata().columnNames();
 ```
 

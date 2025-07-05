@@ -141,11 +141,6 @@ export class DenseMatrix {
         return target;
     }
 
-    /**
-     * @param {TypedArray} values - 1-dimensional array of matrix contents,
-     * of the same length as the array returned by {@linkcode DenseMatrix#values values}.
-     * @return {DenseMatrix} A reference to this DenseMatrix after modifying the matrix contents.
-     */
     $setValues(values) {
         return this.setValues(values, { inPlace: true });
     }
@@ -188,11 +183,6 @@ export class DenseMatrix {
         return target;
     }
 
-    /**
-     * @param {number} i - Row index to set.
-     * @param {TypedArray} values - Row contents, of length equal to the number of columns in this DenseMatrix.
-     * @return {DenseMatrix} A reference to this DenseMatrix after modifying the matrix contents.
-     */
     $setRow(i, value) {
         return this.setRow(i, value, { inPlace: true });
     }
@@ -221,11 +211,6 @@ export class DenseMatrix {
         return target;
     }
 
-    /**
-     * @param {number} i - Column index to set.
-     * @param {TypedArray} values - Column contents, of length equal to the number of columns in this DenseMatrix.
-     * @return {DenseMatrix} A reference to this DenseMatrix after modifying the matrix contents.
-     */
     $setColumn(i, value) {
         return this.setColumn(i, value, { inPlace: true });
     }
