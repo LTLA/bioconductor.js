@@ -3,8 +3,9 @@ import * as cutils from "./clone-utils.js";
 import * as generics from "./AllGenerics.js";
 
 /**
- * An R-style list with optional names for elements.
- * Callers can access list elements by positional index or by name.
+ * An R-style list with optional names.
+ * Callers can get/set individual elements by positional index or name.
+ * Operations like slicing and combining will apply to both the values and names.
  *
  * The List defines methods for the following generics:
  *
@@ -12,6 +13,9 @@ import * as generics from "./AllGenerics.js";
  * - {@linkcode SLICE}
  * - {@linkcode COMBINE}
  * - {@linkcode CLONE}
+ *
+ * We explicitly allow duplicates in the names to avoid errors when slicing or combining.
+ * Otherwise, it would be impossible to construct a slice with duplicate indices or to combine multiple `List` instances with shared names.
  */
 export class List {
     _lookup;
@@ -19,10 +23,10 @@ export class List {
     _names;
 
     /**
-     * @param {Array|Map|Object} values - An array of list elements.
-     * For Maps or objects, the values (in order of iteration) are used as the list elements.
+     * @param {Array|Map|Object} values - Elements of the List.
+     * For Maps or objects, the values (in order of iteration) are used as the List elements.
      * @param {Object} [options={}] - Further options.
-     * @param {?Array} [options.names=null] - An array of strings containing the names of the list elements.
+     * @param {?Array} [options.names=null] - An array of strings containing the names of the List elements.
      * If provided, this should be of the same length as `values`.
      * If `values` is a Map or object, `names` should have the same keys.
      * If `values` is an array, the names may contain duplicate strings.
@@ -110,21 +114,21 @@ export class List {
     }
 
     /**
-     * @return {?Array} Array of names of the list elements, or `null` if the list is unnamed.
+     * @return {?Array} Array of names of the List elements, or `null` if the List is unnamed.
      */
     names() {
         return this._names;
     }
 
     /**
-     * @return {Array} Array containing the list elements.
+     * @return {Array} Array containing the List elements.
      */
     values() {
         return this._values;
     }
 
     /**
-     * @return {number} Length of the list. 
+     * @return {number} Length of the list.
      */
     length() {
         return this._values.length;
@@ -141,9 +145,9 @@ export class List {
     }
 
     /**
-     * @param {number} i - Index of the list to retrieve.
+     * @param {number} i - Index of the List element to retrieve.
      * This should be non-negative and less than {@linkcode List#length length}.
-     * @return The `i`-th list element.
+     * @return The `i`-th List element.
      */
     getByIndex(i) {
         this.#check_index(i);
@@ -174,9 +178,9 @@ export class List {
     }
 
     /**
-     * @param {string} name - Name of the list element to retrieve.
+     * @param {string} name - Name of the List element to retrieve.
      * This should be present in {@linkcode List#names names}.
-     * @return The list element corresponding to `name`.
+     * @return The List element corresponding to `name`.
      * If duplicates of `name` are present in the list, the first occurrence is returned.
      */
     getByName(name) {
@@ -188,9 +192,9 @@ export class List {
     }
 
     /**
-     * @param {string|number} i - Index or name of the list element to retrieve.
+     * @param {string|number} i - Index or name of the List element to retrieve.
      * Numbers are passed to {@linkcode List#getByIndex getByIndex} and strings are passed to {@linkcode List#getByName getByName}.
-     * @return The list element at/for `i`.
+     * @return The List element at/for `i`.
      */
     get(i) {
         if (typeof i == "number") {
@@ -201,7 +205,7 @@ export class List {
     }
 
     /**
-     * @param {string} name - Name of a list element.
+     * @param {string} name - Name of a List element.
      * @return {number} Index of the name in {@linkcode List#names names}.
      * If duplicate names are present, the first occurrence is returned.
      */
@@ -212,15 +216,16 @@ export class List {
     /***********************************************/
 
     /**
-     * @param {number} i - Index of the list element to set.
+     * @param {number} i - Index of the List element to set.
      * This should be non-negative and no greater than {@linkcode List#length length}.
      * If `i` is less than `length`, the `i`-th element is replaced by `x`.
      * If `i` is equal to `length`, `x` is appended to the end of the list.
-     * @param {*} x - Replacement value for the list element.
+     * @param {*} x - Value of a List element.
      * @param {Object} [options={}] - Further options.
-     * @param {?string} [options.name=null] - Name for the list element at `i`.
+     * @param {?string} [options.name=null] - Name for the List element at `i`.
      * If `i` is less than `length`, the name of the `i`-th element is replaced by `name`.
      * If `i` is equal to `length`, the name of the newly-appended element is set to `name`.
+     * If the List did not previously have any names, the names of all other elements are set to an empty string.
      * @param {boolean} [options.inPlace=false] - Whether to modify this List instance in place.
      * If `false`, a new instance is returned.
      *
@@ -274,10 +279,11 @@ export class List {
     }
 
     /**
-     * @param {number} name - Name of the list element to set.
+     * @param {number} name - Name of the List element to set.
      * If this already exists in {@linkcode List#names names}, the corresponding element is replaced by `x`.
      * Otherwise, `x` is appended to the List with the name `name`.
-     * @param {*} x - Replacement value for the list element.
+     * If the List did not previously have any names, the names of all other elements are set to an empty string.
+     * @param {*} x - Value of a List element.
      * @param {Object} [options={}] - Further options.
      * @param {boolean} [options.inPlace=false] - Whether to modify this List instance in place.
      * If `false`, a new instance is returned.
@@ -314,7 +320,7 @@ export class List {
     /**
      * @param {string|number} i - Index or name of the list element to set.
      * Numbers are passed to {@linkcode List#setByIndex setByIndex} and strings are passed to {@linkcode List#setByName setByName}.
-     * @param {*} x - Replacement value for the list element.
+     * @param {*} x - Value of a List element.
      * @param {Object} [options={}] - Further options.
      * @param {?string} [options.name=null] - See the argument of the same name in {@linkcode List#setByName setByName}.
      * Only used if `i` is a number.
@@ -368,7 +374,7 @@ export class List {
     /***********************************************/
 
     /**
-     * @param {number} i - Index of the list element to delete.
+     * @param {number} i - Index of the List element to delete.
      * This should be non-negative and no less than {@linkcode List#length length}.
      * @param {Object} [options={}] - Further options.
      * @param {?string} [options.name=null] - See the argument of the same name in {@linkcode List#setByName setByName}.
@@ -400,7 +406,7 @@ export class List {
     }
 
     /**
-     * @param {number} name - Name of the list element to delete.
+     * @param {number} name - Name of the List element to delete.
      * This should already exist in {@linkcode List#names names}.
      * @param {?string} [options.name=null] - See the argument of the same name in {@linkcode List#setByName setByName}.
      * @param {boolean} [options.inPlace=false] - Whether to modify this List instance in place.
@@ -445,13 +451,13 @@ export class List {
     }
 
     /**
-     * @param {string|number} i - Index or name of the list element to delete.
+     * @param {string|number} i - Index or name of the List element to delete.
      * Numbers are passed to {@linkcode List#deleteByIndex deleteByIndex} and strings are passed to {@linkcode List#deleteByName deleteByName}.
      * @param {Object} [options={}] - Further options.
      * @param {boolean} [options.inPlace=false] - Whether to modify this List instance in place.
      * If `false`, a new instance is returned.
      *
-     * @return {List} The List after deleting the `i`-th element. 
+     * @return {List} The List after deleting the `i`-th element.
      * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
      */
     delete(i, { inPlace = false } = {}) {
@@ -464,6 +470,16 @@ export class List {
 
     /***********************************************/
 
+    /**
+     * @param {number} start - Index of the first element in the slice.
+     * @param {number} end - Index past the last element in the slice.
+     * @param {Object} [options={}] - Further options.
+     * @param {boolean} [options.inPlace=false] - Whether to modify this List instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {List} A List that is sliced to `[start, end)`.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
+     */
     sliceRange(start, end, { inPlace = false } = {}) {
         let target = cutils.setterTarget(this, inPlace);
 
@@ -478,6 +494,16 @@ export class List {
         return target;
     }
 
+    /**
+     * @param {Array} indices - Array of numbers or strings specifying the List elements to retain in the slice.
+     * Numbers are interpreted as positional indices while strings are interpreted as names.
+     * @param {Object} [options={}] - Further options.
+     * @param {boolean} [options.inPlace=false] - Whether to modify this List instance in place.
+     * If `false`, a new instance is returned.
+     *
+     * @return {List} A List containing the specified elements in `indices`.
+     * If `inPlace = true`, this is a reference to the current instance, otherwise a new instance is created and returned.
+     */
     sliceIndices(indices, { inPlace = false } = {}) {
         let new_names = [];
         let new_values = [];
