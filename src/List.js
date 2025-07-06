@@ -84,7 +84,8 @@ class IndexedNames {
         return target;
     }
 
-    _bioconductor_CLONE(output, { deepCopy = true }) {
+    _bioconductor_CLONE({ deepCopy = true }) {
+        let output = new this.constructor;
         output._names = this._names;
         output._lookup = this._lookup;
         return output;
@@ -105,6 +106,8 @@ class IndexedNames {
  *
  * We explicitly allow duplicates in the names to avoid errors when slicing or combining.
  * Otherwise, it would be impossible to construct a slice with duplicate indices or to combine multiple `List` instances with shared names.
+ *
+ * Constructors of List subclasses should create an empty instance of the subclass when called with no arguments.
  */
 export class List {
     /**
@@ -604,22 +607,27 @@ export class List {
         return this.length();
     }
 
-    _bioconductor_SLICE(output, i, { allowView = false }) {
+    _bioconductor_SLICE(i, { allowView = false }) {
         let sliced = this.sliceIndices(i);
+        let output = new this.constructor;
         output._values = sliced._values;
         output._names = sliced._names;
         return output;
     }
 
-    _bioconductor_CLONE(output, { deepCopy = true }) {
+    _bioconductor_CLONE({ deepCopy = true }) {
+        let output = new this.constructor;
         output._values = cutils.cloneField(this._values, deepCopy);
         output._names = cutils.cloneField(this._names, deepCopy);
-        return;
+        return output;
     }
 
-    _bioconductor_COMBINE(output, objects) {
-        let all_values = [];
+    _bioconductor_COMBINE(objects) {
+        let all_values = this._values.slice();
         let all_names = null;
+        if (this._names !== null) {
+            all_names = this.names().slice();
+        }
 
         for (let x of objects) {
             if (!(x instanceof List)) {
@@ -648,8 +656,9 @@ export class List {
             }
         }
 
+        let output = new this.constructor;
         output._values = all_values;
         output._names = new IndexedNames(all_names);
-        return;
+        return output;
     }
 }

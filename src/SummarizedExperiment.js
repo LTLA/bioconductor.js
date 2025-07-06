@@ -463,7 +463,8 @@ export class SummarizedExperiment extends ann.Annotated {
         return this.numberOfColumns();
     }
 
-    _bioconductor_SLICE_2D(output, rows, columns, { allowView = false }) {
+    _bioconductor_SLICE_2D(rows, columns, { allowView = false }) {
+        let output = new this.constructor;
         output._assays = this._assays.apply(v => generics.SLICE_2D(v, rows, columns, { allowView }));
 
         if (rows !== null) {
@@ -483,41 +484,57 @@ export class SummarizedExperiment extends ann.Annotated {
         }
 
         output._metadata = this._metadata;
-        return;
+        return output;
     }
 
-    _bioconductor_COMBINE_ROWS(output, objects) {
-        output._assays = il.InternalList.parallelCombine(objects.map(x => x._assays), generics.COMBINE_ROWS);
+    _bioconductor_COMBINE_ROWS(objects) {
+        let all_assays = [this._assays];
+        let all_dfs = [this._rowData];
+        let all_n = [this._rowNames];
+        let all_l = [this.numberOfRows()];
+        for (const x of objects) {
+            all_assays.push(x._assays);
+            all_dfs.push(x._rowData);
+            all_n.push(x._rowNames);
+            all_l.push(x.numberOfRows());
+        }
 
-        let all_dfs = objects.map(x => x._rowData);
+        let output = new this.constructor;
+        output._assays = il.InternalList.parallelCombine(all_assays, generics.COMBINE_ROWS);
         output._rowData = generics.COMBINE(all_dfs);
-
-        let all_n = objects.map(x => x._rowNames);
-        let all_l = objects.map(x => x.numberOfRows());
         output._rowNames = utils.combineNames(all_n, all_l);
 
         output._columnData = this._columnData;
         output._columnNames = this._columnNames;
         output._metadata = this._metadata;
+        return output;
     }
 
-    _bioconductor_COMBINE_COLUMNS(output, objects) {
-        output._assays = il.InternalList.parallelCombine(objects.map(x => x._assays), generics.COMBINE_COLUMNS);
+    _bioconductor_COMBINE_COLUMNS(objects) {
+        let all_assays = [this._assays];
+        let all_dfs = [this._columnData];
+        let all_n = [this._columnNames];
+        let all_l = [this.numberOfColumns()];
+        for (const x of objects) {
+            all_assays.push(x._assays);
+            all_dfs.push(x._columnData);
+            all_n.push(x._columnNames);
+            all_l.push(x.numberOfColumns());
+        }
 
-        let all_dfs = objects.map(x => x._columnData);
+        let output = new this.constructor;
+        output._assays = il.InternalList.parallelCombine(all_assays, generics.COMBINE_COLUMNS);
         output._columnData = generics.COMBINE(all_dfs);
-
-        let all_n = objects.map(x => x._columnNames);
-        let all_l = objects.map(x => x.numberOfColumns());
         output._columnNames = utils.combineNames(all_n, all_l);
 
         output._rowData = this._rowData;
         output._rowNames = this._rowNames;
         output._metadata = this._metadata;
+        return output;
     }
 
-    _bioconductor_CLONE(output, { deepCopy = true }) {
-        super._bioconductor_CLONE(output, { deepCopy });
+    _bioconductor_CLONE({ deepCopy = true }) {
+        let output = super._bioconductor_CLONE({ deepCopy });
 
         output._assays = cutils.cloneField(this._assays, deepCopy);
         output._rowData = cutils.cloneField(this._rowData, deepCopy);
@@ -525,6 +542,6 @@ export class SummarizedExperiment extends ann.Annotated {
 
         output._columnData = cutils.cloneField(this._columnData, deepCopy);
         output._columnNames = cutils.cloneField(this._columnNames, deepCopy);
-        return;
+        return output;
     }
 }

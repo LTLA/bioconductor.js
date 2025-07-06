@@ -6,7 +6,7 @@ import * as misc from "./miscellaneous.js";
  *
  * For Array and TypedArrays, this just returns the `length` property directly.
  *
- * Custom classes should provide a `_bioconductor_LENGTH` method to describe their length.
+ * Custom classes should implement a `_bioconductor_LENGTH` method to return their length via this generic.
  * This method should accept no arguments. 
  *
  * @param {*} x - Some vector-like object.
@@ -29,8 +29,8 @@ export function LENGTH(x) {
  *
  * For Array and TypedArrays, this just uses `slice()` or `subarray()`.
  *
- * Custom classes should provide a `_bioconductor_SLICE` method to create a slice.
- * This method should accept the same arguments as `SLICE` except for `x`.
+ * Custom classes should implement a `_bioconductor_SLICE` method to create a slice via this generic.
+ * This method should accept `i` and `options`, and return a appropriately sliced instance of the same class as `x`.
  *
  * @param {*} x - Some vector-like object.
  * @param {Object|Array|TypedArray} i - An Array or TypedArray of integer indices specifying the slice of `x` to retain.
@@ -40,15 +40,13 @@ export function LENGTH(x) {
  * @param {boolean} [options.allowView=false] - Whether a view can be created to mimic the slice operation.
  * Whether this is actually done depends on the method, but may improve efficiency by avoiding unnecessary copies.
  *
- * @return {*} A vector-like object, typically of the same class as `x`, containing data for the specified slice.
+ * @return {*} A vector-like object of the same class as `x`, containing data for the specified slice.
  *
  * If `allowInPlace = true`, `x` _may_ be modified in place, and the return value _may_ be a reference to `x`. 
  */
 export function SLICE(x, i, { allowView = false } = {}) {
     if ("_bioconductor_SLICE" in x) {
-        let output = new x.constructor;
-        x._bioconductor_SLICE(output, i, { allowView });
-        return output;
+        return x._bioconductor_SLICE(i, { allowView });
     }
 
     if (!utils.isArrayLike(x)) {
@@ -75,8 +73,9 @@ export function SLICE(x, i, { allowView = false } = {}) {
  *
  * For Array and TypedArrays, the combined array is of a class that avoids information loss.
  *
- * Custom classes should provide a `_bioconductor_COMBINE` method to define the combining operation.
- * This method should accept the same arguments as `COMBINE`.
+ * Custom classes should implement a `_bioconductor_COMBINE` method to combine objects via this generic. 
+ * This method will be invoked from the first instance of `objects` and should accept an array of remaining objects (i.e., `objects.slice(1)`) to be combined to the first instance. 
+ * It return an appropriately-combined instance of the same class as the first instance.
  *
  * @param {Array} objects - Array of vector-like objects to be combined.
  * It is assumed that the objects are of the same class, or at least compatible with each other -
@@ -92,9 +91,7 @@ export function SLICE(x, i, { allowView = false } = {}) {
 export function COMBINE(objects) {
     let x = objects[0];
     if ("_bioconductor_COMBINE" in x) {
-        let output = new x.constructor;
-        x._bioconductor_COMBINE(output, objects);
-        return output;
+        return x._bioconductor_COMBINE(objects.slice(1));
     }
 
     if (!utils.isArrayLike(x)) {
@@ -134,13 +131,12 @@ export function COMBINE(objects) {
  * For Arrays, this creates a copy and runs `CLONE` on each element in the copy.
  *
  * Custom classes should provide a `_bioconductor_CLONE` method to define the cloning operation.
- * This method should accept the same arguments as `COMBINE` except for `x`.
+ * This method should accept `options` and should return an appropriately cloned instance of the same class as `x`.
  *
  * @param {*} x - Some vector-like object.
  * @param {Object} [options={}] - Optional parameters.
  * @param {boolean} [options.deepCopy=true] - Whether to create a deep copy.
- * The exact interpretation of `deepCopy=false` is left to each method, but generally speaking, 
- * any setter (`$`-marked) functions operating on the copy should not alter `x`.
+ * The exact interpretation of `deepCopy=false` is left to each method.
  *
  * @return {*} A clone of `x`, i.e., the return value and `x` should not compare equal.
  * If `deepCopy=true`, all internal components are also cloned.
@@ -149,9 +145,7 @@ export function CLONE(x, { deepCopy = true } = {}) {
     if (x instanceof Object) {
         let options = { deepCopy };
         if ("_bioconductor_CLONE" in x) {
-            let output = new x.constructor;
-            x._bioconductor_CLONE(output, options);
-            return output;
+            return x._bioconductor_CLONE(options);
         }
 
         if (utils.isArrayLike(x)) {
@@ -202,8 +196,9 @@ export function CLONE(x, { deepCopy = true } = {}) {
 
 /**
  * Split a vector-like object along its length according to the levels of a factor of the same length.
- * This works automatically for all classes for which there is a {@linkcode SLICE} method,
- * but custom classes may also choose to define their own `_bioconductor_SPLIT` method. 
+ * This works automatically for all classes for which there is a {@linkcode SLICE} method.
+ * Custom classes may also choose to define their own `_bioconductor_SPLIT` method,
+ * which should accept `factor` and return an array of sliced instances of the same class as `x`.
  *
  * @param {*} x - Some vector-like object.
  * @param {Array|TypedArray} factor - Array containing the factor to use for splitting.
@@ -233,7 +228,7 @@ export function SPLIT(x, factor) {
 
 /**
  * Return the number of rows for a two-dimensional object.
- * Custom classes should provide a `_bioconductor_NUMBER_OF_ROWS` method, accepting no arguments.
+ * Custom classes should implement a `_bioconductor_NUMBER_OF_ROWS` method, accepting no arguments.
  *
  * @param {*} x - Some two-dimensional object.
  * @return {number} Number of rows.
@@ -247,7 +242,7 @@ export function NUMBER_OF_ROWS(x) {
 
 /**
  * Return the number of columns for a two-dimensional object.
- * Custom classes should provide a `_bioconductor_NUMBER_OF_COLUMNS` method, accepting no arguments.
+ * Custom classes should implement a `_bioconductor_NUMBER_OF_COLUMNS` method, accepting no arguments.
  *
  * @param {*} x - Some two-dimensional object.
  * @return {number} Number of columns.
@@ -262,8 +257,8 @@ export function NUMBER_OF_COLUMNS(x) {
 /**
  * Slice a two-dimensional object by its rows and/or columns.
  *
- * Custom classes should provide a `_bioconductor_SLICE_2D` method, accepting the same arguments as this generic but with `x` replaced by an "empty" instance of the same class.
- * Each method should then fill the empty instance with the sliced contents of `x`.
+ * Custom classes should implement a `_bioconductor_SLICE_2D` method to slice rows/columns via this generic.
+ * This method should accept `rows`, `columns` and `options`, and should return a sliced instance of the same class as `x`.
  *
  * @param {*} x - Some two-dimensional object.
  * @param {?(Object|Array|TypedArray)} rows - An Array or TypedArray of integer indices specifying the row-wise slice of `x` to retain.
@@ -286,53 +281,47 @@ export function SLICE_2D(x, rows, columns, { allowView = false } = {}) {
     if (!("_bioconductor_SLICE_2D" in x)) {
         throw new Error("no 'SLICE_2D' method available for '" + x.constructor.name + "' instance");
     }
-    let output = new x.constructor;
-    x._bioconductor_SLICE_2D(output, rows, columns, { allowView });
-    return output;
+    return x._bioconductor_SLICE_2D(rows, columns, { allowView });
 }
 
 /**
  * Combine multiple two-dimensional objects by row.
- * Custom classes should provide a `_bioconductor_COMBINE_ROWS` method to define the combining operation.
- * This method should accept:
- * - an "empty" instance of the class of the first object, to be populated with data.
- * - an array of objects to be combined, like `objects`.
+ *
+ * Custom classes should implement a `_bioconductor_COMBINE_ROWS` method to combine objects via this generic.
+ * This method will be invoked from the first instance of `objects` and should accept an array of remaining objects (i.e., `objects.slice(1)`) to be combined to the first instance. 
+ * It return an appropriately-combined instance of the same class as the first instance.
  *
  * @param {Array} objects - Array of two-dimensional objects to be combined by row.
  * It is assumed that the objects are of the same class, or at least compatible with each other -
  * for custom classes, the definition of "compatibility" depends on the `_bioconductor_COMBINE_ROWS` method of the first element of `objects`.
  *
- * @return {*} A two-dimensional object containing the row-wise concatenated data from the input objects, typically of the same class as the first entry of `objects`.
+ * @return {*} A two-dimensional object of the same class as the first entry of `objects`, ontaining the row-wise concatenated data from all `objects`.
  */
 export function COMBINE_ROWS(objects) {
     let x = objects[0];
     if (!("_bioconductor_COMBINE_ROWS" in x)) {
         throw new Error("no 'COMBINE_ROWS' method available for '" + x.constructor.name + "' instance");
     }
-    let output = new x.constructor;
-    x._bioconductor_COMBINE_ROWS(output, objects);
-    return output;
+    return x._bioconductor_COMBINE_ROWS(objects.slice(1));
 }
 
 /**
  * Combine multiple two-dimensional objects by column.
- * Custom classes should provide a `_bioconductor_COMBINE_COLUMNS` method to define the combining operation.
- * This method should accept:
- * - an "empty" instance of the class of the first object, to be populated with data.
- * - an array of objects to be combined, like `objects`.
+ *
+ * Custom classes should implement a `_bioconductor_COMBINE_COLUMNS` method to combine objects via this generic.
+ * This method will be invoked from the first instance of `objects` and should accept an array of remaining objects (i.e., `objects.slice(1)`) to be combined to the first instance. 
+ * It return an appropriately-combined instance of the same class as the first instance.
  *
  * @param {Array} objects - Array of two-dimensional objects to be combined by column.
  * It is assumed that the objects are of the same class, or at least compatible with each other -
  * for custom classes, the definition of "compatibility" depends on the `_bioconductor_COMBINE_COLUMNS` method of the first element of `objects`.
  *
- * @return {*} A two-dimensional object containing the column-wise concatenated data from the input objects, typically of the same class as the first entry of `objects`.
+ * @return {*} A two-dimensional object of the same class as the first entry of `objects`, ontaining the column-wise concatenated data from all `objects`.
  */
 export function COMBINE_COLUMNS(objects) {
     let x = objects[0];
     if (!("_bioconductor_COMBINE_COLUMNS" in x)) {
         throw new Error("no 'COMBINE_COLUMNS' method available for '" + x.constructor.name + "' instance");
     }
-    let output = new x.constructor;
-    x._bioconductor_COMBINE_COLUMNS(output, objects);
-    return output;
+    return x._bioconductor_COMBINE_COLUMNS(objects.slice(1));
 }

@@ -261,20 +261,20 @@ export class GRanges extends vec.Vector {
         return this._seqnames.length;
     }
 
-    _bioconductor_SLICE(output, i, { allowView = false }) {
-        super._bioconductor_SLICE(output, i, { allowView });
+    _bioconductor_SLICE(i, { allowView = false }) {
+        let output = super._bioconductor_SLICE(i, { allowView });
         output._seqnames = generics.SLICE(this._seqnames, i, { allowView });
         output._ranges = generics.SLICE(this._ranges, i, { allowView });
         output._strand = generics.SLICE(this._strand, i, { allowView });
-        return;
+        return output;
     }
 
-    _bioconductor_COMBINE(output, objects) {
-        super._bioconductor_COMBINE(output, objects);
+    _bioconductor_COMBINE(objects) {
+        let output = super._bioconductor_COMBINE(objects);
 
-        let all_sn = [];
-        let all_rr = [];
-        let all_st = [];
+        let all_sn = [this._seqnames];
+        let all_rr = [this._ranges];
+        let all_st = [this._strand];
         for (const x of objects) {
             all_sn.push(x._seqnames);
             all_rr.push(x._ranges);
@@ -284,15 +284,15 @@ export class GRanges extends vec.Vector {
         output._seqnames = generics.COMBINE(all_sn);
         output._ranges = generics.COMBINE(all_rr);
         output._strand = generics.COMBINE(all_st);
-        return;
+        return output;
     }
 
-    _bioconductor_CLONE(output, { deepCopy = true }) {
-        super._bioconductor_CLONE(output, { deepCopy });
+    _bioconductor_CLONE({ deepCopy = true }) {
+        let output = super._bioconductor_CLONE({ deepCopy });
         output._seqnames = cutils.cloneField(this._seqnames, deepCopy);
         output._ranges = cutils.cloneField(this._ranges, deepCopy);
         output._strand = cutils.cloneField(this._strand, deepCopy);
-        return;
+        return output;
     }
 
     /**************************************************************************

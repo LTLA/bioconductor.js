@@ -120,17 +120,18 @@ export class Vector extends ann.Annotated {
      **************************************************************************
      **************************************************************************/
 
-    _bioconductor_SLICE(output, i, { allowView = false }) {
+    _bioconductor_SLICE(i, { allowView = false }) {
+        let output = new this.constructor;
         output._elementMetadata = generics.SLICE(this._elementMetadata, i, { allowView });
         output._names = (this._names === null ? null : generics.SLICE(this._names, i, { allowView }));
         output._metadata = this._metadata;
-        return;
+        return output;
     }
 
-    _bioconductor_COMBINE(output, objects) {
-        let all_em = [];
-        let all_n = [];
-        let all_l = [];
+    _bioconductor_COMBINE(objects) {
+        let all_em = [this._elementMetadata];
+        let all_n = [this._names];
+        let all_l = [generics.LENGTH(this)];
 
         for (const x of objects) {
             all_em.push(x._elementMetadata);
@@ -138,15 +139,16 @@ export class Vector extends ann.Annotated {
             all_l.push(generics.LENGTH(x));
         }
 
+        let output = new this.constructor;
         output._elementMetadata = generics.COMBINE(all_em);
         output._names = utils.combineNames(all_n, all_l);
-        return;
+        return output;
     }
 
-    _bioconductor_CLONE(output, { deepCopy = true }) {
-        super._bioconductor_CLONE(output, { deepCopy });
+    _bioconductor_CLONE({ deepCopy = true }) {
+        let output = super._bioconductor_CLONE({ deepCopy });
         output._elementMetadata = cutils.cloneField(this._elementMetadata, deepCopy);
         output._names = cutils.cloneField(this._names, deepCopy);
-        return;
+        return output;
     }
 }

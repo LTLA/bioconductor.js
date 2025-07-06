@@ -255,7 +255,7 @@ export class DataFrame extends ann.Annotated {
         return this.numberOfRows();
     }
 
-    _bioconductor_SLICE(output, i, { allowView = false }) {
+    _bioconductor_SLICE(i, { allowView = false }) {
         let options = { allowView };
 
         let new_columns = this._columns.apply(v => generics.SLICE(v, i, options));
@@ -268,39 +268,43 @@ export class DataFrame extends ann.Annotated {
             new_numberOfRows = i.length;
         }
 
+        let output = new this.constructor;
         output._rowNames = new_rowNames;
         output._columns = new_columns;
         output._numberOfRows = new_numberOfRows;
         output._metadata = this._metadata;
-        return; 
+        return output;
     }
 
-    _bioconductor_COMBINE(output, objects) {
-        let new_columns = il.InternalList.parallelCombine(objects.map(x => x._columns), generics.COMBINE);
+    _bioconductor_COMBINE(objects) {
+        let all_c = [this._columns];
+        let all_n = [this._rowNames];
+        let all_l = [this._numberOfRows];
 
-        let all_n = [];
-        let all_l = [];
         for (const yi of objects) {
-            all_n.push(yi.rowNames());
-            all_l.push(yi.numberOfRows());
+            all_c.push(yi._columns);
+            all_n.push(yi._rowNames);
+            all_l.push(yi._numberOfRows);
         }
 
         let new_numberOfRows = utils.sum(all_l);
         let new_rowNames = utils.combineNames(all_n, all_l, new_numberOfRows);
+        let new_columns = il.InternalList.parallelCombine(all_c, generics.COMBINE);
 
+        let output = new this.constructor;
         output._rowNames = new_rowNames;
         output._columns = new_columns;
         output._numberOfRows = new_numberOfRows;
         output._metadata = this._metadata;
-        return;
+        return output;
     }
 
-    _bioconductor_CLONE(output, { deepCopy = true }) {
-        super._bioconductor_CLONE(output, { deepCopy });
+    _bioconductor_CLONE({ deepCopy = true }) {
+        let output = super._bioconductor_CLONE({ deepCopy });
         output._columns = cutils.cloneField(this._columns, deepCopy);
         output._rowNames = cutils.cloneField(this._rowNames, deepCopy);
         output._numberOfRows = this._numberOfRows;
-        return;
+        return output;
     }
 };
 

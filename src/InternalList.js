@@ -189,10 +189,11 @@ export class InternalList {
      **************************************************************************
      **************************************************************************/
 
-    _bioconductor_CLONE(output, { deepCopy = true } = {}) {
+    _bioconductor_CLONE({ deepCopy = true } = {}) {
+        let output = new this.constructor;
         output._entries = (deepCopy ? generics.CLONE(this._entries) : this._entries);
         output._order = (deepCopy ? generics.CLONE(this._order) : this._order);
-        return;
+        return output;
     }
 
     /**************************************************************************

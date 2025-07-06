@@ -289,8 +289,8 @@ export class GroupedGRanges extends vec.Vector {
         return this._rangeStarts.length;
     }
 
-    _bioconductor_SLICE(output, i, { allowView = false } = {}) {
-        super._bioconductor_SLICE(output, i, { allowView });
+    _bioconductor_SLICE(i, { allowView = false } = {}) {
+        let output = super._bioconductor_SLICE(i, { allowView });
         this.#flush_staged_setGroup();
 
         output._rangeLengths = generics.SLICE(this._rangeLengths, i, { allowView });
@@ -317,34 +317,41 @@ export class GroupedGRanges extends vec.Vector {
             output._ranges = generics.SLICE(this._ranges, keep, { allowView });
         }
 
-        return;
+        return output;
     }
 
-    _bioconductor_COMBINE(output, objects) {
-        super._bioconductor_COMBINE(output, objects);
-
+    _bioconductor_COMBINE(objects) {
         // We need to flush the staged operations in each object.
-        for (const o of objects) {
-            o.#flush_staged_setGroup();
+        this.#flush_staged_setGroup();
+        for (const x of objects) {
+            x.#flush_staged_setGroup();
         }
 
-        output._rangeLengths = generics.COMBINE(objects.map(x => x.rangeLengths()));
+        let all_rl = [this._rangeLengths];
+        let all_ranges = [this._ranges];
+        for (const x of objects) {
+            all_rl.push(x._rangeLengths);
+            all_ranges.push(x._ranges);
+        }
+
+        let output = super._bioconductor_COMBINE(objects);
+        output._rangeLengths = generics.COMBINE(all_rl);
         let accumulated = GroupedGRanges.#computeStarts(output._rangeLengths);
         output._rangeStarts = accumulated.starts;
-        output._ranges = generics.COMBINE(objects.map(x => x._ranges));
+        output._ranges = generics.COMBINE(all_ranges);
 
-        return;
+        return output;
     }
 
-    _bioconductor_CLONE(output, { deepCopy = true }) {
-        super._bioconductor_CLONE(output, { deepCopy });
+    _bioconductor_CLONE({ deepCopy = true }) {
+        let output = super._bioconductor_CLONE({ deepCopy });
 
         output.#staged_setGroup = cutils.cloneField(this.#staged_setGroup, deepCopy);
         output._rangeLengths = cutils.cloneField(this._rangeLengths, deepCopy);
         output._rangeStarts = cutils.cloneField(this._rangeStarts, deepCopy);
         output._ranges = cutils.cloneField(this._ranges, deepCopy);
 
-        return;
+        return output;
     }
 
     /**************************************************************************

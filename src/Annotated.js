@@ -5,6 +5,8 @@ import * as utils from "./utils.js";
 /**
  * The Annotated class provides a store for arbitrary object-wide metadata.
  * It is intended as a base class for other structures and should not be constructed directly.
+ *
+ * Constructors of Annotated subclasses should create an empty instance of the subclass when called with no arguments.
  */
 export class Annotated {
     /**
@@ -56,8 +58,9 @@ export class Annotated {
      **************************************************************************
      **************************************************************************/
 
-    _bioconductor_CLONE(output, { deepCopy = true }) {
+    _bioconductor_CLONE({ deepCopy = true }) {
+        let output = new this.constructor;
         output._metadata = cutils.cloneField(this._metadata, deepCopy);
-        return;
+        return output;
     }
 }

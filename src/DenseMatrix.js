@@ -10,6 +10,8 @@ import * as cutils from "./clone-utils.js";
  * - {@linkcode COMBINE_ROWS}
  * - {@linkcode COMBINE_COLUMNS}
  * - {@linkcode CLONE}
+ *
+ * Constructors of DenseMatrix subclasses should create an empty instance of the subclass when called with no arguments.
  */
 export class DenseMatrix {
     /**
@@ -227,7 +229,9 @@ export class DenseMatrix {
         return this.numberOfColumns();
     }
 
-    _bioconductor_SLICE_2D(output, rows, columns, {}) {
+    _bioconductor_SLICE_2D(rows, columns, {}) {
+        let output = new this.constructor;
+
         let full_rows = (rows === null);
         let is_row_range = (!full_rows && rows.constructor == Object);
         let new_rows = full_rows ? this._numberOfRows : (is_row_range ? rows.end - rows.start : rows.length);
@@ -247,7 +251,7 @@ export class DenseMatrix {
             this.#primarySlicer(rows, full_rows, is_row_range, this._numberOfRows, columns, full_columns, is_column_range, this._numberOfColumns, new_columns, new_values);
         }
         output._columnMajor = this._columnMajor;
-        return;
+        return output;
     }
 
     #primarySlicer(primarySlice, fullPrimary, isPrimaryRange, primaryDim, secondarySlice, fullSecondary, isSecondaryRange, inSecondaryDim, outSecondaryDim, outputValues) {
@@ -285,22 +289,22 @@ export class DenseMatrix {
     }
 
     _combiner(objects, primaryFun, secondaryFun, isPrimaryMajor, secondaryName) {
-        let num_primary = primaryFun(objects[0]);
-        let num_secondary = secondaryFun(objects[0]);
-        for (var i = 1; i < objects.length; i++) {
-            if (secondaryFun(objects[i]) !== num_secondary) {
+        let num_primary = primaryFun(this);
+        let num_secondary = secondaryFun(this);
+        for (const x of objects) {
+            if (secondaryFun(x) !== num_secondary) {
                 throw new Error("all objects must have the same number of " + secondaryName);
             }
-            num_primary += primaryFun(objects[i]);
+            num_primary += primaryFun(x);
         }
 
-        let primary_major = isPrimaryMajor(objects[0]);
-        let values = new objects[0]._values.constructor(num_primary * num_secondary);
+        let primary_major = isPrimaryMajor(this);
+        let values = new this._values.constructor(num_primary * num_secondary);
 
         if (primary_major) {
             let used_primary = 0;
-            for (var i = 0; i < objects.length; i++) {
-                let current = objects[i];
+            for (var i = 0; i <= objects.length; i++) {
+                let current = (i == 0 ? this : objects[i - 1]);
                 let cur_primary = primaryFun(current);
                 let out_offset = used_primary * num_secondary;
 
@@ -320,8 +324,8 @@ export class DenseMatrix {
             }
         } else {
             let used_primary = 0;
-            for (var i = 0; i < objects.length; i++) {
-                let current = objects[i];
+            for (var i = 0; i <= objects.length; i++) {
+                let current = (i == 0 ? this : objects[i - 1]);
                 let cur_primary = primaryFun(current);
 
                 if (!isPrimaryMajor(current)) {
@@ -347,7 +351,7 @@ export class DenseMatrix {
         return { num_primary, num_secondary, values, primary_major };
     }
 
-    _bioconductor_COMBINE_ROWS(output, objects) {
+    _bioconductor_COMBINE_ROWS(objects) {
         let combined = this._combiner(objects,
             x => x._numberOfRows,
             x => x._numberOfColumns,
@@ -355,14 +359,15 @@ export class DenseMatrix {
             "columns"
         );
 
+        let output = new this.constructor;
         output._numberOfRows = combined.num_primary;
         output._numberOfColumns = combined.num_secondary;
         output._values = combined.values;
         output._columnMajor = !(combined.primary_major);
-        return;
+        return output;
     }
 
-    _bioconductor_COMBINE_COLUMNS(output, objects) {
+    _bioconductor_COMBINE_COLUMNS(objects) {
         let combined = this._combiner(objects,
             x => x._numberOfColumns,
             x => x._numberOfRows,
@@ -370,18 +375,20 @@ export class DenseMatrix {
             "rows"
         );
 
+        let output = new this.constructor;
         output._numberOfColumns = combined.num_primary;
         output._numberOfRows = combined.num_secondary;
         output._values = combined.values;
         output._columnMajor = combined.primary_major;
-        return;
+        return output;
     }
 
-    _bioconductor_CLONE(output, { deepCopy = true } = {}) {
+    _bioconductor_CLONE({ deepCopy = true } = {}) {
+        let output = new this.constructor;
         output._values = (deepCopy ? this._values.slice() : this._values);
         output._numberOfRows = this._numberOfRows;
         output._numberOfColumns = this._numberOfColumns;
         output._columnMajor = this._columnMajor;
-        return;
+        return output;
     }
 }

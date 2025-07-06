@@ -99,24 +99,23 @@ export class RangedSummarizedExperiment extends se.SummarizedExperiment {
      **************************************************************************
      **************************************************************************/
 
-    _bioconductor_SLICE_2D(output, rows, columns, { allowView = false }) {
-        super._bioconductor_SLICE_2D(output, rows, columns, { allowView });
+    _bioconductor_SLICE_2D(rows, columns, { allowView = false }) {
+        let output = super._bioconductor_SLICE_2D(rows, columns, { allowView });
         if (rows !== null) {
             output._rowRanges = generics.SLICE(this._rowRanges, rows);
         } else {
             output._rowRanges = this._rowRanges;
         }
+        return output;
     }
 
-    _bioconductor_COMBINE_ROWS(output, objects) {
-        super._bioconductor_COMBINE_ROWS(output, objects);
+    _bioconductor_COMBINE_ROWS(objects) {
+        let output = super._bioconductor_COMBINE_ROWS(objects);
 
-        let collected = [];
+        let collected = [this._rowRanges];
         let has_empty = false;
-        let has_ggr = false;
-
-        for (var i = 0; i < objects.length; i++) {
-            let x = objects[i];
+        let has_ggr = (this.rowRanges instanceof ggr.GroupedGRanges);
+        for (const x of objects) {
             if (x instanceof RangedSummarizedExperiment) {
                 let y = x._rowRanges;
                 if (y instanceof ggr.GroupedGRanges) {
@@ -162,29 +161,25 @@ export class RangedSummarizedExperiment extends se.SummarizedExperiment {
                     collected[i] = new ggr.GroupedGRanges(current, options);
 
                 } else if (current === null){
-                    collected[i] = ggr.GroupedGRanges.empty(objects[i].numberOfRows());
+                    const x = (i == 0 ? this : objects[i - 1]);
+                    collected[i] = ggr.GroupedGRanges.empty(x.numberOfRows());
                 }
             }
         }
 
         output._rowRanges = generics.COMBINE(collected);
-
-        return;
+        return output;
     }
 
-    _bioconductor_COMBINE_COLUMNS(output, objects) {
-        super._bioconductor_COMBINE_COLUMNS(output, objects);
-
-        output._rowRanges = objects[0]._rowRanges;
-
-        return;
+    _bioconductor_COMBINE_COLUMNS(objects) {
+        let output = super._bioconductor_COMBINE_COLUMNS(objects);
+        output._rowRanges = this._rowRanges;
+        return output;
     }
 
-    _bioconductor_CLONE(output, { deepCopy }) {
-        super._bioconductor_CLONE(output, { deepCopy });
-
+    _bioconductor_CLONE({ deepCopy }) {
+        let output = super._bioconductor_CLONE({ deepCopy });
         output._rowRanges = cutils.cloneField(this._rowRanges, deepCopy);
-
-        return;
+        return output;
     }
 }

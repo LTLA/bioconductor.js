@@ -462,8 +462,8 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
      **************************************************************************
      **************************************************************************/
 
-    _bioconductor_SLICE_2D(output, rows, columns, { allowView = false }) {
-        super._bioconductor_SLICE_2D(output, rows, columns, { allowView });
+    _bioconductor_SLICE_2D(rows, columns, { allowView = false }) {
+        let output = super._bioconductor_SLICE_2D(rows, columns, { allowView });
 
         if (columns !== null) {
             output._reducedDimensions = this._reducedDimensions.apply(v => generics.SLICE_2D(v, columns, null, { allowView }));
@@ -474,44 +474,48 @@ export class SingleCellExperiment extends rse.RangedSummarizedExperiment {
         }
 
         output._mainExperimentName = this._mainExperimentName;
+        return output;
     }
 
-    _bioconductor_COMBINE_ROWS(output, objects) {
-        super._bioconductor_COMBINE_ROWS(output, objects);
-
+    _bioconductor_COMBINE_ROWS(objects) {
+        let output = super._bioconductor_COMBINE_ROWS(objects);
         output._reducedDimensions = this._reducedDimensions;
         output._alternativeExperiments = this._alternativeExperiments;
         output._mainExperimentName = this._mainExperimentName;
-
-        return;
+        return output;
     }
 
-    _bioconductor_COMBINE_COLUMNS(output, objects) {
-        super._bioconductor_COMBINE_COLUMNS(output, objects);
+    _bioconductor_COMBINE_COLUMNS(objects) {
+        let output = super._bioconductor_COMBINE_COLUMNS(objects);
+
+        let all_rd = [this._reducedDimensions];
+        let all_ae = [this._alternativeExperiments];
+        for (const x of objects) {
+            all_rd.push(x._reducedDimensions);
+            all_ae.push(x._alternativeExperiments);
+        }
 
         try {
-            output._reducedDimensions = il.InternalList.parallelCombine(objects.map(x => x._reducedDimensions), generics.COMBINE_ROWS);
+            output._reducedDimensions = il.InternalList.parallelCombine(all_rd, generics.COMBINE_ROWS);
         } catch (e) {
             throw new Error("failed to combine reduced dimensions for " + this.constructor.className + " objects; " + e.message, { cause: e });
         }
 
         try {
-            output._alternativeExperiments = il.InternalList.parallelCombine(objects.map(x => x._alternativeExperiments), generics.COMBINE_COLUMNS);
+            output._alternativeExperiments = il.InternalList.parallelCombine(all_ae, generics.COMBINE_COLUMNS);
         } catch (e) {
             throw new Error("failed to combine alternative experiments for " + this.constructor.className + " objects; " + e.message, { cause: e });
         }
 
         output._mainExperimentName = this._mainExperimentName;
-        return;
+        return output;
     }
 
-    _bioconductor_CLONE(output, { deepCopy }) {
-        super._bioconductor_CLONE(output, { deepCopy });
-
+    _bioconductor_CLONE({ deepCopy }) {
+        let output = super._bioconductor_CLONE({ deepCopy });
         output._reducedDimensions = cutils.cloneField(this._reducedDimensions, deepCopy);
         output._alternativeExperiments = cutils.cloneField(this._alternativeExperiments, deepCopy);
         output._mainExperimentName = this._mainExperimentName;
-
-        return;
+        return output;
     }
 }

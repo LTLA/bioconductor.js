@@ -157,18 +157,18 @@ export class IRanges extends vec.Vector {
         return this._start.length;
     }
 
-    _bioconductor_SLICE(output, i, { allowView = false }) {
-        super._bioconductor_SLICE(output, i, { allowView });
+    _bioconductor_SLICE(i, { allowView = false }) {
+        let output = super._bioconductor_SLICE(i, { allowView });
         output._start = generics.SLICE(this._start, i, { allowView });
         output._width = generics.SLICE(this._width, i, { allowView });
-        return;
+        return output;
     }
 
-    _bioconductor_COMBINE(output, objects) {
-        super._bioconductor_COMBINE(output, objects);
+    _bioconductor_COMBINE(objects) {
+        let output = super._bioconductor_COMBINE(objects);
 
-        let all_s = [];
-        let all_w = [];
+        let all_s = [this._start];
+        let all_w = [this._width];
         for (const x of objects) {
             all_s.push(x._start);
             all_w.push(x._width);
@@ -176,14 +176,14 @@ export class IRanges extends vec.Vector {
 
         output._start = generics.COMBINE(all_s);
         output._width = generics.COMBINE(all_w);
-        return;
+        return output;
     }
 
-    _bioconductor_CLONE(output, { deepCopy = true }) {
-        super._bioconductor_CLONE(output, { deepCopy });
+    _bioconductor_CLONE({ deepCopy = true }) {
+        let output = super._bioconductor_CLONE({ deepCopy });
         output._start = cutils.cloneField(this._start, deepCopy);
         output._width = cutils.cloneField(this._width, deepCopy);
-        return;
+        return output;
     }
 
     /**************************************************************************
