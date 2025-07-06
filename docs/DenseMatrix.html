@@ -59,7 +59,8 @@ Not really a Bioconductor-exclusive data structure, but we need this at a minimu
 <li><a href="global.html#COMBINE_ROWS"><code>COMBINE_ROWS</code></a></li>
 <li><a href="global.html#COMBINE_COLUMNS"><code>COMBINE_COLUMNS</code></a></li>
 <li><a href="global.html#CLONE"><code>CLONE</code></a></li>
-</ul></div>
+</ul>
+<p>Constructors of DenseMatrix subclasses should create an empty instance of the subclass when called with no arguments.</p></div>
         
     
 </header>
@@ -86,7 +87,7 @@ Not really a Bioconductor-exclusive data structure, but we need this at a minimu
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DenseMatrix.js.html">DenseMatrix.js</a>, <a href="DenseMatrix.js.html#line14">line 14</a>
+        <a href="DenseMatrix.js.html">DenseMatrix.js</a>, <a href="DenseMatrix.js.html#line16">line 16</a>
     </li></ul></dd>
     
 
@@ -441,7 +442,7 @@ This should have length equal to the product of <code>numberOfRows</code> and <c
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DenseMatrix.js.html">DenseMatrix.js</a>, <a href="DenseMatrix.js.html#line116">line 116</a>
+        <a href="DenseMatrix.js.html">DenseMatrix.js</a>, <a href="DenseMatrix.js.html#line118">line 118</a>
     </li></ul></dd>
     
 
@@ -724,7 +725,7 @@ This may be a view on the array returned by <a href="DenseMatrix.html#values"><c
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DenseMatrix.js.html">DenseMatrix.js</a>, <a href="DenseMatrix.js.html#line60">line 60</a>
+        <a href="DenseMatrix.js.html">DenseMatrix.js</a>, <a href="DenseMatrix.js.html#line62">line 62</a>
     </li></ul></dd>
     
 
@@ -829,7 +830,7 @@ This may be a view on the array returned by <a href="DenseMatrix.html#values"><c
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DenseMatrix.js.html">DenseMatrix.js</a>, <a href="DenseMatrix.js.html#line53">line 53</a>
+        <a href="DenseMatrix.js.html">DenseMatrix.js</a>, <a href="DenseMatrix.js.html#line55">line 55</a>
     </li></ul></dd>
     
 
@@ -934,7 +935,7 @@ This may be a view on the array returned by <a href="DenseMatrix.html#values"><c
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DenseMatrix.js.html">DenseMatrix.js</a>, <a href="DenseMatrix.js.html#line46">line 46</a>
+        <a href="DenseMatrix.js.html">DenseMatrix.js</a>, <a href="DenseMatrix.js.html#line48">line 48</a>
     </li></ul></dd>
     
 
@@ -1039,7 +1040,7 @@ This may be a view on the array returned by <a href="DenseMatrix.html#values"><c
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DenseMatrix.js.html">DenseMatrix.js</a>, <a href="DenseMatrix.js.html#line102">line 102</a>
+        <a href="DenseMatrix.js.html">DenseMatrix.js</a>, <a href="DenseMatrix.js.html#line104">line 104</a>
     </li></ul></dd>
     
 
@@ -1322,7 +1323,7 @@ This may be a view on the array returned by <a href="DenseMatrix.html#values"><c
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DenseMatrix.js.html">DenseMatrix.js</a>, <a href="DenseMatrix.js.html#line200">line 200</a>
+        <a href="DenseMatrix.js.html">DenseMatrix.js</a>, <a href="DenseMatrix.js.html#line202">line 202</a>
     </li></ul></dd>
     
 
@@ -1637,7 +1638,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DenseMatrix.js.html">DenseMatrix.js</a>, <a href="DenseMatrix.js.html#line172">line 172</a>
+        <a href="DenseMatrix.js.html">DenseMatrix.js</a>, <a href="DenseMatrix.js.html#line174">line 174</a>
     </li></ul></dd>
     
 
@@ -1952,7 +1953,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DenseMatrix.js.html">DenseMatrix.js</a>, <a href="DenseMatrix.js.html#line134">line 134</a>
+        <a href="DenseMatrix.js.html">DenseMatrix.js</a>, <a href="DenseMatrix.js.html#line136">line 136</a>
     </li></ul></dd>
     
 
@@ -2233,7 +2234,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DenseMatrix.js.html">DenseMatrix.js</a>, <a href="DenseMatrix.js.html#line67">line 67</a>
+        <a href="DenseMatrix.js.html">DenseMatrix.js</a>, <a href="DenseMatrix.js.html#line69">line 69</a>
     </li></ul></dd>
     
 
@@ -2341,7 +2342,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Sat Jul 05 2025 19:19:56 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Sun Jul 06 2025 06:39:47 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>

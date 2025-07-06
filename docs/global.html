@@ -138,7 +138,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="AllGenerics.js.html">AllGenerics.js</a>, <a href="AllGenerics.js.html#line148">line 148</a>
+        <a href="AllGenerics.js.html">AllGenerics.js</a>, <a href="AllGenerics.js.html#line144">line 144</a>
     </li></ul></dd>
     
 
@@ -182,7 +182,7 @@
 <p>For TypedArrays, this just uses <code>slice()</code>.
 For Arrays, this creates a copy and runs <code>CLONE</code> on each element in the copy.</p>
 <p>Custom classes should provide a <code>_bioconductor_CLONE</code> method to define the cloning operation.
-This method should accept the same arguments as <code>COMBINE</code> except for <code>x</code>.</p>
+This method should accept <code>options</code> and should return an appropriately cloned instance of the same class as <code>x</code>.</p>
 </div>
 
 
@@ -354,8 +354,7 @@ This method should accept the same arguments as <code>COMBINE</code> except for 
             
 
             <td class="description last"><p>Whether to create a deep copy.
-The exact interpretation of <code>deepCopy=false</code> is left to each method, but generally speaking,
-any setter (<code>$</code>-marked) functions operating on the copy should not alter <code>x</code>.</p></td>
+The exact interpretation of <code>deepCopy=false</code> is left to each method.</p></td>
         </tr>
 
     
@@ -427,7 +426,7 @@ If <code>deepCopy=true</code>, all internal components are also cloned.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="AllGenerics.js.html">AllGenerics.js</a>, <a href="AllGenerics.js.html#line92">line 92</a>
+        <a href="AllGenerics.js.html">AllGenerics.js</a>, <a href="AllGenerics.js.html#line91">line 91</a>
     </li></ul></dd>
     
 
@@ -469,8 +468,9 @@ If <code>deepCopy=true</code>, all internal components are also cloned.</p>
 <div class="description usertext">
     <p>Combine multiple vector-like objects.</p>
 <p>For Array and TypedArrays, the combined array is of a class that avoids information loss.</p>
-<p>Custom classes should provide a <code>_bioconductor_COMBINE</code> method to define the combining operation.
-This method should accept the same arguments as <code>COMBINE</code>.</p>
+<p>Custom classes should implement a <code>_bioconductor_COMBINE</code> method to combine objects via this generic.
+This method will be invoked from the first instance of <code>objects</code> and should accept an array of remaining objects (i.e., <code>objects.slice(1)</code>) to be combined to the first instance.
+It return an appropriately-combined instance of the same class as the first instance.</p>
 </div>
 
 
@@ -597,7 +597,7 @@ for custom classes, the definition of &quot;compatibility&quot; depends on the <
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="AllGenerics.js.html">AllGenerics.js</a>, <a href="AllGenerics.js.html#line330">line 330</a>
+        <a href="AllGenerics.js.html">AllGenerics.js</a>, <a href="AllGenerics.js.html#line321">line 321</a>
     </li></ul></dd>
     
 
@@ -637,13 +637,10 @@ for custom classes, the definition of &quot;compatibility&quot; depends on the <
 
 
 <div class="description usertext">
-    <p>Combine multiple two-dimensional objects by column.
-Custom classes should provide a <code>_bioconductor_COMBINE_COLUMNS</code> method to define the combining operation.
-This method should accept:</p>
-<ul>
-<li>an &quot;empty&quot; instance of the class of the first object, to be populated with data.</li>
-<li>an array of objects to be combined, like <code>objects</code>.</li>
-</ul>
+    <p>Combine multiple two-dimensional objects by column.</p>
+<p>Custom classes should implement a <code>_bioconductor_COMBINE_COLUMNS</code> method to combine objects via this generic.
+This method will be invoked from the first instance of <code>objects</code> and should accept an array of remaining objects (i.e., <code>objects.slice(1)</code>) to be combined to the first instance.
+It return an appropriately-combined instance of the same class as the first instance.</p>
 </div>
 
 
@@ -725,7 +722,7 @@ for custom classes, the definition of &quot;compatibility&quot; depends on the <
 
         
 <div class="param-desc">
-    <p>A two-dimensional object containing the column-wise concatenated data from the input objects, typically of the same class as the first entry of <code>objects</code>.</p>
+    <p>A two-dimensional object of the same class as the first entry of <code>objects</code>, ontaining the column-wise concatenated data from all <code>objects</code>.</p>
 </div>
 
 
@@ -763,7 +760,7 @@ for custom classes, the definition of &quot;compatibility&quot; depends on the <
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="AllGenerics.js.html">AllGenerics.js</a>, <a href="AllGenerics.js.html#line307">line 307</a>
+        <a href="AllGenerics.js.html">AllGenerics.js</a>, <a href="AllGenerics.js.html#line300">line 300</a>
     </li></ul></dd>
     
 
@@ -803,13 +800,10 @@ for custom classes, the definition of &quot;compatibility&quot; depends on the <
 
 
 <div class="description usertext">
-    <p>Combine multiple two-dimensional objects by row.
-Custom classes should provide a <code>_bioconductor_COMBINE_ROWS</code> method to define the combining operation.
-This method should accept:</p>
-<ul>
-<li>an &quot;empty&quot; instance of the class of the first object, to be populated with data.</li>
-<li>an array of objects to be combined, like <code>objects</code>.</li>
-</ul>
+    <p>Combine multiple two-dimensional objects by row.</p>
+<p>Custom classes should implement a <code>_bioconductor_COMBINE_ROWS</code> method to combine objects via this generic.
+This method will be invoked from the first instance of <code>objects</code> and should accept an array of remaining objects (i.e., <code>objects.slice(1)</code>) to be combined to the first instance.
+It return an appropriately-combined instance of the same class as the first instance.</p>
 </div>
 
 
@@ -891,7 +885,7 @@ for custom classes, the definition of &quot;compatibility&quot; depends on the <
 
         
 <div class="param-desc">
-    <p>A two-dimensional object containing the row-wise concatenated data from the input objects, typically of the same class as the first entry of <code>objects</code>.</p>
+    <p>A two-dimensional object of the same class as the first entry of <code>objects</code>, ontaining the row-wise concatenated data from all <code>objects</code>.</p>
 </div>
 
 
@@ -929,7 +923,7 @@ for custom classes, the definition of &quot;compatibility&quot; depends on the <
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line316">line 316</a>
+        <a href="DataFrame.js.html">DataFrame.js</a>, <a href="DataFrame.js.html#line320">line 320</a>
     </li></ul></dd>
     
 
@@ -1131,7 +1125,7 @@ and the columns is equal to the union of columns across <code>objects</code>.</p
 <div class="description usertext">
     <p>Compute the length of a vector-like object.</p>
 <p>For Array and TypedArrays, this just returns the <code>length</code> property directly.</p>
-<p>Custom classes should provide a <code>_bioconductor_LENGTH</code> method to describe their length.
+<p>Custom classes should implement a <code>_bioconductor_LENGTH</code> method to return their length via this generic.
 This method should accept no arguments.</p>
 </div>
 
@@ -1250,7 +1244,7 @@ This method should accept no arguments.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="AllGenerics.js.html">AllGenerics.js</a>, <a href="AllGenerics.js.html#line255">line 255</a>
+        <a href="AllGenerics.js.html">AllGenerics.js</a>, <a href="AllGenerics.js.html#line250">line 250</a>
     </li></ul></dd>
     
 
@@ -1291,7 +1285,7 @@ This method should accept no arguments.</p>
 
 <div class="description usertext">
     <p>Return the number of columns for a two-dimensional object.
-Custom classes should provide a <code>_bioconductor_NUMBER_OF_COLUMNS</code> method, accepting no arguments.</p>
+Custom classes should implement a <code>_bioconductor_NUMBER_OF_COLUMNS</code> method, accepting no arguments.</p>
 </div>
 
 
@@ -1409,7 +1403,7 @@ Custom classes should provide a <code>_bioconductor_NUMBER_OF_COLUMNS</code> met
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="AllGenerics.js.html">AllGenerics.js</a>, <a href="AllGenerics.js.html#line241">line 241</a>
+        <a href="AllGenerics.js.html">AllGenerics.js</a>, <a href="AllGenerics.js.html#line236">line 236</a>
     </li></ul></dd>
     
 
@@ -1450,7 +1444,7 @@ Custom classes should provide a <code>_bioconductor_NUMBER_OF_COLUMNS</code> met
 
 <div class="description usertext">
     <p>Return the number of rows for a two-dimensional object.
-Custom classes should provide a <code>_bioconductor_NUMBER_OF_ROWS</code> method, accepting no arguments.</p>
+Custom classes should implement a <code>_bioconductor_NUMBER_OF_ROWS</code> method, accepting no arguments.</p>
 </div>
 
 
@@ -1772,8 +1766,8 @@ This can be used in subsequent <code>splitRows</code> calls.</p>
 <div class="description usertext">
     <p>Slice a vector-like object.</p>
 <p>For Array and TypedArrays, this just uses <code>slice()</code> or <code>subarray()</code>.</p>
-<p>Custom classes should provide a <code>_bioconductor_SLICE</code> method to create a slice.
-This method should accept the same arguments as <code>SLICE</code> except for <code>x</code>.</p>
+<p>Custom classes should implement a <code>_bioconductor_SLICE</code> method to create a slice via this generic.
+This method should accept <code>i</code> and <code>options</code>, and return a appropriately sliced instance of the same class as <code>x</code>.</p>
 </div>
 
 
@@ -2020,7 +2014,7 @@ Whether this is actually done depends on the method, but may improve efficiency 
 
         
 <div class="param-desc">
-    <p>A vector-like object, typically of the same class as <code>x</code>, containing data for the specified slice.</p>
+    <p>A vector-like object of the same class as <code>x</code>, containing data for the specified slice.</p>
 <p>If <code>allowInPlace = true</code>, <code>x</code> <em>may</em> be modified in place, and the return value <em>may</em> be a reference to <code>x</code>.</p>
 </div>
 
@@ -2059,7 +2053,7 @@ Whether this is actually done depends on the method, but may improve efficiency 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="AllGenerics.js.html">AllGenerics.js</a>, <a href="AllGenerics.js.html#line285">line 285</a>
+        <a href="AllGenerics.js.html">AllGenerics.js</a>, <a href="AllGenerics.js.html#line280">line 280</a>
     </li></ul></dd>
     
 
@@ -2100,8 +2094,8 @@ Whether this is actually done depends on the method, but may improve efficiency 
 
 <div class="description usertext">
     <p>Slice a two-dimensional object by its rows and/or columns.</p>
-<p>Custom classes should provide a <code>_bioconductor_SLICE_2D</code> method, accepting the same arguments as this generic but with <code>x</code> replaced by an &quot;empty&quot; instance of the same class.
-Each method should then fill the empty instance with the sliced contents of <code>x</code>.</p>
+<p>Custom classes should implement a <code>_bioconductor_SLICE_2D</code> method to slice rows/columns via this generic.
+This method should accept <code>rows</code>, <code>columns</code> and <code>options</code>, and should return a sliced instance of the same class as <code>x</code>.</p>
 </div>
 
 
@@ -2434,7 +2428,7 @@ Whether this is actually done depends on the method, but may improve efficiency 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="AllGenerics.js.html">AllGenerics.js</a>, <a href="AllGenerics.js.html#line217">line 217</a>
+        <a href="AllGenerics.js.html">AllGenerics.js</a>, <a href="AllGenerics.js.html#line212">line 212</a>
     </li></ul></dd>
     
 
@@ -2475,8 +2469,9 @@ Whether this is actually done depends on the method, but may improve efficiency 
 
 <div class="description usertext">
     <p>Split a vector-like object along its length according to the levels of a factor of the same length.
-This works automatically for all classes for which there is a <a href="global.html#SLICE"><code>SLICE</code></a> method,
-but custom classes may also choose to define their own <code>_bioconductor_SPLIT</code> method.</p>
+This works automatically for all classes for which there is a <a href="global.html#SLICE"><code>SLICE</code></a> method.
+Custom classes may also choose to define their own <code>_bioconductor_SPLIT</code> method,
+which should accept <code>factor</code> and return an array of sliced instances of the same class as <code>x</code>.</p>
 </div>
 
 
@@ -2908,7 +2903,7 @@ This array is guaranteed to be sorted in ascending order.</p>
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Sat Jul 05 2025 19:19:56 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Sun Jul 06 2025 06:39:47 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
