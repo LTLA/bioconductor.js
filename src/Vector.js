@@ -31,7 +31,7 @@ export class Vector extends ann.Annotated {
      * @param {Object} [options={}] - Optional parameters.
      * @param {?DataFrame} [options.elementMetadata=null] - A {@linkplain DataFrame} with number of rows equal to the length of `start`, containing arbitrary per-element annotations.
      * Alternatively `null`, in which case a zero-column DataFrame is automatically constructed.
-     * @param {Object} [options.metadata={}] - Object containing arbitrary metadata as key-value pairs.
+     * @param {Object|Array|Map|List} [options.metadata={}] - Arbitrary metadata, see the {@link Annotated} constructor. 
      */
     constructor(length, { names = null, elementMetadata = null, metadata = {} } = {}) {
         if (arguments.length == 0) {
@@ -142,6 +142,7 @@ export class Vector extends ann.Annotated {
         let output = new this.constructor;
         output._elementMetadata = generics.COMBINE(all_em);
         output._names = utils.combineNames(all_n, all_l);
+        output._metadata = this._metadata;
         return output;
     }
 

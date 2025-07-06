@@ -86,8 +86,8 @@ class IndexedNames {
 
     _bioconductor_CLONE({ deepCopy = true }) {
         let output = new this.constructor;
-        output._names = this._names;
-        output._lookup = this._lookup;
+        output._names = cutils.cloneField(this._names, deepCopy);
+        output._lookup = cutils.cloneField(this._lookup, deepCopy);
         return output;
     }
 }
@@ -113,6 +113,7 @@ export class List {
     /**
      * @param {Array|Map|Object} values - Elements of the List.
      * For Maps or objects, the values (in order of iteration) are used as the List elements.
+     * If no argument is supplied, it defaults to an empty Array.
      * @param {Object} [options={}] - Further options.
      * @param {?Array} [options.names=null] - An array of strings containing the names of the List elements.
      * If provided, this should be of the same length as `values`.
@@ -122,6 +123,8 @@ export class List {
      */
     constructor(values, { names = null } = {}) {
         if (arguments.length == 0) {
+            this._values = [];
+            this._names = null;
             return;
         }
 
@@ -274,11 +277,20 @@ export class List {
 
     /**
      * @param {string} name - Name of a List element.
+     * @return {boolean} Whether the name exists in this List.
+     */
+    has(name) {
+        return this.nameToIndex(name) >= 0;
+    }
+
+    /**
+     * @param {string} name - Name of a List element.
      * @return {number} Index of the name in {@linkcode List#names names}.
      * If duplicate names are present, the first occurrence is returned.
+     * If the name is not present, -1 is returned.
      */
     nameToIndex(name) {
-        return this._names.nameToIndex(name);
+        return this._names.nameToIndex(name, { error: false });
     }
 
     /***********************************************/

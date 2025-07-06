@@ -32,7 +32,7 @@ export class IRanges extends vec.Vector {
      * Alternatively `null`, in which case the ranges are assumed to be unnamed.
      * @param {?DataFrame} [options.elementMetadata=null] - A {@linkplain DataFrame} with number of rows equal to the length of `start`, containing arbitrary per-range annotations.
      * Alternatively `null`, in which case a zero-column DataFrame is automatically constructed.
-     * @param {Object} [options.metadata={}] - Object containing arbitrary metadata as key-value pairs.
+     * @param {Object|Array|Map|List} [options.metadata={}] - Arbitrary metadata, see the {@link Annotated} constructor. 
      */
     constructor(start, width, { names = null, elementMetadata = null, metadata = {} } = {}) {
         if (arguments.length == 0) {

@@ -41,7 +41,7 @@ export class DataFrame extends ann.Annotated {
      * @param {?Array} [options.columnOrder=null] - Array of strings specifying the ordering of the columns.
      * If non-`null`, this should have the same values as the keys of `columns`.
      * If `null`, an arbitrary ordering is obtained from `columns`.
-     * @param {Object} [options.metadata={}] - Object containing arbitrary metadata as key-value pairs.
+     * @param {Object|Array|Map|List} [options.metadata={}] - Arbitrary metadata, see the {@link Annotated} constructor. 
      */
     constructor(columns, { numberOfRows = null, rowNames = null, columnOrder = null, metadata = {} } = {}) {
         if (arguments.length == 0) {

@@ -21,7 +21,7 @@ test("constructing a GRanges works (simple)", () => {
     expect(x.names()).toBeNull();
     expect(x.elementMetadata().numberOfRows()).toBe(obj.seqnames.length);
     expect(x.elementMetadata().numberOfColumns()).toBe(0);
-    expect(x.metadata()).toEqual(new Map);
+    expect(x.metadata()).toEqual(new bioc.List);
 
     // Fails if the start and ranges don't match up.
     expect(() => new bioc.GRanges(obj.seqnames.slice(0, 2), obj.ranges)).toThrow("length equal to");
@@ -236,7 +236,7 @@ test("CLONE generic works correctly for GRanges", () => {
     expect(y.start()).toEqual(new Int32Array([2,4,6,8]));
 
     // Same for the metadata.
-    x.metadata().set("foo", 5);
+    x.metadata().set("foo", 5, { inPlace: true });
     expect(x.metadata().has("foo")).toBe(true);
     expect(y.metadata().has("foo")).toBe(false);
 })

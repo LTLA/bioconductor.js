@@ -1,6 +1,7 @@
 import * as generics from "./AllGenerics.js";
 import * as cutils from "./clone-utils.js";
 import * as utils from "./utils.js";
+import * as list from "./List.js";
 
 /**
  * The Annotated class provides a store for arbitrary object-wide metadata.
@@ -10,14 +11,18 @@ import * as utils from "./utils.js";
  */
 export class Annotated {
     /**
-     * @param {Object|Map} metadata - Object or Map containing arbitrary metadata as key-value pairs.
+     * @param {Object|Map|Array|List} metadata - Arbitrary list of metadata.
+     * An object/Map is converted to a named {@link List}, while an array is converted to an unnamed List.
      */
     constructor(metadata) {
         if (arguments.length == 0) {
             return;
         }
 
-        this._metadata = utils.object2map(metadata);
+        if (!(metadata instanceof list.List)) {
+            metadata = new list.List(metadata);
+        }
+        this._metadata = metadata;
     }
 
     /**************************************************************************
@@ -25,7 +30,7 @@ export class Annotated {
      **************************************************************************/
 
     /**
-     * @return {Map} Map containing arbitrary metadata.
+     * @return {List} List of arbitrary metadata.
      */
     metadata() {
         return this._metadata;
@@ -36,7 +41,7 @@ export class Annotated {
      **************************************************************************/
 
     /**
-     * @param {Object|Map} value - Object containing the metadata.
+     * @param {Object|Map|Array|List} value - Object containing the metadata.
      * @param {Object} [options={}] - Optional parameters.
      * @param {boolean} [options.inPlace=false] - Whether to mutate this Annotated instance in place.
      * If `false`, a new instance is returned.
@@ -46,7 +51,12 @@ export class Annotated {
      */
     setMetadata(value, { inPlace = false } = {}) {
         let target = cutils.setterTarget(this, inPlace);
-        target._metadata = utils.object2map(value);
+
+        if (!(value instanceof list.List)) {
+            value = new list.List(value);
+        }
+        target._metadata = value;
+
         return target;
     }
 

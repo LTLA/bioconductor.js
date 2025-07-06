@@ -289,18 +289,19 @@ test("metadata operations are respected for DataFrames", () => {
     let obj = spawnObject();
     let x = new bioc.DataFrame(obj, { metadata: { "foo": 2, "bar": 3 } });
     expect(x.metadata().get("foo")).toBe(2);
-    expect(x.$setMetadata({ whee: 1 }).metadata().get("whee")).toBe(1);
+    expect(x.setMetadata({ whee: 1 }).metadata().get("whee")).toBe(1);
 
     // Picked up by the clone.
     let y = bioc.CLONE(x);
-    y.metadata().set("ark", 2);
+    y.metadata().set("ark", 2, { inPlace: true });
     expect(y.metadata().get("ark")).toBe(2);
     expect(x.metadata().has("ark")).toBe(false);
 
     // Preserved in the COMBINE operation.
     let z = bioc.COMBINE([x, y]);
     expect(z.numberOfRows()).toBe(x.numberOfRows() + y.numberOfRows());
-    expect(z.metadata().get("whee")).toBe(1);
+    expect(z.metadata().get("foo")).toBe(2);
+    expect(z.metadata().has("ark")).toBe(false); // only consider metadata from the first object.
 })
 
 test("splitting works correctly for DataFrames", () => {

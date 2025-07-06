@@ -46,7 +46,7 @@ export class SummarizedExperiment extends ann.Annotated {
      * Alternatively `null`, if no row names are present.
      * @param {?Array} [options.columnNames=null] - Array of strings of length equal to the number of columns in the `assays`, containing column names.
      * Alternatively `null`, if no column names are present.
-     * @param {Object|Map} [options.metadata={}] - Object or Map containing arbitrary metadata as key-value pairs.
+     * @param {Object|Array|Map|List} [options.metadata={}] - Arbitrary metadata, see the {@link Annotated} constructor. 
      */
     constructor(assays, { assayOrder = null, rowData = null, columnData = null, rowNames = null, columnNames = null, metadata = {} } = {}) {
         if (arguments.length == 0) {
