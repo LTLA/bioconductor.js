@@ -58,7 +58,9 @@ The IRanges defines methods for the following generics:</p>
 <li><a href="global.html#SLICE"><code>SLICE</code></a></li>
 <li><a href="global.html#COMBINE"><code>COMBINE</code></a></li>
 <li><a href="global.html#CLONE"><code>CLONE</code></a></li>
-</ul></div>
+</ul>
+<p>Constructors of IRanges subclasses should be callable with no arguments, possibly creating an empty object with no properties.
+This will be used by the <code>_bioconductor_CLONE</code>, <code>_bioconductor_SLICE</code> and <code>_bioconductor_COMBINE</code> methods to return an instance of the subclass.</p></div>
         
     
 </header>
@@ -85,7 +87,7 @@ The IRanges defines methods for the following generics:</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="IRanges.js.html">IRanges.js</a>, <a href="IRanges.js.html#line20">line 20</a>
+        <a href="IRanges.js.html">IRanges.js</a>, <a href="IRanges.js.html#line23">line 23</a>
     </li></ul></dd>
     
 
@@ -516,7 +518,7 @@ Alternatively <code>null</code>, in which case a zero-column DataFrame is automa
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="IRanges.js.html">IRanges.js</a>, <a href="IRanges.js.html#line196">line 196</a>
+        <a href="IRanges.js.html">IRanges.js</a>, <a href="IRanges.js.html#line199">line 199</a>
     </li></ul></dd>
     
 
@@ -621,7 +623,7 @@ Alternatively <code>null</code>, in which case a zero-column DataFrame is automa
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="IRanges.js.html">IRanges.js</a>, <a href="IRanges.js.html#line147">line 147</a>
+        <a href="IRanges.js.html">IRanges.js</a>, <a href="IRanges.js.html#line150">line 150</a>
     </li></ul></dd>
     
 
@@ -726,7 +728,7 @@ Alternatively <code>null</code>, in which case a zero-column DataFrame is automa
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Vector.js.html">Vector.js</a>, <a href="Vector.js.html#line59">line 59</a>
+        <a href="Vector.js.html">Vector.js</a>, <a href="Vector.js.html#line61">line 61</a>
     </li></ul></dd>
     
 
@@ -836,7 +838,7 @@ Alternatively <code>null</code>, in which case a zero-column DataFrame is automa
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="IRanges.js.html">IRanges.js</a>, <a href="IRanges.js.html#line73">line 73</a>
+        <a href="IRanges.js.html">IRanges.js</a>, <a href="IRanges.js.html#line76">line 76</a>
     </li></ul></dd>
     
 
@@ -941,7 +943,7 @@ Alternatively <code>null</code>, in which case a zero-column DataFrame is automa
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Annotated.js.html">Annotated.js</a>, <a href="Annotated.js.html#line35">line 35</a>
+        <a href="Annotated.js.html">Annotated.js</a>, <a href="Annotated.js.html#line36">line 36</a>
     </li></ul></dd>
     
 
@@ -1051,7 +1053,7 @@ Alternatively <code>null</code>, in which case a zero-column DataFrame is automa
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Vector.js.html">Vector.js</a>, <a href="Vector.js.html#line66">line 66</a>
+        <a href="Vector.js.html">Vector.js</a>, <a href="Vector.js.html#line68">line 68</a>
     </li></ul></dd>
     
 
@@ -1161,7 +1163,7 @@ Alternatively <code>null</code>, in which case a zero-column DataFrame is automa
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Vector.js.html">Vector.js</a>, <a href="Vector.js.html#line85">line 85</a>
+        <a href="Vector.js.html">Vector.js</a>, <a href="Vector.js.html#line87">line 87</a>
     </li></ul></dd>
     
 
@@ -1450,7 +1452,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Annotated.js.html">Annotated.js</a>, <a href="Annotated.js.html#line52">line 52</a>
+        <a href="Annotated.js.html">Annotated.js</a>, <a href="Annotated.js.html#line53">line 53</a>
     </li></ul></dd>
     
 
@@ -1744,7 +1746,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Vector.js.html">Vector.js</a>, <a href="Vector.js.html#line106">line 106</a>
+        <a href="Vector.js.html">Vector.js</a>, <a href="Vector.js.html#line108">line 108</a>
     </li></ul></dd>
     
 
@@ -2033,7 +2035,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="IRanges.js.html">IRanges.js</a>, <a href="IRanges.js.html#line98">line 98</a>
+        <a href="IRanges.js.html">IRanges.js</a>, <a href="IRanges.js.html#line101">line 101</a>
     </li></ul></dd>
     
 
@@ -2317,7 +2319,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="IRanges.js.html">IRanges.js</a>, <a href="IRanges.js.html#line124">line 124</a>
+        <a href="IRanges.js.html">IRanges.js</a>, <a href="IRanges.js.html#line127">line 127</a>
     </li></ul></dd>
     
 
@@ -2601,7 +2603,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="IRanges.js.html">IRanges.js</a>, <a href="IRanges.js.html#line66">line 66</a>
+        <a href="IRanges.js.html">IRanges.js</a>, <a href="IRanges.js.html#line69">line 69</a>
     </li></ul></dd>
     
 
@@ -2706,7 +2708,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="IRanges.js.html">IRanges.js</a>, <a href="IRanges.js.html#line80">line 80</a>
+        <a href="IRanges.js.html">IRanges.js</a>, <a href="IRanges.js.html#line83">line 83</a>
     </li></ul></dd>
     
 
@@ -2814,7 +2816,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Sun Jul 06 2025 22:54:11 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Mon Jul 07 2025 00:43:51 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>

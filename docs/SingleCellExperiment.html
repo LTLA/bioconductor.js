@@ -60,7 +60,9 @@ Each instance is expected to provide methods for the following generics:</p>
 <li><a href="global.html#COMBINE_ROWS"><code>COMBINE_ROWS</code></a></li>
 <li><a href="global.html#CLONE"><code>CLONE</code></a></li>
 </ul>
-<p>Each alternative experiment should be a <a href="SummarizedExperiment.html">SummarizedExperiment</a> with number of columns equal to that of the SingleCellExperiment.</p></div>
+<p>Each alternative experiment should be a <a href="SummarizedExperiment.html">SummarizedExperiment</a> with number of columns equal to that of the SingleCellExperiment.</p>
+<p>Constructors of RangedSummarizedExperiment subclasses should be callable with no arguments, possibly creating an empty object with no properties.
+This will be used by the <code>_bioconductor_CLONE</code>, <code>_bioconductor_COMBINE_ROWS</code>, <code>_bioconductor_COMBINE_COLUMNS</code> and <code>_bioconductor_SLICE_2D</code> methods to return an instance of the subclass.</p></div>
         
     
 </header>
@@ -87,7 +89,7 @@ Each instance is expected to provide methods for the following generics:</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line24">line 24</a>
+        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line27">line 27</a>
     </li></ul></dd>
     
 
@@ -598,7 +600,7 @@ This should have the same values as the keys of <code>alternativeExperiments</co
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line125">line 125</a>
+        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line128">line 128</a>
     </li></ul></dd>
     
 
@@ -755,7 +757,7 @@ This should have the same values as the keys of <code>alternativeExperiments</co
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line117">line 117</a>
+        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line120">line 120</a>
     </li></ul></dd>
     
 
@@ -860,7 +862,7 @@ This should have the same values as the keys of <code>alternativeExperiments</co
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line138">line 138</a>
+        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line141">line 141</a>
     </li></ul></dd>
     
 
@@ -965,7 +967,7 @@ This should have the same values as the keys of <code>alternativeExperiments</co
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line142">line 142</a>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line145">line 145</a>
     </li></ul></dd>
     
 
@@ -1127,7 +1129,7 @@ This should have the same values as the keys of <code>alternativeExperiments</co
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line127">line 127</a>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line130">line 130</a>
     </li></ul></dd>
     
 
@@ -1237,7 +1239,7 @@ This should have the same values as the keys of <code>alternativeExperiments</co
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line155">line 155</a>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line158">line 158</a>
     </li></ul></dd>
     
 
@@ -1347,7 +1349,7 @@ This should have the same values as the keys of <code>alternativeExperiments</co
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line183">line 183</a>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line186">line 186</a>
     </li></ul></dd>
     
 
@@ -1457,7 +1459,7 @@ This should have the same values as the keys of <code>alternativeExperiments</co
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line197">line 197</a>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line200">line 200</a>
     </li></ul></dd>
     
 
@@ -1567,7 +1569,7 @@ This should have the same values as the keys of <code>alternativeExperiments</co
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line145">line 145</a>
+        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line148">line 148</a>
     </li></ul></dd>
     
 
@@ -1672,7 +1674,7 @@ This should have the same values as the keys of <code>alternativeExperiments</co
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Annotated.js.html">Annotated.js</a>, <a href="Annotated.js.html#line35">line 35</a>
+        <a href="Annotated.js.html">Annotated.js</a>, <a href="Annotated.js.html#line36">line 36</a>
     </li></ul></dd>
     
 
@@ -1782,7 +1784,7 @@ This should have the same values as the keys of <code>alternativeExperiments</co
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line134">line 134</a>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line137">line 137</a>
     </li></ul></dd>
     
 
@@ -1892,7 +1894,7 @@ This should have the same values as the keys of <code>alternativeExperiments</co
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line190">line 190</a>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line193">line 193</a>
     </li></ul></dd>
     
 
@@ -2002,7 +2004,7 @@ This should have the same values as the keys of <code>alternativeExperiments</co
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line169">line 169</a>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line172">line 172</a>
     </li></ul></dd>
     
 
@@ -2112,7 +2114,7 @@ This should have the same values as the keys of <code>alternativeExperiments</co
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line97">line 97</a>
+        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line100">line 100</a>
     </li></ul></dd>
     
 
@@ -2269,7 +2271,7 @@ This should have the same values as the keys of <code>alternativeExperiments</co
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line89">line 89</a>
+        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line92">line 92</a>
     </li></ul></dd>
     
 
@@ -2374,7 +2376,7 @@ This should have the same values as the keys of <code>alternativeExperiments</co
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line110">line 110</a>
+        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line113">line 113</a>
     </li></ul></dd>
     
 
@@ -2479,7 +2481,7 @@ This should have the same values as the keys of <code>alternativeExperiments</co
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line309">line 309</a>
+        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line312">line 312</a>
     </li></ul></dd>
     
 
@@ -2762,7 +2764,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line214">line 214</a>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line217">line 217</a>
     </li></ul></dd>
     
 
@@ -3050,7 +3052,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line162">line 162</a>
+        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line165">line 165</a>
     </li></ul></dd>
     
 
@@ -3333,7 +3335,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line162">line 162</a>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line165">line 165</a>
     </li></ul></dd>
     
 
@@ -3443,7 +3445,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line176">line 176</a>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line179">line 179</a>
     </li></ul></dd>
     
 
@@ -3553,7 +3555,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="RangedSummarizedExperiment.js.html">RangedSummarizedExperiment.js</a>, <a href="RangedSummarizedExperiment.js.html#line69">line 69</a>
+        <a href="RangedSummarizedExperiment.js.html">RangedSummarizedExperiment.js</a>, <a href="RangedSummarizedExperiment.js.html#line72">line 72</a>
     </li></ul></dd>
     
 
@@ -3663,7 +3665,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line337">line 337</a>
+        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line340">line 340</a>
     </li></ul></dd>
     
 
@@ -3987,7 +3989,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line360">line 360</a>
+        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line363">line 363</a>
     </li></ul></dd>
     
 
@@ -4268,7 +4270,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line389">line 389</a>
+        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line392">line 392</a>
     </li></ul></dd>
     
 
@@ -4598,7 +4600,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line242">line 242</a>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line245">line 245</a>
     </li></ul></dd>
     
 
@@ -4927,7 +4929,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line312">line 312</a>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line315">line 315</a>
     </li></ul></dd>
     
 
@@ -5213,7 +5215,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line266">line 266</a>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line269">line 269</a>
     </li></ul></dd>
     
 
@@ -5548,7 +5550,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line388">line 388</a>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line391">line 391</a>
     </li></ul></dd>
     
 
@@ -5834,7 +5836,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line440">line 440</a>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line443">line 443</a>
     </li></ul></dd>
     
 
@@ -6120,7 +6122,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line451">line 451</a>
+        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line454">line 454</a>
     </li></ul></dd>
     
 
@@ -6385,7 +6387,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Annotated.js.html">Annotated.js</a>, <a href="Annotated.js.html#line52">line 52</a>
+        <a href="Annotated.js.html">Annotated.js</a>, <a href="Annotated.js.html#line53">line 53</a>
     </li></ul></dd>
     
 
@@ -6679,7 +6681,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line190">line 190</a>
+        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line193">line 193</a>
     </li></ul></dd>
     
 
@@ -7003,7 +7005,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line213">line 213</a>
+        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line216">line 216</a>
     </li></ul></dd>
     
 
@@ -7284,7 +7286,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line242">line 242</a>
+        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line245">line 245</a>
     </li></ul></dd>
     
 
@@ -7614,7 +7616,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line360">line 360</a>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line363">line 363</a>
     </li></ul></dd>
     
 
@@ -7900,7 +7902,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line416">line 416</a>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line419">line 419</a>
     </li></ul></dd>
     
 
@@ -8186,7 +8188,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="RangedSummarizedExperiment.js.html">RangedSummarizedExperiment.js</a>, <a href="RangedSummarizedExperiment.js.html#line87">line 87</a>
+        <a href="RangedSummarizedExperiment.js.html">RangedSummarizedExperiment.js</a>, <a href="RangedSummarizedExperiment.js.html#line90">line 90</a>
     </li></ul></dd>
     
 
@@ -8472,7 +8474,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line429">line 429</a>
+        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line432">line 432</a>
     </li></ul></dd>
     
 
@@ -8753,7 +8755,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line336">line 336</a>
+        <a href="SummarizedExperiment.js.html">SummarizedExperiment.js</a>, <a href="SummarizedExperiment.js.html#line339">line 339</a>
     </li></ul></dd>
     
 
@@ -9039,7 +9041,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line282">line 282</a>
+        <a href="SingleCellExperiment.js.html">SingleCellExperiment.js</a>, <a href="SingleCellExperiment.js.html#line285">line 285</a>
     </li></ul></dd>
     
 
@@ -9323,7 +9325,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Sun Jul 06 2025 22:54:11 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Mon Jul 07 2025 00:43:51 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>

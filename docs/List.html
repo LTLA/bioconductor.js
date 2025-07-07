@@ -62,7 +62,8 @@ Operations like slicing and combining will apply to both the values and names.</
 </ul>
 <p>We explicitly allow duplicates in the names to avoid errors when slicing or combining.
 Otherwise, it would be impossible to construct a slice with duplicate indices or to combine multiple <code>List</code> instances with shared names.</p>
-<p>Constructors of List subclasses should create an empty instance of the subclass when called with no arguments.</p></div>
+<p>Constructors of List subclasses should be callable with no arguments, possibly creating an empty object with no properties.
+This will be used by the <code>_bioconductor_CLONE</code>, <code>_bioconductor_SLICE</code> and <code>_bioconductor_COMBINE</code> methods to return an instance of the subclass.</p></div>
         
     
 </header>
@@ -89,7 +90,7 @@ Otherwise, it would be impossible to construct a slice with duplicate indices or
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="List.js.html">List.js</a>, <a href="List.js.html#line112">line 112</a>
+        <a href="List.js.html">List.js</a>, <a href="List.js.html#line113">line 113</a>
     </li></ul></dd>
     
 
@@ -202,7 +203,8 @@ Otherwise, it would be impossible to construct a slice with duplicate indices or
             
 
             <td class="description last"><p>Elements of the List.
-For Maps or objects, the values (in order of iteration) are used as the List elements.</p></td>
+For Maps or objects, the values (in order of iteration) are used as the List elements.
+If no argument is supplied, it defaults to an empty Array.</p></td>
         </tr>
 
     
@@ -386,7 +388,7 @@ If <code>null</code> and <code>values</code> is an array, the List will be unnam
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="List.js.html">List.js</a>, <a href="List.js.html#line519">line 519</a>
+        <a href="List.js.html">List.js</a>, <a href="List.js.html#line521">line 521</a>
     </li></ul></dd>
     
 
@@ -670,7 +672,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="List.js.html">List.js</a>, <a href="List.js.html#line460">line 460</a>
+        <a href="List.js.html">List.js</a>, <a href="List.js.html#line462">line 462</a>
     </li></ul></dd>
     
 
@@ -992,7 +994,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="List.js.html">List.js</a>, <a href="List.js.html#line485">line 485</a>
+        <a href="List.js.html">List.js</a>, <a href="List.js.html#line487">line 487</a>
     </li></ul></dd>
     
 
@@ -1245,7 +1247,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="List.js.html">List.js</a>, <a href="List.js.html#line269">line 269</a>
+        <a href="List.js.html">List.js</a>, <a href="List.js.html#line271">line 271</a>
     </li></ul></dd>
     
 
@@ -1391,7 +1393,7 @@ Numbers are passed to <a href="List.html#getByIndex"><code>getByIndex</code></a>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="List.js.html">List.js</a>, <a href="List.js.html#line245">line 245</a>
+        <a href="List.js.html">List.js</a>, <a href="List.js.html#line247">line 247</a>
     </li></ul></dd>
     
 
@@ -1534,7 +1536,7 @@ This should be non-negative and less than <a href="List.html#length"><code>lengt
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="List.js.html">List.js</a>, <a href="List.js.html#line256">line 256</a>
+        <a href="List.js.html">List.js</a>, <a href="List.js.html#line258">line 258</a>
     </li></ul></dd>
     
 
@@ -1678,7 +1680,7 @@ If duplicates of <code>name</code> are present in the list, the first occurrence
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="List.js.html">List.js</a>, <a href="List.js.html#line281">line 281</a>
+        <a href="List.js.html">List.js</a>, <a href="List.js.html#line283">line 283</a>
     </li></ul></dd>
     
 
@@ -1832,7 +1834,7 @@ If duplicates of <code>name</code> are present in the list, the first occurrence
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="List.js.html">List.js</a>, <a href="List.js.html#line226">line 226</a>
+        <a href="List.js.html">List.js</a>, <a href="List.js.html#line228">line 228</a>
     </li></ul></dd>
     
 
@@ -1937,7 +1939,7 @@ If duplicates of <code>name</code> are present in the list, the first occurrence
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="List.js.html">List.js</a>, <a href="List.js.html#line208">line 208</a>
+        <a href="List.js.html">List.js</a>, <a href="List.js.html#line210">line 210</a>
     </li></ul></dd>
     
 
@@ -2042,7 +2044,7 @@ If duplicates of <code>name</code> are present in the list, the first occurrence
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="List.js.html">List.js</a>, <a href="List.js.html#line291">line 291</a>
+        <a href="List.js.html">List.js</a>, <a href="List.js.html#line293">line 293</a>
     </li></ul></dd>
     
 
@@ -2198,7 +2200,7 @@ If the name is not present, -1 is returned.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="List.js.html">List.js</a>, <a href="List.js.html#line410">line 410</a>
+        <a href="List.js.html">List.js</a>, <a href="List.js.html#line412">line 412</a>
     </li></ul></dd>
     
 
@@ -2559,7 +2561,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="List.js.html">List.js</a>, <a href="List.js.html#line314">line 314</a>
+        <a href="List.js.html">List.js</a>, <a href="List.js.html#line316">line 316</a>
     </li></ul></dd>
     
 
@@ -2921,7 +2923,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="List.js.html">List.js</a>, <a href="List.js.html#line373">line 373</a>
+        <a href="List.js.html">List.js</a>, <a href="List.js.html#line375">line 375</a>
     </li></ul></dd>
     
 
@@ -3239,7 +3241,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="List.js.html">List.js</a>, <a href="List.js.html#line429">line 429</a>
+        <a href="List.js.html">List.js</a>, <a href="List.js.html#line431">line 431</a>
     </li></ul></dd>
     
 
@@ -3523,7 +3525,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="List.js.html">List.js</a>, <a href="List.js.html#line560">line 560</a>
+        <a href="List.js.html">List.js</a>, <a href="List.js.html#line562">line 562</a>
     </li></ul></dd>
     
 
@@ -3804,7 +3806,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="List.js.html">List.js</a>, <a href="List.js.html#line539">line 539</a>
+        <a href="List.js.html">List.js</a>, <a href="List.js.html#line541">line 541</a>
     </li></ul></dd>
     
 
@@ -4119,7 +4121,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="List.js.html">List.js</a>, <a href="List.js.html#line219">line 219</a>
+        <a href="List.js.html">List.js</a>, <a href="List.js.html#line221">line 221</a>
     </li></ul></dd>
     
 
@@ -4227,7 +4229,7 @@ If <code>inPlace = true</code>, this is a reference to the current instance, oth
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Sun Jul 06 2025 22:54:11 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Mon Jul 07 2025 00:43:51 GMT+0000 (Coordinated Universal Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
