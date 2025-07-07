@@ -76,6 +76,11 @@ test("List getters work as expected", () => {
 
     let unnamed = new bioc.List([6,7,8]);
     expect(() => unnamed.get("F")).toThrow("no available names");
+
+    let dupped = new bioc.List([1,2,3,4,5], { names: ["a", "b", "a", "c", "c"] });
+    expect(dupped.get("a")).toBe(1);
+    expect(dupped.get("b")).toBe(2);
+    expect(dupped.get("c")).toBe(4);
 })
 
 test("List setters work with indices", () => {
@@ -135,6 +140,20 @@ test("List setters work with indices", () => {
         expect(ll2.get("foo")).toBeNull();
     }
 
+    // Works with duplicates.
+    {
+        let dupped = new bioc.List([1,2,3,4,5], { names: ["a", "b", "a", "c", "c"] });
+        dupped.set(0, null, { name: "b", inPlace: true });
+        expect(dupped.get("b")).toBeNull();
+        expect(dupped.get("a")).toBe(3);
+        dupped.set(0, null, { name: "a", inPlace: true });
+        expect(dupped.get("a")).toBeNull();
+        expect(dupped.get("b")).toBe(2);
+        dupped.set(1, null, { name: "a", inPlace: true });
+        expect(dupped.get("a")).toBeNull();
+        expect(dupped.has("b")).toBe(false);
+    }
+
     // Works in-place as well.
     ll.set(5, null, { inPlace: true });
     expect(ll.length()).toEqual(6);
@@ -176,6 +195,19 @@ test("List setters work with names", () => {
         expect(unnamed2.get("foo")).toBeNull();
     }
 
+    // Works with duplicates.
+    {
+        let dupped = new bioc.List([1,2,3,4,5], { names: ["a", "b", "a", "c", "c"] });
+        dupped.set("a", null, { inPlace: true });
+        expect(dupped.get(0)).toBeNull();
+        expect(dupped.get("a")).toBeNull();
+        expect(dupped.get(2)).toBe(3);
+        dupped.set("c", null, { inPlace: true });
+        expect(dupped.get(3)).toBeNull();
+        expect(dupped.get("c")).toBeNull();
+        expect(dupped.get(4)).toBe(5);
+    }
+
     // Works in-place as well.
     ll.set("A", null, { inPlace: true });
     expect(ll.get(0)).toBeNull();
@@ -207,17 +239,31 @@ test("List deleters work with indices", () => {
     let ll = new bioc.List(src);
     let unnamed = new bioc.List([1,2,3,4,5]);
 
-    let ll2 = ll.delete(2);
-    expect(ll2.get(0)).toBe(1);
-    expect(ll2.get(2)).toBe(4);
-    expect(ll2.get("B")).toBe(2);
-    expect(ll2.get("D")).toBe(4);
-    expect(() => ll2.get("C")).toThrow("no matching name");
-    expect(ll2.names()).toEqual(["A","B","D","E"]);
+    {
+        let ll2 = ll.delete(2);
+        expect(ll2.get(0)).toBe(1);
+        expect(ll2.get(2)).toBe(4);
+        expect(ll2.get("B")).toBe(2);
+        expect(ll2.get("D")).toBe(4);
+        expect(() => ll2.get("C")).toThrow("no matching name");
+        expect(ll2.names()).toEqual(["A","B","D","E"]);
+    }
 
-    let unnamed2 = unnamed.delete(1);
-    expect(unnamed2.get(0)).toBe(1);
-    expect(unnamed2.get(1)).toBe(3);
+    {
+        let unnamed2 = unnamed.delete(1);
+        expect(unnamed2.get(0)).toBe(1);
+        expect(unnamed2.get(1)).toBe(3);
+    }
+
+    // Works with duplicates.
+    {
+        let dupped = new bioc.List([1,2,3,4,5], { names: ["a", "b", "a", "c", "c"] });
+        let deleted = dupped.delete(0);
+        expect(deleted.get(0)).toBe(2);
+        expect(deleted.get("a")).toBe(3);
+        deleted = dupped.delete(3);
+        expect(deleted.get("c")).toBe(5);
+    }
 
     // Works in place.
     expect(ll.get("D")).toEqual(4); // populating the lookup.
@@ -253,6 +299,16 @@ test("List deleters work with names", () => {
     {
         let unnamed = new bioc.List([1,2,3,4,5]);
         expect(() => unnamed.delete("A")).toThrow("no available names");
+    }
+
+    // Works with duplicates.
+    {
+        let dupped = new bioc.List([1,2,3,4,5], { names: ["a", "b", "a", "c", "c"] });
+        let deleted = dupped.delete("a");
+        expect(deleted.get(0)).toBe(2);
+        expect(deleted.get("a")).toBe(3);
+        deleted = deleted.delete("c");
+        expect(deleted.get("c")).toBe(5);
     }
 
     // Works in place.
@@ -309,22 +365,34 @@ test("List slicing for indices", () => {
     let src = { A: 1, B: 2, C: 3, D: 4, E: 5 };
     let ll = new bioc.List(src);
 
-    let sliced = ll.sliceIndices([1, 3]);
-    expect(sliced.length()).toEqual(2);
-    expect(sliced.values()).toEqual([2, 4]);
-    expect(sliced.names()).toEqual(["B", "D"]);
+    {
+        let sliced = ll.sliceIndices([1, 3]);
+        expect(sliced.length()).toEqual(2);
+        expect(sliced.values()).toEqual([2, 4]);
+        expect(sliced.names()).toEqual(["B", "D"]);
 
-    sliced = ll.sliceIndices(["D", "C", "A"]);
-    expect(sliced.length()).toEqual(3);
-    expect(sliced.values()).toEqual([4, 3, 1]);
-    expect(sliced.names()).toEqual(["D", "C", "A"]);
+        sliced = ll.sliceIndices(["D", "C", "A"]);
+        expect(sliced.length()).toEqual(3);
+        expect(sliced.values()).toEqual([4, 3, 1]);
+        expect(sliced.names()).toEqual(["D", "C", "A"]);
+    }
 
-    let unnamed = new bioc.List([1,2,3,4,5]);
-    let usliced = unnamed.sliceIndices([0, 4, 3]);
-    expect(usliced.values()).toEqual([1,5,4]);
-    expect(usliced.names()).toBeNull();
+    {
+        let unnamed = new bioc.List([1,2,3,4,5]);
+        let usliced = unnamed.sliceIndices([0, 4, 3]);
+        expect(usliced.values()).toEqual([1,5,4]);
+        expect(usliced.names()).toBeNull();
 
-    expect(() => unnamed.sliceIndices(["D", "C", "A"])).toThrow("available names");
+        expect(() => unnamed.sliceIndices(["D", "C", "A"])).toThrow("available names");
+    }
+
+    // Works with duplicates.
+    {
+        let dupped = new bioc.List([1,2,3,4,5], { names: ["a", "b", "a", "c", "c"] });
+        let sliced = dupped.sliceIndices(["a", "c", "b"]);
+        expect(sliced.values()).toEqual([1,4,2]);
+        expect(sliced.names()).toEqual(["a","c","b"]);
+    }
 
     // Works in place.
     expect(ll.get("A")).toEqual(1); // populating the lookup.
