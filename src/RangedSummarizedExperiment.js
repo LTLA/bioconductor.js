@@ -19,6 +19,9 @@ import * as cutils from "./clone-utils.js";
  *   If any object is a base SummarizedExperiment, a GroupedGRanges containing zero-length groups will be automatically constructed to attempt combining.
  * - {@linkcode COMBINE_COLUMNS} will use the genomic ranges from the first object.
  *
+ * Constructors of RangedSummarizedExperiment subclasses should be callable with no arguments, possibly creating an empty object with no properties.
+ * This will be used by the `_bioconductor_CLONE`, `_bioconductor_COMBINE_ROWS`, `_bioconductor_COMBINE_COLUMNS` and `_bioconductor_SLICE_2D` methods to return an instance of the subclass.
+ *
  * @extends SummarizedExperiment
  */
 export class RangedSummarizedExperiment extends se.SummarizedExperiment {

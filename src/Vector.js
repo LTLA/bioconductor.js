@@ -20,8 +20,10 @@ function verifyElementMetadata(elementMetadata, numExpected, className) {
 
 /**
  * The Vector class implements a store for arbitrary per-element metadata and per-element names.
- * It is intended as a base class for other structures that have a concept of "vector-ness".
- * It should not be constructed directly.
+ * It is intended as a base class for other structures that have a concept of "vector-ness" and should not be constructed directly.
+ *
+ * Constructors of Vector subclasses should be callable with no arguments, possibly creating an empty object with no properties.
+ * This will be used by the `_bioconductor_CLONE`, `_bioconductor_COMBINE` and `_bioconductor_SLICE` methods to return an instance of the subclass.
  *
  * @augments Annotated
  */

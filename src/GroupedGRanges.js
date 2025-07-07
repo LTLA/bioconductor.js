@@ -16,6 +16,9 @@ import * as generics from "./AllGenerics.js";
  *
  * Our implementation re-uses Bioconductor's strategy of storing the groups in a single concatenated GRanges.
  * This improves efficiency for large numbers of small GRanges, especially in placeholder objects where all the GRanges are zero-length.
+ *
+ * Constructors of GroupedGRanges subclasses should be callable with no arguments, possibly creating an empty object with no properties.
+ * This will be used by the `_bioconductor_CLONE`, `_bioconductor_SLICE` and `_bioconductor_COMBINE` methods to return an instance of the subclass.
  * 
  * @extends Vector
  */

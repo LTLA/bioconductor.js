@@ -126,9 +126,9 @@ export function COMBINE(objects) {
 
 /**
  * Clone a vector-like object.
- * 
- * For TypedArrays, this just uses `slice()`.
- * For Arrays, this creates a copy and runs `CLONE` on each element in the copy.
+ *
+ * This function supports built-in types like TypedArrays, Arrays, objects and Maps, as well as the various primitive types (e.g., number, string) that are returned by value.
+ * If a deep copy is requested, this function will recursively clone all elements of the Array, values of the object, or key/value pairs of the Map.
  *
  * Custom classes should provide a `_bioconductor_CLONE` method to define the cloning operation.
  * This method should accept `options` and should return an appropriately cloned instance of the same class as `x`.
@@ -136,10 +136,11 @@ export function COMBINE(objects) {
  * @param {*} x - Some vector-like object.
  * @param {Object} [options={}] - Optional parameters.
  * @param {boolean} [options.deepCopy=true] - Whether to create a deep copy.
- * The exact interpretation of `deepCopy=false` is left to each method.
+ * The exact interpretation of `deepCopy = false` is left to each method.
  *
  * @return {*} A clone of `x`, i.e., the return value and `x` should not compare equal.
- * If `deepCopy=true`, all internal components are also cloned.
+ * If `deepCopy = true`, all internal components are also cloned.
+ * Otherwise, data members of `x` and its clone may still refer to the same object.
  */
 export function CLONE(x, { deepCopy = true } = {}) {
     if (x instanceof Object) {
@@ -173,7 +174,7 @@ export function CLONE(x, { deepCopy = true } = {}) {
         if (x.constructor == Map) {
             let output = new Map;
             for (const [k, v] of x) {
-                output.set(k, deepCopy ? CLONE(v) : v);
+                output.set(deepCopy ? CLONE(k) : k, deepCopy ? CLONE(v) : v);
             }
             return output;
         }

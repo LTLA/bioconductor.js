@@ -15,6 +15,9 @@ import * as olap from "./overlap-utils.js";
  * - {@linkcode COMBINE}
  * - {@linkcode CLONE}
  *
+ * Constructors of IRanges subclasses should be callable with no arguments, possibly creating an empty object with no properties.
+ * This will be used by the `_bioconductor_CLONE`, `_bioconductor_SLICE` and `_bioconductor_COMBINE` methods to return an instance of the subclass.
+ *
  * @extends Vector
  */
 export class IRanges extends vec.Vector {

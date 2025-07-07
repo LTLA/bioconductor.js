@@ -107,7 +107,8 @@ class IndexedNames {
  * We explicitly allow duplicates in the names to avoid errors when slicing or combining.
  * Otherwise, it would be impossible to construct a slice with duplicate indices or to combine multiple `List` instances with shared names.
  *
- * Constructors of List subclasses should create an empty instance of the subclass when called with no arguments.
+ * Constructors of List subclasses should be callable with no arguments, possibly creating an empty object with no properties.
+ * This will be used by the `_bioconductor_CLONE`, `_bioconductor_SLICE` and `_bioconductor_COMBINE` methods to return an instance of the subclass.
  */
 export class List {
     /**

@@ -26,6 +26,9 @@ import * as il from "./InternalList.js";
  * - {@linkcode COMBINE_COLUMNS}
  * - {@linkcode CLONE}
  *
+ * Constructors of SummarizedExperiment subclasses should be callable with no arguments, possibly creating an empty object with no properties.
+ * This will be used by the `_bioconductor_CLONE`, `_bioconductor_COMBINE_ROWS`, `_bioconductor_COMBINE_COLUMNS` and `_bioconductor_SLICE_2D` methods to return an instance of the subclass.
+ *
  * @extends Annotated
  */
 export class SummarizedExperiment extends ann.Annotated {

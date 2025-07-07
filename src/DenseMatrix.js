@@ -11,7 +11,8 @@ import * as cutils from "./clone-utils.js";
  * - {@linkcode COMBINE_COLUMNS}
  * - {@linkcode CLONE}
  *
- * Constructors of DenseMatrix subclasses should create an empty instance of the subclass when called with no arguments.
+ * Constructors of DataFrame subclasses should be callable with no arguments, possibly creating an empty object with no properties.
+ * This will be used by the `_bioconductor_CLONE`, `_bioconductor_COMBINE_ROWS`, `_bioconductor_COMBINE_COLUMNS` and `_bioconductor_SLICE_2D` methods to return an instance of the subclass.
  */
 export class DenseMatrix {
     /**

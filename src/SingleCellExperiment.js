@@ -19,6 +19,9 @@ import * as il from "./InternalList.js";
  *
  * Each alternative experiment should be a {@linkplain SummarizedExperiment} with number of columns equal to that of the SingleCellExperiment.
  *
+ * Constructors of RangedSummarizedExperiment subclasses should be callable with no arguments, possibly creating an empty object with no properties.
+ * This will be used by the `_bioconductor_CLONE`, `_bioconductor_COMBINE_ROWS`, `_bioconductor_COMBINE_COLUMNS` and `_bioconductor_SLICE_2D` methods to return an instance of the subclass.
+ *
  * @extends RangedSummarizedExperiment
  */
 export class SingleCellExperiment extends rse.RangedSummarizedExperiment {

@@ -7,7 +7,8 @@ import * as list from "./List.js";
  * The Annotated class provides a store for arbitrary object-wide metadata.
  * It is intended as a base class for other structures and should not be constructed directly.
  *
- * Constructors of Annotated subclasses should create an empty instance of the subclass when called with no arguments.
+ * Constructors of Annotated subclasses should be callable with no arguments, possibly creating an empty object with no properties.
+ * This will be used by the `_bioconductor_CLONE` method to return an instance of the subclass.
  */
 export class Annotated {
     /**

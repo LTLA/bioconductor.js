@@ -26,6 +26,9 @@ import * as il from "./InternalList.js";
  * - {@linkcode COMBINE}
  * - {@linkcode CLONE}
  *
+ * Constructors of DataFrame subclasses should be callable with no arguments, possibly creating an empty object with no properties.
+ * This will be used by the `_bioconductor_CLONE`, `_bioconductor_COMBINE` and `_bioconductor_SLICE` methods to return an instance of the subclass.
+ *
  * @augments Annotated
  */
 export class DataFrame extends ann.Annotated {
