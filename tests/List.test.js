@@ -262,6 +262,28 @@ test("List deleters work with names", () => {
     expect(() => ll.get("C")).toThrow("no matching name"); // lookup is properly reset.
 })
 
+test("List conversion to different types", () => {
+    let src = { A: 1, B: 2, C: 3, D: 4, E: 5 };
+    let ll = new bioc.List(src);
+
+    expect(ll.toObject()).toEqual(src);
+    expect(ll.toArray()).toEqual([1,2,3,4,5]);
+    let map = ll.toMap();
+    expect(map.size).toBe(5);
+    expect(map.get("A")).toBe(1);
+    expect(map.get("E")).toBe(5);
+
+    // Handles duplicates correctly.
+    ll = new bioc.List([1,2,3,4,5], { names: ["a", "b", "a", "c", "b"] });
+    expect(ll.toArray()).toEqual([1,2,3,4,5]);
+    expect(ll.toObject()).toEqual({ a : 1, b: 2, c : 4 });
+    map = ll.toMap();
+    expect(map.size).toBe(3);
+    expect(map.get("a")).toBe(1);
+    expect(map.get("b")).toBe(2);
+    expect(map.get("c")).toBe(4);
+})
+
 test("List slicing for ranges", () => {
     let src = { A: 1, B: 2, C: 3, D: 4, E: 5 };
     let ll = new bioc.List(src);

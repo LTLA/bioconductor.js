@@ -297,6 +297,57 @@ export class List {
     /***********************************************/
 
     /**
+     * @return {Array} Array of values, equivalent to {@linkcode List#values values}.
+     */
+    toArray() {
+        return this._values;
+    }
+
+    /**
+     * @return {Map} Map of name-value pairs.
+     * If duplicate names are present, only the value for the first occurrence is reported.
+     * If the List is unnamed, an error is thrown.
+     */
+    toMap() {
+        if (this._names == null) {
+            throw new Error("no available names in this '" + this.constructor.className + "'");
+        }
+        let output = new Map;
+        let names = this._names.names();
+        for (var i = 0; i < this._values.length; i++) {
+            const curname = names[i];
+            if (output.has(curname)) {
+                continue;
+            }
+            output.set(curname, this._values[i]);
+        }
+        return output;
+    }
+
+    /**
+     * @return {Object} Object of name-value pairs.
+     * If duplicate names are present, only the value for the first occurrence is reported.
+     * If the List is unnamed, an error is thrown.
+     */
+    toObject() {
+        if (this._names == null) {
+            throw new Error("no available names in this '" + this.constructor.className + "'");
+        }
+        let output = {};
+        let names = this._names.names();
+        for (var i = 0; i < this._values.length; i++) {
+            const curname = names[i];
+            if (curname in output) {
+                continue;
+            }
+            output[curname] = this._values[i];
+        }
+        return output;
+    }
+
+    /***********************************************/
+
+    /**
      * @param {number} i - Index of the List element to set.
      * This should be non-negative and no greater than {@linkcode List#length length}.
      * If `i` is less than `length`, the `i`-th element is replaced by `x`.
