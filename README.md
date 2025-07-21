@@ -1,5 +1,9 @@
 # Bioconductor objects in Javascript
 
+[![Unit tests](https://github.com/LTLA/bioconductor.js/actions/workflows/run-tests.yaml/badge.svg)](https://github.com/LTLA/bioconductor.js/actions/workflows/run-tests.yaml)
+[![Build docs](https://github.com/LTLA/bioconductor.js/actions/workflows/build-docs.yaml/badge.svg)](https://github.com/LTLA/bioconductor.js/actions/workflows/build-docs.yaml)
+[![NPM Version](https://img.shields.io/npm/v/bioconductor)](http://npmjs.com/package/bioconductor)
+
 This package aims to provide Javascript implementations of [Bioconductor](https://github.com/Bioconductor) data structures for use in web applications.
 Much like the original R code, we focus on the use of common generics to provide composability, allowing users to construct complex objects that "just work".
 We also attempt to circumvent Javascript's pass-by-reference behavior to avoid unintended modifications to unrelated objects when calling setter methods from their nested child objects.
