@@ -411,7 +411,7 @@ export class List {
     }
 
     /**
-     * @param {number} name - Name of the List element to set.
+     * @param {string} name - Name of the List element to set.
      * If this already exists in {@linkcode List#names names}, the corresponding element is replaced by `x`.
      * Otherwise, `x` is appended to the List with the name `name`.
      * If the List did not previously have any names, the names of all other elements are set to an empty string.
@@ -526,7 +526,7 @@ export class List {
     }
 
     /**
-     * @param {number} name - Name of the List element to delete.
+     * @param {string} name - Name of the List element to delete.
      * This should already exist in {@linkcode List#names names}.
      * @param {?string} [options.name=null] - See the argument of the same name in {@linkcode List#setByName setByName}.
      * @param {boolean} [options.inPlace=false] - Whether to modify this List instance in place.
@@ -724,5 +724,213 @@ export class List {
         output._values = all_values;
         output._names = new IndexedNames(all_names);
         return output;
+    }
+}
+
+/**
+ * Subclass of a {@linkplain List} that only contains integers or `null`s.
+ * If a `null` is present, it should be treated as a missing value.
+ * @extends List
+ */
+export class IntegerList extends List {
+    #sanitize(x) {
+        if (x !== null && !Number.isInteger(x)) {
+            throw new Error("only integers or nulls can be stored in an IntegerList");
+        }
+        return x;
+    }
+
+    /**
+     * @param {Array|Map|Object} values - Elements of the List.
+     * This should only contain integers or `null`s.
+     * @param {Object} [options={}] - Further options.
+     */
+    constructor(values, options = {}) {
+        if (arguments.length == 0) {
+            super();
+        } else {
+            super(values, options);
+            for (const x of this._values) {
+                this.#sanitize(x);
+            }
+        }
+    }
+
+    /**
+     * @param {number} i - Index of the List element to set, see {@linkcode List#setByIndex List.setByIndex} for details.
+     * @param {?number} x - Value of a List element as an integer or `null`.
+     * @param {Object} [options={}] - Further options, see {@linkcode List#setByIndex List.setByIndex} for details.
+     *
+     * @return {List} The List after setting the `i`-th element to `x`, see {@linkcode List#setByIndex List.setByIndex} for details.
+     */
+    setByIndex(i, x, options = {}) {
+        return super.setByIndex(i, this.#sanitize(x), options);
+    }
+
+    /**
+     * @param {string} name - Name of the List element to set, see {@linkcode List#setByName List.setByName} for details.
+     * @param {?number} x - Value of a List element as an integer or `null`.
+     * @param {Object} [options={}] - Further options, see {@linkcode List#setByName List.setByName} for details.
+     *
+     * @return {List} The List after setting the `name`d entry to `x`, see {@linkcode List#setByName List.setByName} for details.
+     */
+    setByName(name, x, options = {}) {
+        return super.setByName(name, this.#sanitize(x), options);
+    }
+}
+
+/**
+ * Subclass of a {@linkplain List} that only contains numbers or `null`s.
+ * If a `null` is present, it should be treated as a missing value.
+ * @extends List
+ */
+export class NumberList extends List {
+    #sanitize(x) {
+        if (x !== null && typeof x !== "number") {
+            throw new Error("only numbers or nulls can be stored in a NumberList");
+        }
+        return x;
+    }
+
+    /**
+     * @param {Array|Map|Object} values - Elements of the List.
+     * This should only contain numbers or `null`s.
+     * @param {Object} [options={}] - Further options.
+     */
+    constructor(values, options = {}) {
+        if (arguments.length == 0) {
+            super();
+        } else {
+            super(values, options);
+            for (const x of this._values) {
+                this.#sanitize(x);
+            }
+        }
+    }
+
+    /**
+     * @param {number} i - Index of the List element to set, see {@linkcode List#setByIndex List.setByIndex} for details.
+     * @param {?number} x - Value of a List element as a number or `null`.
+     * @param {Object} [options={}] - Further options, see {@linkcode List#setByIndex List.setByIndex} for details.
+     *
+     * @return {List} The List after setting the `i`-th element to `x`, see {@linkcode List#setByIndex List.setByIndex} for details.
+     */
+    setByIndex(i, x, options = {}) {
+        return super.setByIndex(i, this.#sanitize(x), options);
+    }
+
+    /**
+     * @param {string} name - Name of the List element to set, see {@linkcode List#setByName List.setByName} for details.
+     * @param {?number} x - Value of a List element as a number or `null`.
+     * @param {Object} [options={}] - Further options, see {@linkcode List#setByName List.setByName} for details.
+     *
+     * @return {List} The List after setting the `name`d entry to `x`, see {@linkcode List#setByName List.setByName} for details.
+     */
+    setByName(name, x, options = {}) {
+        return super.setByName(name, this.#sanitize(x), options);
+    }
+}
+
+/**
+ * Subclass of a {@linkplain List} that only contains strings or `null`s.
+ * If a `null` is present, it should be treated as a missing value.
+ * @extends List
+ */
+export class StringList extends List {
+    #sanitize(x) {
+        if (x !== null && typeof x !== "string") {
+            throw new Error("only strings or nulls can be stored in a StringList");
+        }
+        return x;
+    }
+
+    /**
+     * @param {Array|Map|Object} values - Elements of the List.
+     * This should only contain strings or `null`s.
+     * @param {Object} [options={}] - Further options.
+     */
+    constructor(values, options = {}) {
+        if (arguments.length == 0) {
+            super();
+        } else {
+            super(values, options);
+            for (const x of this._values) {
+                this.#sanitize(x);
+            }
+        }
+    }
+
+    /**
+     * @param {number} i - Index of the List element to set, see {@linkcode List#setByIndex List.setByIndex} for details.
+     * @param {?boolean} x - Value of a List element as a string or `null`.
+     * @param {Object} [options={}] - Further options, see {@linkcode List#setByIndex List.setByIndex} for details.
+     *
+     * @return {List} The List after setting the `i`-th element to `x`, see {@linkcode List#setByIndex List.setByIndex} for details.
+     */
+    setByIndex(i, x, options = {}) {
+        return super.setByIndex(i, this.#sanitize(x), options);
+    }
+
+    /**
+     * @param {string} name - Name of the List element to set, see {@linkcode List#setByName List.setByName} for details.
+     * @param {?boolean} x - Value of a List element as a string or `null`.
+     * @param {Object} [options={}] - Further options, see {@linkcode List#setByName List.setByName} for details.
+     *
+     * @return {List} The List after setting the `name`d entry to `x`, see {@linkcode List#setByName List.setByName} for details.
+     */
+    setByName(name, x, options = {}) {
+        return super.setByName(name, this.#sanitize(x), options);
+    }
+}
+
+/**
+ * Subclass of a {@linkplain List} that only contains booleans or `null`s.
+ * If a `null` is present, it should be treated as a missing value.
+ * @extends List
+ */
+export class BooleanList extends List {
+    #sanitize(x) {
+        if (x !== null && typeof x !== "boolean") {
+            throw new Error("only booleans or nulls can be stored in a StringList");
+        }
+        return x;
+    }
+
+    /**
+     * @param {Array|Map|Object} values - Elements of the List.
+     * This should only contain booleans or `null`s.
+     * @param {Object} [options={}] - Further options.
+     */
+    constructor(values, options = {}) {
+        if (arguments.length == 0) {
+            super();
+        } else {
+            super(values, options);
+            for (const x of this._values) {
+                this.#sanitize(x);
+            }
+        }
+    }
+
+    /**
+     * @param {number} i - Index of the List element to set, see {@linkcode List#setByIndex List.setByIndex} for details.
+     * @param {?boolean} x - Value of a List element as a boolean or `null`.
+     * @param {Object} [options={}] - Further options, see {@linkcode List#setByIndex List.setByIndex} for details.
+     *
+     * @return {List} The List after setting the `i`-th element to `x`, see {@linkcode List#setByIndex List.setByIndex} for details.
+     */
+    setByIndex(i, x, options = {}) {
+        return super.setByIndex(i, this.#sanitize(x), options);
+    }
+
+    /**
+     * @param {string} name - Name of the List element to set, see {@linkcode List#setByName List.setByName} for details.
+     * @param {?boolean} x - Value of a List element as a boolean or `null`.
+     * @param {Object} [options={}] - Further options, see {@linkcode List#setByName List.setByName} for details.
+     *
+     * @return {List} The List after setting the `name`d entry to `x`, see {@linkcode List#setByName List.setByName} for details.
+     */
+    setByName(name, x, options = {}) {
+        return super.setByName(name, this.#sanitize(x), options);
     }
 }

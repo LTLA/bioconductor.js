@@ -490,3 +490,92 @@ test("COMBINE works for List", () => {
         expect(combined.names()).toEqual(["", "", "", "", "", "", "", "x", "y"]);
     }
 })
+
+test("IntegerList is okay", () => {
+    let ilist = new bioc.IntegerList([1,2,null,4]);
+    expect(ilist.get(0)).toBe(1);
+    expect(ilist.get(2)).toBeNull();
+
+    ilist.set(0, null, { inPlace: true });
+    ilist.set(2, 5, { inPlace: true });
+    expect(ilist.toArray()).toEqual([null,2,5,4]);
+
+    ilist.setNames(["A","B","C","D"], { inPlace: true });
+    ilist.set("A", 1, { inPlace: true });
+    ilist.set("C", 3, { inPlace: true });
+    expect(ilist.toArray()).toEqual([1,2,3,4]);
+
+    let alt = bioc.CLONE(ilist);
+    expect(alt instanceof bioc.IntegerList).toBe(true);
+
+    expect(() => ilist.set(0, "A")).toThrow("integer");
+    expect(() => ilist.set("A", "")).toThrow("integer");
+    expect(() => ilist.set("A", 1.5)).toThrow("integer");
+    expect(() => new bioc.IntegerList(["a", "b", "c"])).toThrow("integer");
+})
+
+test("NumberList is okay", () => {
+    let nlist = new bioc.NumberList([1.5,2.5,null,4.5]);
+    expect(nlist.get(0)).toBe(1.5);
+    expect(nlist.get(2)).toBeNull();
+
+    nlist.set(0, null, { inPlace: true });
+    nlist.set(2, 5.5, { inPlace: true });
+    expect(nlist.toArray()).toEqual([null,2.5,5.5,4.5]);
+
+    nlist.setNames(["A","B","C","D"], { inPlace: true });
+    nlist.set("A", 1.5, { inPlace: true });
+    nlist.set("C", 3.5, { inPlace: true });
+    expect(nlist.toArray()).toEqual([1.5,2.5,3.5,4.5]);
+
+    let alt = bioc.CLONE(nlist);
+    expect(alt instanceof bioc.NumberList).toBe(true);
+
+    expect(() => nlist.set(0, "A")).toThrow("number");
+    expect(() => nlist.set("A", "")).toThrow("number");
+    expect(() => new bioc.NumberList(["a", "b", "c"])).toThrow("number");
+})
+
+test("StringList is okay", () => {
+    let slist = new bioc.StringList(["a","b",null,"d"]);
+    expect(slist.get(0)).toBe("a");
+    expect(slist.get(2)).toBeNull();
+
+    slist.set(0, null, { inPlace: true });
+    slist.set(2, "C", { inPlace: true });
+    expect(slist.toArray()).toEqual([null,"b","C","d"]);
+
+    slist.setNames(["A","B","C","D"], { inPlace: true });
+    slist.set("A", "aa", { inPlace: true });
+    slist.set("C", "cc", { inPlace: true });
+    expect(slist.toArray()).toEqual(["aa","b","cc","d"]);
+
+    let alt = bioc.CLONE(slist);
+    expect(alt instanceof bioc.StringList).toBe(true);
+
+    expect(() => slist.set(0, 2)).toThrow("string");
+    expect(() => slist.set("A", 2)).toThrow("string");
+    expect(() => new bioc.StringList([1,2,3])).toThrow("string");
+})
+
+test("BooleanList is okay", () => {
+    let blist = new bioc.BooleanList([true,false,null,false]);
+    expect(blist.get(0)).toBe(true);
+    expect(blist.get(2)).toBeNull();
+
+    blist.set(0, null, { inPlace: true });
+    blist.set(2, false, { inPlace: true });
+    expect(blist.toArray()).toEqual([null,false,false,false]);
+
+    blist.setNames(["A","B","C","D"], { inPlace: true });
+    blist.set("A", true, { inPlace: true });
+    blist.set("C", true, { inPlace: true });
+    expect(blist.toArray()).toEqual([true,false,true,false]);
+
+    let alt = bioc.CLONE(blist);
+    expect(alt instanceof bioc.BooleanList).toBe(true);
+
+    expect(() => blist.set(0, 2)).toThrow("boolean");
+    expect(() => blist.set("A", 2)).toThrow("boolean");
+    expect(() => new bioc.BooleanList([1,2,3])).toThrow("boolean");
+})
